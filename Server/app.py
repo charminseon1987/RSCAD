@@ -228,7 +228,7 @@ def sweep_2d():
         for scr in SCR_list:
             A, _ = build_jacobian(scr, xr, J, Dp, Kpv, Kpc, Lv)
             eigs = linalg.eigvals(A)
-            stable, zeta_min, f_dom, _ = analyze_eigenvalues(eigs, J, Dp, wc, scr)
+            stable, zeta_min, f_dom, _ = analyze_eigenvalues(eigs, J, Dp, wc, scr, xr, Kpv)
             results.append({
                 'scr': scr, 'xr': xr,
                 'zeta': round(zeta_min, 4),
@@ -236,11 +236,24 @@ def sweep_2d():
                 'f_dom': round(f_dom, 3)
             })
 
+    # boundaries = {}
+    # for xr in XR_list:
+    #     pts = sorted([r for r in results if r['xr']==xr], key=lambda p: p['scr'])
+    #     bd  = next((p for p in pts if p['zeta'] >= 0.64), None)
+    #     boundaries[str(xr)] = bd['scr'] if bd else None
+
+    # app.py의 boundaries 계산 부분 수정
+
+    # 현재: zeta >= 0.64 (LCL 기준으로 불가능)
+    # 수정: zeta >= 0.25 (numpy 근사 모델 기준)
+
     boundaries = {}
     for xr in XR_list:
         pts = sorted([r for r in results if r['xr']==xr], key=lambda p: p['scr'])
-        bd  = next((p for p in pts if p['zeta'] >= 0.64), None)
-        boundaries[str(xr)] = bd['scr'] if bd else None
+        # numpy 근사 모델 임계값 0.25 적용
+        # Phase 2 SymPy 교체 후 0.64로 복원
+        bd = next((p for p in pts if p['zeta'] >= 0.25), None)
+        boundaries[str(xr)] = bd['scr'] if bd else None    
 
     return jsonify({
         'status': 'ok',
