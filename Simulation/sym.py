@@ -194,15 +194,83 @@ with open(out_dir / 'meta.json', 'w', encoding='utf-8') as f:
     json.dump(meta, f, indent=2, ensure_ascii=False)
 
 # ─────────────────────────────────────────────
-# latest/ 폴더 갱신 (최신 실험 복사)
+# latest/ 폴더 갱신 + 원본 명시
 # ─────────────────────────────────────────────
 latest_dir = BASE_DIR / 'latest'
 if latest_dir.exists():
     shutil.rmtree(latest_dir)
 shutil.copytree(out_dir, latest_dir)
 
+# latest/meta.json에 원본 run_name 명시
+latest_meta = latest_dir / 'meta.json'
+meta_content = json.loads(latest_meta.read_text(encoding='utf-8'))
+meta_content['latest_copied_from'] = run_name   # ← 어느 실험에서 왔는지
+latest_meta.write_text(json.dumps(meta_content, indent=2, ensure_ascii=False), encoding='utf-8')
+
 print(f"\n  📁 저장 완료: results/{run_name}/")
-print(f"  📁 latest/   갱신됨 (app.py가 이걸 로드)")
+print(f"  📁 latest/   → {run_name} 에서 복사됨")
+
+# ─────────────────────────────────────────────
+# results.md — Obsidian용 요약
+# ─────────────────────────────────────────────
+all_stable = all(v['stable'] for v in results.values())
+
+rows = ""
+for SCR in SCR_list:
+    r    = results[SCR]
+    flag = "✅" if r['stable'] else "❌"
+    rows += f"| {SCR} | {flag} | {r['zeta_min']} | {r['f_dom_hz']} | {r['coupling']} |\n"
+
+md_text = f"""---
+type: result
+run: {run_name}
+date: {datetime.now().strftime('%Y-%m-%d %H:%M')}
+all_stable: {all_stable}
+tags: [result, phase2, jacobian]
+---
+
+# 실험 결과: {run_name}
+
+## 파라미터
+
+| J | Dp | Kpv | Kiv | Kpc | Kic | wc |
+|---|---|---|---|---|---|---|
+| {J} | {Dp} | {Kpv} | {Kiv} | {Kpc} | {Kic} | {wc:.1f} |
+
+## 고유값 분석 (XR={XR_nom})
+
+| SCR | stable | ζ_min | f_dom (Hz) | A_k(9,6) |
+|---|---|---|---|---|
+{rows}
+## 판정
+
+{'✅ 전 SCR 안정' if all_stable else '❌ 불안정 SCR 존재'}  
+ζ_min 기준 (≥ 0.64): {'❌ 미달 → PSO 필요' if min(v['zeta_min'] for v in results.values()) < 0.64 else '✅ 달성'}
+
+## 파일 목록 (탐색기에서 열기)
+
+```
+{run_name}/
+├── A_num_SCR1.0.npy
+├── A_num_SCR1.5.npy
+├── A_num_SCR2.0.npy
+├── A_num_SCR3.0.npy
+├── eigenvalue_results.json
+├── meta.json
+└── results.md
+```
+
+## 🔗 연결 노트
+
+- [[Phase02_완료]]
+- [[DC-AC_커플링]]
+- [[고유값_안정도판단]]
+- [[88포인트_2D_스윕_설계]]
+"""
+
+for d in [out_dir, latest_dir]:
+    (d / 'results.md').write_text(md_text, encoding='utf-8')
+print("  💾 results.md (Obsidian 표시용)")
 
 # ─────────────────────────────────────────────
 # 검증
