@@ -57,6 +57,5 @@
   "all_converged": true,
   "all_stable": true,
   "max_fd_error": 1.1979598963307582e-09,
-  "zeta_min_all": 0.2068,
-  "latest_copied_from": "J0.50_Dp20.0_Kpv0.050_wc62.8_XR1.0_4539ec"
+  "zeta_min_all": 0.2068
 }
