@@ -1,0 +1,658 @@
+# ══════════════════════════════════════════════════════════
+# schedule.yaml — 연구 일정 단일 진실원
+# 갱신: 2026-08-28 (P2-A4 수치 무효화, 신규 artifact 3건,
+#                   무결성 규칙 신설, 폐기값 이력 연동)
+# 이전: 2026-08-26 (Phase 2 재구축, Phase 3 완료, RTDS 분기 신설)
+# ══════════════════════════════════════════════════════════
+
+meta:
+  project: GFM-PSO-2D-Robustness
+  owner: 조연호
+  affiliation: 연세대 전기전자공학부 스마트그리드 연구실
+  advisor: 허견
+
+  # ⚠️ month_1_start 는 기록이 없어 추정값이다. 반드시 확인 후 확정할 것.
+  #    (2026-08-20 시점에 current_month=4 였던 것에서 역산)
+  month_1_start: 2026-08       
+  deadline_month:12            # 추정 2027-04
+  buffer_months: 0
+  # model_version: [%model_version%]  
+  model_version: v3-22state   # v0(21차) 폐기 — 블록삼각 결함
+
+
+                                # v1/v2 폐기 — 모드 분류·커플링 측정 결함
+  code_root: ~/Dev/RSCAD
+  vault_root: RSCAD
+
+  # 폐기값·정정 이력의 단일 보관처
+  deprecation_log: "01_개념/폐기값_이력.md"
+  deprecation_note: >
+    수치·판정기준이 바뀔 때마다 폐기값_이력 에 한 항목씩 추가한다.
+    발견 위치(파일·함수·코드) / 원인 / 검출 방법 / 파급 을 반드시 기입.
+    폐기값은 지우지 않고 취소선으로 남긴다. 논문 §의 모델 개정 근거가 된다.
+
+# ──────────────────────────────────────────────────────────
+# P0 — RTDS 접근 확인 (최우선)
+# ──────────────────────────────────────────────────────────
+phases:
+  - id: P0
+    name: "RTDS 접근 경로 확정"
+    window: [4, 5]
+    depends_on: []
+    gate_for: [P6, P7]
+    critical: true
+    risk: {level: critical, cause: "접근 가능 여부 자체가 미확인"}
+    note: >
+      2026-08-28 현재 RTDS 접근 가능 여부 불명. 이 미확인 상태가
+      P6·P7 전체(전체 일정의 5개월)를 공중에 띄우고 있다.
+    artifacts:
+      - id: P0-A1
+        name: "랙 접근 자격 · 신청 창구 · 마감 주기 확인"
+        state: not_started
+        evidence: null
+        do_now: true
+        blocking: true
+        note: "연구실 보유 / 학과 공용 / 외부 기관(KERI·전력연구원) 중 어느 경로인지"
+      - id: P0-A2
+        name: "pre-processor 재컴파일 소요시간 문의"
+        state: not_started
+        evidence: null
+        note: "장비 담당자에게 질의. 파일럿 없이 예약 시간 산정 가능한 유일한 경로"
+      - id: P0-A3
+        name: "Tier 결정 — CHIL 수행 여부 확정"
+        state: not_started
+        evidence: null
+        deadline_month: 5
+        blocking: true
+        note: >
+          Tier 1 = RTDS CHIL / Tier 2 = 소프트웨어 검증만 / Tier 3 = 저비용 CHIL(듀얼 MCU).
+          5월차까지 미결정 시 자동으로 Tier 2 확정하고 P6·P7 재설계.
+      - id: P0-A4
+        name: "저비용 CHIL 대안 사전조사 (조건부)"
+        state: not_started
+        evidence: null
+        condition: "P0-A1 결과가 '접근 불가'일 때만"
+        note: "듀얼 MCU(F28379D ×2, SPI 연동) 평균화 모델 실시간 루프. 대표점 3~5개 목표"
+
+  # ────────────────────────────────────────────────────────
+  - id: P2
+    name: "22차 야코비안 유도·검증"
+    window: [2, 3]
+    depends_on: []
+    gate_for: [P3, P4]
+    risk: {level: medium, cause: "P2-A10 미수정 시 P7 격자 전체 오염"}
+    note: "v0(21차, sym.py) 폐기 후 재구축. 상태변수 21→22, 커플링 단방향→양방향"
+    artifacts:
+      - id: P2-A1
+        name: "22차 심볼릭 상태방정식 f(x,u) 및 야코비안"
+        state: verified
+        evidence: "code_root/Simulation/model.py"
+        note: "sympy jacobian(). DC 8 + AC 14. δ 포함으로 동기화 루프 폐합"
+
+      - id: P2-A2
+        name: "야코비안 검산 — 심볼릭 vs 유한차분"
+        state: verified
+        evidence: "code_root/Simulation/op.py :: fd_jacobian"
+        result: "최대 상대오차 1.2e-09 (X/R=1.0, 전 SCR)"   # 조건 한정
+        superseded_result: "1.2e-09 (전 SCR) — X/R 축 미확인 상태의 과잉 일반화"
+        issue: >
+          X/R=3.0, SCR 1.0·0.8 에서 성분별 상대오차 1.2e-06 / 1.8e-06.
+          허용치 1e-6 초과. 야코비안 정확도가 이 영역에서 저하.
+          전역 정규화만 쓰면 1/L_f 같은 큰 성분이 분모를 지배해 가려진다.
+        next_action: "eigenvalue_results.json 의 fd_worst_entry 로 해당 성분 특정"
+        deprecation_log: "01_개념/폐기값_이력.md#9"
+        note: "당초 계획한 Simulink linmod 교차검증을 대체. 동일 방정식 재유도는 중복"
+
+      - id: P2-A3
+        name: "동작점 SCR 의존성 확인"
+        state: verified
+        evidence: "code_root/results/J*_XR*_v3_*/x0_SCR*.npy"
+        result: >
+          X/R 1.0 : δ = 22.42°(SCR 3.0) → 78.95°(SCR 0.8)
+          X/R 0.5 : δ = 26.67° → 83.65°
+          X/R 3.0 : δ = 20.10° → 100.16° (⚠ P2-A10 참조)
+
+      - id: P2-A4
+        name: "양방향 DC-AC 커플링 유도 및 효과 정량화"
+        state: in_progress          # draft → in_progress (수치 재산출 필요)
+        evidence: "code_root/results/J*_XR*_v3_*/eigenvalue_results.json"
+        result: >
+          커플링 블록 제거 시 최소감쇠 모드 이동량 (헝가리안 매칭 기준):
+            X/R 0.5 : 1.71 → 1.40   (SCR 3.0 → 0.8)
+            X/R 1.0 : 1.31 → 1.18
+            X/R 3.0 : 26.24 → 1.10  ★ 인용 대상
+          v0 에서는 0.000e+00 (블록삼각).
+        superseded_result: >
+          ★ 두 번 정정됨.
+          (1) A_k(9,6) 오차 0.0001% — 항등식 대조. 통과해도 무의미.
+          (2) 5.90e+01 — np.sort_complex 정렬 페어링이 다른 모드끼리 뺀 값.
+        deprecation_log: "01_개념/폐기값_이력.md#4"
+        note: >
+          ★ 구 P2-A5("A_k(9,6) 수동 보강 근거")를 대체.
+          수동 보강이 아니라 전력 보존식에서 유도된 항이므로
+          방어 항목이 아니라 novelty 근거로 승격. → RQ1 직접 증거
+          X/R=3.0, SCR 3.0 에서 26.24 로 최대. 이 조건에서 DC-AC 혼합
+          모드(37.6 Hz)가 ζ_min 을 지배하므로 RQ1 증거로 더 강하다.
+        action: "관련 노트·초고의 59 를 모두 찾아 교체"
+
+      - id: P2-A5
+        name: "선형화 유효성 임계값 확정"
+        state: in_progress
+        evidence: "code_root/results/J*/linearization_validity.json"
+        blocking: true
+        issue: >
+          SCR 1.5에서 임계값이 0.5%로 튀는 비단조 현상 미규명.
+          (3.0→10%, 2.0→5%, 1.5→0.5%, 1.0→2%)
+        hypothesis: >
+          ★ 신규 가설(2026-08-28): 다중 평형점이 아니라 모드 교차에 의한
+          유효반경 축소. X/R=3.0 에서 f_ctrl 이 SCR 2.0→1.5 사이에
+          57.19Hz → 5.07Hz 로 점프한다. 임계값 딥과 동일 지점.
+          우연으로 보기 어렵다.
+        next_action: "runner.py --XR 3.0 --SCR 1.7 1.6 1.5 1.4 1.3 --tag scr15_fine"
+
+      - id: P2-A6
+        name: "TABLE I / Ia — SCR별 A 행렬 (22차)"
+        state: not_started
+        evidence: null
+
+      - id: P2-A7
+        name: "22개 상태변수 정의표 (부록: 기호/단위/물리적 의미)"
+        state: not_started
+        evidence: null
+        note: "구 'P2-A4 21개'에서 수정"
+
+      - id: P2-A8
+        name: "SOC 제외 및 차수 22 확정 근거 문서화"
+        state: not_started
+        evidence: null
+        note: "시정수 시간 단위 → 소신호 대역(0.1–100 Hz) 밖. stiff 회피"
+
+      # ── 2026-08-28 신설 ──
+      - id: P2-A9
+        name: "정적 부하가능성 경계 분리 정의"
+        state: not_started
+        evidence: null
+        gate_for: [P7, P8]
+        note: >
+          2D 스윕 경계가 두 종류다. 감쇠 경계와 정적 부하가능성 경계
+          (δ→90°, P = VE·sinδ/X 전달 한계로 정상상태 해 부재).
+          한 선으로 그리면 오독된다. 두 선을 겹쳐 그리는 것 자체가
+          Dong et al. 대비 차별점이 될 수 있다.
+          현재 관측: X/R 1.0 → SCR 0.6 / X/R 3.0 → SCR 0.8 에서 발동.
+          현 스윕 범위에서 감쇠 경계는 한 번도 발동하지 않았다.
+        deprecation_log: "01_개념/폐기값_이력.md#8"
+
+      - id: P2-A10
+        name: "δ>90° 수용 버그 수정"
+        state: not_started
+        evidence: null
+        blocking: true
+        gate_for: [P7]
+        issue: >
+          X/R=3.0, SCR 0.8 에서 δ=100.16° 인데 stable=True 로 나온다.
+          cos(100.16°)=-0.176 이므로 동기화 계수 K=VE·cosδ/X 가 음수다.
+          op.py 의 fsolve 가 P-δ 곡선의 불안정 가지를 잡고 있다.
+        note: >
+          88포인트 스윕 전 필수. 미수정 시 δ>90° 지점이 전부 '안정'으로
+          채워진다. 가드는 runner.py 에 DELTA_HARD=90.0 으로 삽입.
+
+  # ────────────────────────────────────────────────────────
+  - id: P3
+    name: "참여인자·지배 모드"
+    window: [3, 4]
+    depends_on: [P2]
+    gate_for: [P4]
+    risk: {level: medium, cause: "P3-A7 미완 시 P4 목적함수 설계 불가"}
+    artifacts:
+      - id: P3-A1
+        name: "좌/우 고유벡터 기반 참여인자 행렬"
+        state: verified
+        evidence: "code_root/Simulation/pf.py"
+        integrity_incident: >
+          ⚠ 2026-08-28 확인 시점에 evidence 파일이 실재하지 않았다.
+          verified 상태였으나 산출물이 없었고, 그 위에 P4 설계가
+          진행 중이었다. 재구축 완료 — 해석해(2-state 스윙 + 무관 상태 1)로
+          참여계수 계산 검증 통과. → 01_개념/폐기값_이력.md#기록-무결성-사고
+
+      - id: P3-A2
+        name: "지배 모드 식별"
+        state: verified
+        evidence: "code_root/results/J*_XR*_v3_*/eigenvalue_results.json"
+        result: >
+          δ 지배 동기화 모드가 임계 모드이며 실수극이다 (참여도 0.928→0.983).
+          σ_sync: -4.264(SCR 3.0) → -1.012(SCR 0.8), 원점으로 단조 접근.
+          정착시간 t_s = 5/|σ|: 1.17 s → 4.94 s.  (X/R = 0.5)
+        superseded_result: "참여도 0.82→0.95, Re -4.644 → -1.296 (X/R 미기록)"
+        note: >
+          ★ 당초 가정(178 Hz LCL 공진 지배)이 반증됨.
+          ★★ 2026-08-28 추가 확인: 이 모드는 진동극이 아니라 실수극이다.
+          Dp=20·J=0.5 는 과감쇠 영역(Dp > 2√(JK))이므로 ζ 지표로는
+          원리적으로 포착되지 않는다. → 01_개념/과감쇠_동기화모드.md
+        deprecation_log: "01_개념/폐기값_이력.md#5"
+
+      - id: P3-A3
+        name: "지배 모드 물리적 귀속"
+        state: draft                # verified → draft (주파수 대용 지표 사용 중)
+        evidence: "code_root/results/J*_XR*_v3_*/eigenvalue_results.json"
+        result: >
+          동기화(실수극) / DC-AC 혼합 37~43Hz / LCL 공진 178Hz /
+          전력필터 λ≈-65 (Qf 0.445, Pf 0.401) 로 분류.
+        issue: >
+          현재 runner.py 는 주파수 대역(BANDS)으로 분류한다. 이는 참여계수의
+          대용 지표이며 논문에 쓸 수 없다. sync 대역(<5Hz)이 잡는 것은
+          전력필터 모드이고 δ 참여도는 2% 에 불과하다.
+        next_action: "P3-A7 완료 후 참여계수 기반 결과로 재작성"
+
+      - id: P3-A4
+        name: "Decision Gate — 모델 차수 확정"
+        state: verified
+        result: >
+          DC·AC 혼합 모드가 전 SCR에서 2~4개 존재 → 22차 유지.
+          12차 AC-only 모델이 원리적으로 재현 불가한 모드 = RQ1 근거.
+          X/R=3.0 에서 이 모드의 커플링 이동량 26.24 로 최대.
+
+      - id: P3-A5
+        name: "f_dom 실측 — Prony 예비 적용, 해석 모드와 대조"
+        state: not_started
+        evidence: null
+
+      - id: P3-A6
+        name: "안정도 판정 기준 재확정 — UNIFI Cat 3 조항 인용 위치 특정"
+        state: not_started
+        evidence: null
+        blocking: true
+        note: >
+          구 명칭: "ζ_threshold = 0.64 재확정".
+          ★ 2026-08-28: 대상 자체가 바뀌었다. 임계 모드가 실수극이므로
+          ζ 기준을 적용할 수 없다(실수극의 ζ 는 정의상 1).
+          정착시간 t_s 기준으로 전환하면 ζ=0.64 의 출처 불명 문제도
+          함께 해소된다. 특정할 항목:
+            (a) t_s_target — UNIFI Cat 3 과도응답 조항
+            (b) ζ_target — 진동 모드(control·lcl 대역)에 한해 유지 여부
+          P4 게이트. 기준이 없으면 PSO 재실행 위험.
+
+      # ── 2026-08-28 신설 ──
+      - id: P3-A7
+        name: "모드 식별을 주파수 대역 → 참여계수 기반으로 전환"
+        state: not_started
+        evidence: null
+        blocking: true
+        gate_for: [P4]
+        note: >
+          runner.py v3 의 BANDS(<5Hz / 5-100Hz / ≥100Hz)는 대용 지표다.
+          sync 대역이 잡는 것은 전력필터 모드(Qf 0.445, Pf 0.401, δ 참여 2%)이고
+          진짜 동기화 모드는 실수극에 있다. 대역 분류는 논문에 쓸 수 없다.
+          runner.run 의 meta 에 sigma_sync / t_s 를 참여계수 기준으로 산출해
+          포함시킬 것. P4-A2 목적함수가 이 필드를 소비한다.
+        deprecation_log: "01_개념/폐기값_이력.md#5"
+
+  # ────────────────────────────────────────────────────────
+  - id: P4
+    name: "PSO 예비실험"
+    window: [4, 6]
+    depends_on: [P3]
+    gate_for: [P7]
+    risk: {level: high, cause: "목적함수 전면 재설계 — 구 F_multi 무효"}
+    artifacts:
+      - id: P4-A1
+        name: "TABLE II — 14개 파라미터 탐색범위 + 설정 근거"
+        state: not_started
+        evidence: null
+        blocking: true
+        issue: >
+          ⚠ 기존 노트의 파라미터 목록이 구현과 다르다.
+            구: VSG(J,Dp,wc,Lv) / 전압(Kpv,Kiv) / 전류(Kpc,Kic) / DC 6개 TBD
+            실: DC 8(Kp_vpv,Ki_vpv,Kp_ipv,Ki_ipv,Kp_vdc,Ki_vdc,Kp_iess,Ki_iess)
+                + VSG 4(J,Dp,wc,nq) + AC 전압 2(Kpv,Kiv)
+          합계는 우연히 14로 같으나 구성이 다르다.
+        next_action: "model.PARAM_NAMES 를 기준으로 재작성"
+        note: "P7 게이트"
+
+      - id: P4-A2
+        name: "다중 운전점 목적함수 정의"
+        state: not_started
+        evidence: null
+        blocking: true
+        issue: >
+          ⛔ 구 F_multi 는 강건성을 악화시킨다.
+            F2 = sum((z - 0.707)**2 for z in zetas)
+          동기화 모드는 실수극이라 ζ=1 이므로 (1-0.707)²=0.0858 이 상시
+          부과되고, PSO 는 이를 줄이려 동기화 모드를 진동 영역으로 밀어낸다.
+          추가 결함: 모드 구분 없음 / X/R 축 부재 / 동작점 부재 처리 없음.
+        next_action: >
+          모드별 지표 분리 — 동기화(실수극)는 t_s, 진동극은 대역별 ζ,
+          동작점 부재는 상수 페널티. → 01_개념/PSO_목적함수_설계.md
+        deprecation_log: "01_개념/폐기값_이력.md#7"
+
+      - id: P4-A3
+        name: "예비 100회 → N_particle / N_iter 결정"
+        state: not_started
+        evidence: null
+        note: >
+          ⚠ 계산량 확인 필요. MC 30 × N_final 390 × 입자 30 ≈ 35만 회 평가.
+          88포인트를 목적함수 안에서 돌리면 성립하지 않는다.
+          PSO 격자(대표점 9개)와 검증 격자(88점)를 분리할 것.
+
+      - id: P4-A4
+        name: "가중치 민감도 분석"
+        state: not_started
+        evidence: null
+        note: "α·β·γ 재설정. 구 0.3/0.6/0.1 은 폐기된 F_multi 기준"
+
+      - id: P4-A5
+        name: "MC 30회 수렴 재현성 통계"
+        state: not_started
+        evidence: null
+        note: "난수 시드 고정·기록 필수 → 01_개념/실험_재현성_체크리스트.md"
+
+      - id: P4-A6
+        name: "이중 수렴 조건의 W·S 확정"
+        state: not_started
+        evidence: null
+        note: >
+          구 노트는 "연속 30회"만 적혀 있고 조건 2 의 윈도 W 가 미정의.
+          W = S 이면 조건 2 가 조건 1 의 누적판이 되어 독립 판정이 아니다.
+          → 01_개념/PSO_수렴판정_설계.md
+
+  # ────────────────────────────────────────────────────────
+  - id: P5
+    name: "DSP·EMT 검증"
+    window: [4, 6]
+    depends_on: [P2]
+    gate_for: [P6]
+    risk: {level: medium, cause: null}
+    priority_boost: true
+    note: >
+      ★ 당초 5~6월차에서 앞당김. RTDS 불확실성이 해소되지 않는 한
+      소프트웨어 검증이 논문의 실질적 백업 경로(Tier 2)가 된다.
+    artifacts:
+      - id: P5-A1
+        name: "오프라인 EMT — 스위칭 모델 vs 22차 평균 모델 대조"
+        state: not_started
+        evidence: null
+        note: "PLECS / Simulink / DPsim. RTDS 무관, 즉시 착수 가능"
+      - id: P5-A2
+        name: "원형 제한기 구현"
+        state: not_started
+        evidence: null
+      - id: P5-A3
+        name: "Anti-windup 설계"
+        state: not_started
+        evidence: null
+      - id: P5-A4
+        name: "X/R = 0.5 EMT — AW 유/무 파형 비교"
+        state: not_started
+        evidence: null
+      - id: P5-A5
+        name: "SIL — DSP C 코드를 EMT 루프에 실제 제어주기로 연동"
+        state: not_started
+        evidence: null
+        note: "고정소수점·ADC 양자화·1샘플 지연·포화 재현. Tier 2의 핵심 검증"
+      - id: P5-A6
+        name: "TMS320F28379D 이식 + 제어주기 내 실행시간 프로파일링"
+        state: not_started
+        evidence: null
+
+  # ────────────────────────────────────────────────────────
+  - id: P6
+    name: "CHIL 구축"
+    window: [7, 9]
+    depends_on: [P0, P5]
+    gate_for: [P7]
+    risk: {level: high, cause: "장비 접근 자체가 미확정"}
+    conditional_on: "P0-A3 == Tier 1 or Tier 3"
+    artifacts:
+      - id: P6-A1
+        name: "RSCAD FX 모델 구축"
+        state: not_started
+        evidence: null
+        substeps:
+          - "계통 등가 — Thevenin + SCR/XR 가변 임피던스 (pre-processor 변수)"
+          - "전력단 — 부스트 + 인버터 + LCL, substep 환경"
+          - "계측·스케일링 → GTAO 채널 매핑"
+          - "GTDI PWM 수신 + 데드타임"
+          - "RunTime 화면 + 스크립트 훅"
+          - "보정 — 시뮬 내부 GFM 제어 vs DSP 제어 대조 ← 진짜 관문"
+      - id: P6-A2
+        name: "GTAO/GTAI 인터페이스 + 루프 지연 보상"
+        state: not_started
+        evidence: null
+      - id: P6-A3
+        name: "SNR 사전 측정 → σ_Z 보정"
+        state: not_started
+        evidence: null
+      - id: P6-A4
+        name: "측정 불확도 정량화"
+        state: not_started
+        evidence: null
+        blocking: true
+        note: "P7 에러바의 근거. P7 게이트"
+      - id: P6-A5
+        name: "1포인트당 실측 소요시간 파일럿"
+        state: not_started
+        evidence: null
+        note: >
+          ★ 구 P7-A0에서 이동. P6-A1 완료 후에만 실행 가능하므로
+          "지금" 항목이 아니다. 측정 항목:
+          재컴파일(지배 항목) / 케이스 로드 / 외란·회수 / 점간 전환 /
+          불안정 점 복구. 정착시간은 모델에서 산출(5τ)하므로 실측 불필요.
+      - id: P6-A6
+        name: "스윕 격자 확정"
+        state: not_started
+        evidence: null
+        note: >
+          88포인트는 소신호 사전 스윕의 목표치. CHIL 실측 점수는
+          (확보 장비시간 ÷ 점당 소요시간 ÷ 반복횟수)로 역산해 결정.
+
+  # ────────────────────────────────────────────────────────
+  - id: P7
+    name: "2D 경계 도출 — SCR*(X/R)"
+    window: [9, 11]
+    depends_on: [P4, P6]
+    gate_for: [P8]
+    critical: true
+    min_duration_weeks: 8
+    risk: {level: high, cause: "실험 시간"}
+    artifacts:
+      - id: P7-A1
+        name: "88포인트 스윕 자동화 — 배치 실행 + 재컴파일 + 결과 수집"
+        state: not_started
+        evidence: null
+        note: >
+          사전 결정 필요: 정착 타임아웃 규칙(경계 근처 Re→0이면 5τ 발산),
+          점당 반복 횟수(에러바 요건), 실패 재시도 정책.
+          → 01_개념/실행_식별자_설계원칙.md (스윕 축은 파일명, 공통 조건은 폴더명)
+      - id: P7-A2
+        name: "Prony + Matrix Pencil 이중 추출, 불일치 처리 규칙"
+        state: not_started
+        evidence: null
+      - id: P7-A3
+        name: "SCR*(X/R) 2D 경계 곡면 — 감쇠 경계"
+        state: not_started
+        evidence: null
+        note: >
+          예비 근거: X/R=3.0 에서 SCR 2.0→1.5 사이에 ζ_min 이 control(37~43Hz)
+          에서 lcl(178Hz)로 교체된다. 커플링 이동량도 26.97 → 1.00 으로 불연속.
+          1D 스윕으로는 안 보이는 현상. 교차점 궤적이 경계도의 실체다.
+        superseded_note: "구 기록 '178.8Hz → 36.5Hz, 커플링 56→229' 는 v1 측정값"
+      - id: P7-A7
+        name: "SCR*(X/R) 2D 경계 곡면 — 정적 부하가능성 경계"
+        state: not_started
+        evidence: null
+        depends_on: [P2-A9, P2-A10]
+        note: "감쇠 경계와 다른 선종으로 겹쳐 표기. 단일 선으로 그리면 오독"
+      - id: P7-A4
+        name: "판정 기준 5세트 민감도"
+        state: not_started
+        evidence: null
+        note: "구 'ζ_thr 5세트'. 지표가 t_s 로 바뀌면 세트 정의도 재작성"
+      - id: P7-A5
+        name: "σ_SCR 에러바"
+        state: not_started
+        evidence: null
+      - id: P7-A6
+        name: "소신호 예측 vs 실측 오차 정량화"
+        state: not_started
+        evidence: null
+
+  # ────────────────────────────────────────────────────────
+  - id: P8
+    name: "가설 검증 및 집필"
+    window: [11, 12]
+    depends_on: [P7]
+    gate_for: []
+    risk: {level: medium, cause: "버퍼 0"}
+    artifacts:
+      - id: P8-A1
+        name: "H1 통계 검정 방법 확정"
+        state: not_started
+        evidence: null
+        note: "현재 미정의"
+      - id: P8-A2
+        name: "H2 Wilcoxon — 표본 쌍 정의 및 표본 수 확정"
+        state: not_started
+        evidence: null
+      - id: P8-A3
+        name: "H3 수정 — Spearman(n=4) 대신 인접 X/R 구간 ΔSCR* 부호 변화"
+        state: not_started
+        evidence: null
+      - id: P8-A4
+        name: "학위논문 본문"
+        state: not_started
+        evidence: null
+      - id: P8-A5
+        name: "IEEE Access 투고 원고"
+        state: not_started
+        evidence: null
+      - id: P8-A6
+        name: "모델 개정 근거 절 — 폐기값 이력에서 원고 추출"
+        state: not_started
+        evidence: "vault_root/01_개념/폐기값_이력.md"
+        note: >
+          "왜 22차인가"(항목 1·3), "왜 ζ 가 아닌 정착시간인가"(항목 5),
+          "왜 경계가 두 개인가"(항목 8) 의 답이 코드 라인 단위로 추적 가능.
+          심사 필수 대응 자료.
+
+# ──────────────────────────────────────────────────────────
+continuous:
+  - id: C1
+    name: "refs [115] 2D 임피던스 평면 안정도 경계"
+    state: not_started
+  - id: C2
+    name: "refs [114] 전차수 VSG 상태공간 모델"
+    state: not_started
+  - id: C3
+    name: "refs [94] Lyapunov 기반 파라미터 선정"
+    state: not_started
+  - id: C4
+    name: "선행연구 비교표 — 다중 운전점 PSO / 2D 경계 / CHIL 3축 매트릭스"
+    state: not_started
+    note: "novelty 방어, 심사 필수. Tier 2 확정 시 CHIL 축 서술 재설계 필요"
+  - id: C5
+    name: "논문 추출 파이프라인 3번째 호출(렌더링) 마무리"
+    state: not_started
+  - id: C6
+    name: "Dong et al. 2026 문헌 노트 작성"
+    state: not_started
+    evidence: null
+    priority: high
+    note: >
+      ⛔ 06_문헌/Dong_2026_FrontEnergyRes.md 가 존재하지 않는다.
+      MOC 에 ★ 표시로 "선점 논문"이라 적혀 있으나 노트가 비어 있다.
+      4중 차별화(차수 12→22, PSO 3→14, 검증 SW→CHIL, 경계 1D→2D)가
+      전부 이 논문 대비로 정의되므로 최우선.
+      2026-08-28 확인 결과 차별화 논리 자체도 재작성 필요:
+        - 커플링 수치 59 → 26.24 정정
+        - 경계가 감쇠가 아니라 정적 부하가능성에서 먼저 걸림
+
+# ──────────────────────────────────────────────────────────
+gates:
+  - id: G-P4
+    target: P4
+    requires: [P3-A6, P3-A7]
+    on_fail: >
+      판정 기준·모드 식별 미확정 → 목적함수 기준 없이 PSO 실행 시 전량 재실행.
+      특히 P3-A7 이 없으면 sigma_sync 를 산출할 수 없어 목적함수 구현 불가.
+  - id: G-P6
+    target: P6
+    requires: [P0-A3, P5-A6]
+    on_fail: "Tier 미결정 → 장비 대기로 무기한 지연"
+  - id: G-P7
+    target: P7
+    requires: [P4-A1, P6-A4, P2-A10]
+    on_fail: >
+      스윕 결과에 에러바를 붙일 수 없음.
+      P2-A10 미수정 시 δ>90° 지점이 '안정'으로 채워져 격자 전체가 오염됨.
+  - id: G-P8
+    target: P8
+    requires: [P7-A3, P7-A5, P7-A7]
+    on_fail: "가설 검증 불가. 두 경계 중 하나만 있으면 SCR* 정의가 모호"
+
+# ──────────────────────────────────────────────────────────
+rules:
+  - id: R1
+    desc: "마감 역산 — 잔여 월수 < 필요 월수 이면 경보"
+  - id: R2
+    desc: "장비 경보 — P0-A3 미결정 상태로 5월차 진입 시 최고 등급"
+    priority: highest
+  - id: R3
+    desc: "게이트 조건 — 하류 Phase 착수 시 상류 blocking 항목 verified 확인"
+  - id: R4
+    desc: "증거 없는 완료 — state=verified 인데 evidence=null 이면 draft 로 강등"
+  - id: R5
+    desc: "정체 감지 — 동일 state 가 4주 이상 유지되면 경보"
+  - id: R6
+    desc: >
+      증거 실재 확인 — state=verified 로 올릴 때 evidence 경로의 파일이
+      실제로 존재하는지 확인. 경로만 적혀 있고 파일이 없으면 강등.
+    added: 2026-08-28
+    cause: "P3-A1 이 pf.py 없이 verified 였고 그 위에 P4 설계가 진행 중이었음"
+  - id: R7
+    desc: >
+      값 교체 금지 — result 를 바꿀 때 구 값을 superseded_result 에 남기고
+      deprecation_log 로 폐기값_이력 항목을 가리킨다. 값만 갈아치우면 경보.
+    added: 2026-08-28
+
+# ──────────────────────────────────────────────────────────
+output_policy:
+  mirror_file: "checkList.md"
+  mirror_sync: "state 변경 시 checkList.md 의 해당 체크박스도 함께 갱신한다"
+  mirror_status: >
+    ⛔ 2026-08-28 확인: checkList.md 가 볼트 루트에 존재하지 않는다.
+    배치 전까지 mirror_sync 규칙은 무효다.
+
+  deprecation_policy: >
+    artifact 의 result 값을 교체할 때는 반드시
+    (1) 구 값을 superseded_result 필드에 남기고
+    (2) 01_개념/폐기값_이력.md 에 상세 블록을 추가하고
+        (발견 위치 / 폐기 코드 / 원인 / 검출 방법 / 대체값 / 파급)
+    (3) deprecation_log 필드로 해당 항목을 가리킨다.
+    값만 갈아치우는 것을 금지한다.
+
+  integrity_check: >
+    state 를 verified 로 올리기 전에 evidence 경로의 실재를 확인한다.
+    2026-08-28 에 세 건의 기록 무결성 사고가 확인됐다.
+      - P3-A1 verified / evidence pf.py → 파일 없음
+      - mirror_file: checkList.md → 볼트에 없음
+      - Phase_지식_연결맵 "PSO 구현/완료" → 구현된 적 없음
+    세 건 모두 하류 작업이 이미 그 위에 쌓여 있었다.
+
+  integrity_check_command: |
+    cd ~/Dev/Obsidian/GFM_Research/RSCAD
+    # (a) evidence 경로 실재 확인
+    grep -o 'code_root/[^"]*' schedule.yaml | sed 's|code_root|~/Dev/RSCAD|' \
+      | while read p; do ls $p >/dev/null 2>&1 || echo "MISSING evidence: $p"; done
+    # (b) 깨진 위키링크 검출
+    grep -rhoP '(?<=\[\[)[^\]|#]+' --include='*.md' . | sort -u \
+      | while read n; do
+          find . -name "$n.md" -print -quit | grep -q . || echo "BROKEN LINK: [[$n]]"
+        done
+
+  forbidden:
+    - "진척률 퍼센트 보고"
+
+status_definition:
+  states: [not_started, in_progress, draft, verified]
+  note: >
+    verified 는 evidence 경로의 파일이 실제로 존재할 때만 유효.
+    경로 문자열만 적혀 있는 것으로는 부족하다 (R6).

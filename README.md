@@ -100,3 +100,4 @@ print('GPU:', cp.cuda.Device().name)
 2. CUDA 12.8 설치   → https://developer.nvidia.com/cuda-downloads
 3. 재부팅
 4. pip install cupy-cuda12x
+

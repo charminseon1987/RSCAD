@@ -4,193 +4,105 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GFM Research Simulator · Flask API 연결</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-<style>
-:root {
-  --bg:#060c18;--bg2:#0b1525;--bg3:#0f1e35;--bg4:#132440;
-  --border:#1a3050;--border2:#1e3d66;
-  --cyan:#00d4ff;--teal:#00e5c4;--green:#00e87a;
-  --amber:#ffb800;--red:#ff4560;--purple:#a855f7;
-  --text:#dce8f5;--text2:#7fa8c9;--text3:#3d6080;
-  --glow:rgba(0,212,255,.08);
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'SF Mono','Consolas',monospace;height:100vh;overflow:hidden;display:grid;grid-template-rows:48px 1fr;}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
-
-/* TOPBAR */
-.topbar{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;z-index:10;}
-.tb-dot{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:hb 2s infinite;}
-@keyframes hb{0%,100%{transform:scale(1);}50%{transform:scale(1.4);}}
-.tb-name{font-size:13px;font-weight:700;color:var(--cyan);letter-spacing:.5px;}
-.tb-sep{width:1px;height:18px;background:var(--border);}
-.tb-tag{font-size:10px;padding:2px 8px;border:1px solid var(--border);border-radius:3px;color:var(--text3);letter-spacing:.8px;}
-.tb-tag.live{color:var(--green);border-color:var(--green);background:rgba(0,232,122,.06);}
-.tb-tag.err{color:var(--red);border-color:var(--red);background:rgba(255,69,96,.06);}
-.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
-.api-status{display:flex;align-items:center;gap:6px;font-size:11px;}
-.api-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);}
-.api-dot.ok{background:var(--green);animation:pulse 2s infinite;}
-.api-dot.err{background:var(--red);}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
-
-/* MAIN */
-.main{display:grid;grid-template-columns:280px 1fr 260px;overflow:hidden;}
-
-/* LEFT */
-.left{background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
-.sec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);padding-bottom:6px;border-bottom:1px solid var(--border);}
-
-/* SLIDER */
-.sl-row{display:flex;flex-direction:column;gap:4px;}
-.sl-top{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);}
-.sl-val{font-weight:700;font-size:11px;padding:1px 5px;border-radius:3px;border:1px solid;min-width:44px;text-align:right;}
-input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:var(--bg3);border-radius:2px;outline:none;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--cyan);cursor:pointer;box-shadow:0 0 6px var(--cyan);}
-
-/* BUTTONS */
-.btn-grp{display:flex;flex-direction:column;gap:7px;}
-.btn{padding:9px;border-radius:6px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;}
-.btn-primary{background:linear-gradient(135deg,var(--cyan),var(--teal));color:#000;}
-.btn-primary:hover{opacity:.85;}
-.btn-sec{background:var(--bg3);color:var(--text);border:1px solid var(--border);}
-.btn-sec:hover{border-color:var(--cyan);color:var(--cyan);}
-.btn-warn{background:rgba(255,69,96,.1);color:var(--red);border:1px solid rgba(255,69,96,.3);}
-.btn:disabled{opacity:.35;cursor:not-allowed;}
-
-/* RESULT BOX */
-.res-box{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:11px;}
-.res-title{font-size:9px;letter-spacing:1px;color:var(--text3);margin-bottom:7px;}
-.res-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;}
-.res-key{color:var(--text2);}
-.res-val{font-weight:700;}
-
-/* CENTER */
-.center{display:grid;grid-template-rows:1fr 1fr;overflow:hidden;}
-.chart-cell{border-bottom:1px solid var(--border);display:flex;flex-direction:column;}
-.chart-cell:last-child{border-bottom:none;}
-.chart-hdr{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.chart-title{font-size:12px;font-weight:700;}
-.chart-sub{font-size:10px;color:var(--text3);margin-left:auto;}
-.badge{font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid;}
-.badge-ok{color:var(--green);border-color:var(--green);background:rgba(0,232,122,.08);}
-.badge-err{color:var(--red);border-color:var(--red);background:rgba(255,69,96,.08);}
-.badge-warn{color:var(--amber);border-color:var(--amber);background:rgba(255,184,0,.08);}
-.badge-idle{color:var(--text3);border-color:var(--text3);}
-.chart-body{flex:1;overflow:hidden;}
-svg{width:100%;height:100%;}
-
-/* RIGHT */
-.right{background:var(--bg2);border-left:1px solid var(--border);overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
-.mode-item{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:9px 11px;border-left:3px solid;}
-.mode-name{font-size:9px;color:var(--text3);letter-spacing:.5px;margin-bottom:3px;}
-.mode-vals{display:flex;justify-content:space-between;font-size:11px;}
-
-/* LOG */
-.log-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:9px;font-size:10px;max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;}
-.log-line{display:flex;gap:6px;}
-.log-t{color:var(--text3);flex-shrink:0;width:54px;}
-.lc-ok{color:var(--green);}
-.lc-warn{color:var(--amber);}
-.lc-err{color:var(--red);}
-.lc-info{color:var(--cyan);}
-.lc-api{color:var(--purple);}
-
-/* OP TABLE */
-.op-row{display:flex;justify-content:space-between;font-size:11px;padding:6px 0;border-bottom:1px solid var(--border);}
-.op-row:last-child{border-bottom:none;}
-.op-row.active{color:var(--cyan);}
-
-::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-
-.tooltip{position:fixed;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:11px;pointer-events:none;opacity:0;z-index:100;transition:opacity .15s;}
-</style>
+<link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
 
-<!-- TOPBAR -->
 <div class="topbar">
   <div class="tb-dot"></div>
   <div class="tb-name">GFM SIMULATOR</div>
   <div class="tb-sep"></div>
-  <div class="tb-tag">21-STATE</div>
+  <div class="tb-tag on" id="tb-order">MODEL —</div>
   <div class="tb-tag">FLASK API</div>
   <div class="tb-right">
     <div class="api-status">
       <div class="api-dot" id="api-dot"></div>
-      <span id="api-label" style="font-size:11px;color:var(--text3)">서버 확인 중...</span>
+      <span id="api-label" style="font-size:11px;color:var(--text3)">서버 확인 중…</span>
     </div>
-    <div class="tb-tag" id="tb-phase">Phase 1</div>
+    <div class="tb-tag" id="tb-phase">Phase —</div>
   </div>
 </div>
 
 <div class="main">
 
-<!-- LEFT: 파라미터 -->
+<!-- LEFT -->
 <div class="left">
-  <div class="sec">계통 파라미터</div>
-
-  <div class="sl-row" id="sl-SCR">
-    <div class="sl-top"><span>SCR (단락비)</span><span class="sl-val" id="v-SCR" style="color:var(--cyan);border-color:var(--cyan)">1.5</span></div>
+  <div class="sec">Grid</div>
+  <div class="sl-row">
+    <div class="sl-top"><span>SCR — 단락비</span><span class="sl-val" id="v-SCR">1.50</span></div>
     <input type="range" id="s-SCR" min="0.8" max="5.0" step="0.05" value="1.5" oninput="sv('SCR',this.value)">
   </div>
   <div class="sl-row">
-    <div class="sl-top"><span>X/R 비율</span><span class="sl-val" id="v-XR" style="color:var(--teal);border-color:var(--teal)">1.0</span></div>
+    <div class="sl-top"><span>X/R — 임피던스비</span><span class="sl-val" id="v-XR">1.00</span></div>
     <input type="range" id="s-XR" min="0.1" max="10.0" step="0.1" value="1.0" oninput="sv('XR',this.value)">
   </div>
 
-  <div class="sec">VSG 파라미터</div>
+  <div class="sec">VSG</div>
   <div class="sl-row">
-    <div class="sl-top"><span>J — 가상 관성 (kg·m²)</span><span class="sl-val" id="v-J" style="color:var(--amber);border-color:var(--amber)">0.500</span></div>
+    <div class="sl-top"><span>J — 가상 관성</span><span class="sl-val" id="v-J">0.500</span></div>
     <input type="range" id="s-J" min="0.01" max="10.0" step="0.01" value="0.5" oninput="sv('J',this.value)">
   </div>
   <div class="sl-row">
-    <div class="sl-top"><span>Dp — 댐핑 (N·m·s)</span><span class="sl-val" id="v-Dp" style="color:var(--amber);border-color:var(--amber)">20.0</span></div>
+    <div class="sl-top"><span>Dp — 댐핑</span><span class="sl-val" id="v-Dp">20.0</span></div>
     <input type="range" id="s-Dp" min="1" max="100" step="0.5" value="20" oninput="sv('Dp',this.value)">
   </div>
   <div class="sl-row">
-    <div class="sl-top"><span>Lv — 가상 인덕턴스 (pu)</span><span class="sl-val" id="v-Lv" style="color:var(--amber);border-color:var(--amber)">0.100</span></div>
+    <div class="sl-top"><span>Lv — 가상 인덕턴스</span><span class="sl-val" id="v-Lv">0.100</span></div>
     <input type="range" id="s-Lv" min="0.001" max="0.5" step="0.001" value="0.1" oninput="sv('Lv',this.value)">
   </div>
-
-  <div class="sec">전압·전류 루프</div>
   <div class="sl-row">
-    <div class="sl-top"><span>Kpv — 전압 P (A/V)</span><span class="sl-val" id="v-Kpv" style="color:var(--purple);border-color:var(--purple)">1.000</span></div>
+    <div class="sl-top"><span>ωc — 전력 LPF</span><span class="sl-val" id="v-wc">31.4</span></div>
+    <input type="range" id="s-wc" min="1" max="200" step="0.1" value="31.4" oninput="sv('wc',this.value)">
+  </div>
+
+  <div class="sec">Control loops</div>
+  <div class="sl-row">
+    <div class="sl-top"><span>Kpv — 전압 P</span><span class="sl-val" id="v-Kpv">1.000</span></div>
     <input type="range" id="s-Kpv" min="0.01" max="5.0" step="0.01" value="1.0" oninput="sv('Kpv',this.value)">
   </div>
   <div class="sl-row">
-    <div class="sl-top"><span>Kiv — 전압 I (A/Vs)</span><span class="sl-val" id="v-Kiv" style="color:var(--purple);border-color:var(--purple)">100</span></div>
+    <div class="sl-top"><span>Kiv — 전압 I</span><span class="sl-val" id="v-Kiv">100.0</span></div>
     <input type="range" id="s-Kiv" min="1" max="500" step="1" value="100" oninput="sv('Kiv',this.value)">
   </div>
   <div class="sl-row">
-    <div class="sl-top"><span>Kpc — 전류 P (V/A)</span><span class="sl-val" id="v-Kpc" style="color:var(--purple);border-color:var(--purple)">5.00</span></div>
+    <div class="sl-top"><span>Kpc — 전류 P</span><span class="sl-val" id="v-Kpc">5.000</span></div>
     <input type="range" id="s-Kpc" min="0.1" max="30" step="0.1" value="5.0" oninput="sv('Kpc',this.value)">
   </div>
   <div class="sl-row">
-    <div class="sl-top"><span>Kic — 전류 I (V/As)</span><span class="sl-val" id="v-Kic" style="color:var(--purple);border-color:var(--purple)">50</span></div>
+    <div class="sl-top"><span>Kic — 전류 I</span><span class="sl-val" id="v-Kic">50.0</span></div>
     <input type="range" id="s-Kic" min="1" max="200" step="1" value="50" oninput="sv('Kic',this.value)">
   </div>
 
-  <div class="sec">실행</div>
+  <div class="sec">Run</div>
   <div class="btn-grp">
-    <button class="btn btn-primary" id="btn-j" onclick="runJacobian()">
-      <span id="icon-j">⚡</span> Flask API 야코비안 계산
-    </button>
-    <button class="btn btn-sec" onclick="runSweep()">🗺️ 2D 스윕 (88포인트)</button>
-    <button class="btn btn-sec" onclick="runPSO()">🧬 PSO 최적화</button>
-    <button class="btn btn-warn" onclick="resetAll()">↺ 초기화</button>
+    <button class="btn btn-primary" id="btn-j" onclick="runJacobian()">야코비안 계산</button>
+    <div class="btn-grid">
+      <button class="btn btn-sec" id="btn-sweepscr" onclick="runScrSweep()">SCR 스윕</button>
+      <button class="btn btn-sec" onclick="runSweep()">2D 스윕 · 88</button>
+      <button class="btn btn-sec" onclick="runPSO()">PSO 최적화</button>
+      <button class="btn btn-sec" onclick="loadLatest()">CLI 결과</button>
+      <button class="btn btn-sec" onclick="applyPreset()">CLI 기본값</button>
+      <button class="btn btn-warn" onclick="resetAll()">초기화</button>
+    </div>
   </div>
 
-  <div class="sec">결과</div>
+  <div class="sec">Result</div>
   <div class="res-box">
-    <div class="res-title">STABILITY METRICS — FLASK API</div>
+    <div class="res-title">STABILITY METRICS</div>
     <div class="res-row"><span class="res-key">안정도</span><span class="res-val" id="r-stable" style="color:var(--text3)">—</span></div>
     <div class="res-row"><span class="res-key">ζ_min</span><span class="res-val" id="r-zeta" style="color:var(--text3)">—</span></div>
-    <div class="res-row"><span class="res-key">f_dom</span><span class="res-val" id="r-fdom" style="color:var(--text3)">—</span></div>
+    <div class="res-row"><span class="res-key">f @ ζ_min</span><span class="res-val" id="r-fzmin" style="color:var(--text3)">—</span></div>
+    <div class="res-row"><span class="res-key">f_dom (API)</span><span class="res-val" id="r-fdom" style="color:var(--text3)">—</span></div>
+    <div class="res-row"><span class="res-key">δ 전력각</span><span class="res-val" id="r-delta" style="color:var(--text3)">—</span></div>
     <div class="res-row"><span class="res-key">SCR*</span><span class="res-val" id="r-scr" style="color:var(--text3)">—</span></div>
     <div class="res-row"><span class="res-key">A_k(9,6)</span><span class="res-val" id="r-coup" style="color:var(--text3)">—</span></div>
-    <div class="res-row"><span class="res-key">선형화 유효</span><span class="res-val" id="r-valid" style="color:var(--text3)">—</span></div>
-    <div class="res-row"><span class="res-key">엔진</span><span class="res-val" id="r-engine" style="color:var(--text3)">—</span></div>
+    <div class="res-row"><span class="res-key">Δu_pv</span><span class="res-val" id="r-dupv" style="color:var(--text3)">—</span></div>
+    <div class="res-row"><span class="res-key">차수 / 엔진</span><span class="res-val" id="r-engine" style="color:var(--text3)">—</span></div>
+    <div class="res-note" id="r-note">야코비안을 계산하면 값이 채워집니다.</div>
   </div>
 </div>
 
@@ -198,18 +110,18 @@ svg{width:100%;height:100%;}
 <div class="center">
   <div class="chart-cell">
     <div class="chart-hdr">
-      <div class="chart-title">고유값 분포 — 복소 평면 (Flask API)</div>
+      <div class="chart-title">고유값 분포 — 복소 평면</div>
       <div class="badge badge-idle" id="badge-eig">API 대기</div>
-      <div class="chart-sub">Re(λ) < 0 → 안정</div>
+      <div class="chart-sub">Re(λ) &lt; 0 안정 · 음영 = ζ ≥ 0.64</div>
     </div>
     <div class="chart-body"><svg id="svg-eig"></svg></div>
   </div>
 
   <div class="chart-cell">
     <div class="chart-hdr">
-      <div class="chart-title">SCR*(X/R) 2D 경계 — 88포인트 스윕</div>
+      <div class="chart-title">SCR* × (X/R) 안정 경계</div>
       <div class="badge badge-idle" id="badge-2d">스윕 대기</div>
-      <div class="chart-sub">ζ_threshold = 0.64 | 흰 선: 임계 경계</div>
+      <div class="chart-sub">ζ_threshold = 0.64 · 흰 선 = 임계 경계</div>
     </div>
     <div class="chart-body"><svg id="svg-2d"></svg></div>
   </div>
@@ -217,495 +129,37 @@ svg{width:100%;height:100%;}
 
 <!-- RIGHT -->
 <div class="right">
-  <div class="sec">진동 모드 분석</div>
+  <div class="sec">진동 모드</div>
   <div id="mode-list" style="display:flex;flex-direction:column;gap:6px;">
     <div style="font-size:11px;color:var(--text3);text-align:center;padding:12px;">계산 후 표시</div>
   </div>
 
-  <div class="sec">감쇠비 vs SCR (API)</div>
-  <div style="height:130px;"><svg id="svg-zeta"></svg></div>
+  <div class="sec">ζ vs SCR</div>
+  <div class="mini"><svg id="svg-zeta"></svg></div>
+
+  <div class="sec">Δu_pv vs SCR</div>
+  <div class="mini"><svg id="svg-dupv"></svg></div>
 
   <div class="sec">다중 동작점</div>
   <div id="op-list"></div>
 
-  <div class="sec">시스템 로그</div>
+  <div class="sec">CLI 결과</div>
+  <div id="cli-list"><div class="empty"><span>불러오지 않음 — “CLI 결과 불러오기”</span></div></div>
+
+  <div class="sec">로그</div>
   <div class="log-box" id="log-box">
-    <div class="log-line"><span class="log-t">--:--</span><span class="lc-info">Flask API 연결 대기 중...</span></div>
+    <div class="log-line sev-info"><div class="log-bar"></div><span class="log-t">--:--</span><span class="log-m">Flask API 연결 대기 중…</span></div>
   </div>
 </div>
 </div>
 
 <div class="tooltip" id="tooltip"></div>
 
-<script>
-// ═══════════════════════════════════
-// 설정
-// ═══════════════════════════════════
-const API = 'http://localhost:5000';
-const ZETA_TH = 0.64;
-
-const params = {SCR:1.5,XR:1.0,J:0.5,Dp:20,Lv:0.1,Kpv:1.0,Kiv:100,Kpc:5.0,Kic:50,wc:31.4};
-let apiOk = false;
-let lastResult = null;
-let sweepData  = null;
-let running    = false;
-
-// ═══════════════════════════════════
-// 슬라이더
-// ═══════════════════════════════════
-function sv(key, val) {
-  const v = parseFloat(val);
-  params[key] = v;
-  const dec = key==='Kiv'||key==='Kic'||key==='Dp'?1
-            : key==='SCR'||key==='XR'?2
-            : key==='J'||key==='Lv'?3:3;
-  document.getElementById('v-'+key).textContent = v.toFixed(dec);
-}
-
-// ═══════════════════════════════════
-// API 상태 확인
-// ═══════════════════════════════════
-async function checkAPI() {
-  try {
-    const r = await fetch(API+'/api/health', {signal: AbortSignal.timeout(2000)});
-    const d = await r.json();
-    apiOk = d.status === 'ok';
-    document.getElementById('api-dot').className   = 'api-dot ok';
-    document.getElementById('api-label').textContent = `Flask 연결됨 · ${d.engine||'numpy'}`;
-    document.getElementById('api-label').style.color = 'var(--green)';
-    addLog(`Flask API 연결 성공 (${d.engine||'numpy'})`, 'ok');
-  } catch(e) {
-    apiOk = false;
-    document.getElementById('api-dot').className   = 'api-dot err';
-    document.getElementById('api-label').textContent = 'Flask 서버 없음';
-    document.getElementById('api-label').style.color = 'var(--red)';
-    addLog('Flask 서버 연결 실패 — python app.py 실행 확인', 'err');
-  }
-}
-
-// ═══════════════════════════════════
-// 야코비안 계산
-// ═══════════════════════════════════
-async function runJacobian() {
-  if (running) return;
-  if (!apiOk) { addLog('Flask 서버에 먼저 연결하세요', 'err'); return; }
-  running = true;
-  const btn = document.getElementById('btn-j');
-  const ico = document.getElementById('icon-j');
-  btn.disabled = true;
-  ico.textContent = '⟳';
-
-  addLog(`API 호출: SCR=${params.SCR}, X/R=${params.XR}, J=${params.J}, Dp=${params.Dp}`, 'api');
-
-  try {
-    const r = await fetch(API+'/api/jacobian', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(params)
-    });
-    const d = await r.json();
-    lastResult = d;
-
-    // 결과 표시
-    const zc = d.zeta_min >= ZETA_TH ? 'var(--green)' : d.zeta_min >= 0.4 ? 'var(--amber)' : 'var(--red)';
-    set('r-stable', d.stable ? '✅ 안정' : '❌ 불안정', d.stable?'var(--green)':'var(--red)');
-    set('r-zeta',   d.zeta_min.toFixed(4), zc);
-    set('r-fdom',   d.f_dom_hz.toFixed(3)+' Hz', 'var(--cyan)');
-    set('r-scr',    d.scr_star.toFixed(2), 'var(--amber)');
-    set('r-coup',   d.coupling_A96.toFixed(6), 'var(--amber)');
-    set('r-valid',  d.valid_linearization ? '✅ 유효' : '⚠️ 5% 초과', d.valid_linearization?'var(--green)':'var(--amber)');
-    set('r-engine', d.engine, 'var(--text3)');
-
-    // 배지
-    const badge = document.getElementById('badge-eig');
-    badge.textContent = d.stable ? 'STABLE' : 'UNSTABLE';
-    badge.className = 'badge '+(d.stable?'badge-ok':'badge-err');
-
-    // 플롯
-    drawEig(d.eigenvalues);
-    drawModes(d.modes);
-    drawZeta();
-    updateOP();
-
-    addLog(`완료 — ζ=${d.zeta_min.toFixed(4)}, f_dom=${d.f_dom_hz.toFixed(2)}Hz, SCR*=${d.scr_star.toFixed(2)}`, d.stable?'ok':'warn');
-    if(!d.valid_linearization) addLog(`⚠ Δu_pv=${d.du_pv_pct}% > 5% — PSCAD 교차검증 권고`, 'warn');
-    if(d.zeta_min < ZETA_TH)   addLog(`⚠ ζ=${d.zeta_min.toFixed(4)} < 0.64 — PSO 최적화 필요`, 'warn');
-
-  } catch(e) {
-    addLog('API 오류: '+e.message, 'err');
-  }
-  ico.textContent='⚡'; btn.disabled=false; running=false;
-}
-
-// ═══════════════════════════════════
-// 2D 스윕
-// ═══════════════════════════════════
-async function runSweep() {
-  if(!apiOk){addLog('Flask 서버 연결 필요','err');return;}
-  addLog('2D 스윕 시작 (88포인트)...','api');
-  document.getElementById('badge-2d').textContent='COMPUTING...';
-  document.getElementById('badge-2d').className='badge badge-warn';
-
-  try {
-    const r = await fetch(API+'/api/sweep2d', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({J:params.J,Dp:params.Dp,Kpv:params.Kpv,Kpc:params.Kpc,Lv:params.Lv})
-    });
-    const d = await r.json();
-    sweepData = d.data;
-    draw2D(d.data);
-
-    document.getElementById('badge-2d').textContent=`${d.total_points}PT DONE`;
-    document.getElementById('badge-2d').className='badge badge-ok';
-    addLog(`2D 스윕 완료 — ${d.total_points}포인트`,'ok');
-
-    Object.entries(d.boundaries||{}).forEach(([xr,scr])=>{
-      if(scr) addLog(`  X/R=${xr}: SCR*=${scr}`,'info');
-    });
-  } catch(e){
-    addLog('스윕 오류: '+e.message,'err');
-  }
-}
-
-// ═══════════════════════════════════
-// PSO
-// ═══════════════════════════════════
-async function runPSO() {
-  if(!apiOk){addLog('Flask 서버 연결 필요','err');return;}
-  addLog('PSO 최적화 시작...','api');
-  try {
-    const r = await fetch(API+'/api/pso', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({SCR_list:[3.0,2.0,1.5,1.0],alpha:0.3,beta:0.6,gamma:0.1})
-    });
-    const d = await r.json();
-    // 최적 파라미터 슬라이더에 반영
-    Object.entries(d.opt_params||{}).forEach(([k,v])=>{
-      if(params[k]!==undefined){
-        params[k]=v;
-        const el=document.getElementById('s-'+k);
-        if(el){el.value=v; sv(k,v);}
-      }
-    });
-    addLog('PSO 완료 — 최적 파라미터 적용됨','ok');
-    d.validation?.forEach(v=>{
-      addLog(`  SCR=${v.SCR}: ζ=${v.zeta_min}, ${v.stable?'안정':'불안정'}`,'info');
-    });
-    await runJacobian();
-  } catch(e){addLog('PSO 오류: '+e.message,'err');}
-}
-
-function resetAll(){
-  const def={SCR:1.5,XR:1.0,J:0.5,Dp:20,Lv:0.1,Kpv:1.0,Kiv:100,Kpc:5.0,Kic:50,wc:31.4};
-  Object.entries(def).forEach(([k,v])=>{
-    params[k]=v;
-    const el=document.getElementById('s-'+k);
-    if(el){el.value=v; sv(k,v);}
-  });
-  lastResult=null; sweepData=null;
-  d3.select('#svg-eig').selectAll('*').remove();
-  d3.select('#svg-2d').selectAll('*').remove();
-  d3.select('#svg-zeta').selectAll('*').remove();
-  addLog('초기화 완료','info');
-}
-
-// ═══════════════════════════════════
-// 유틸
-// ═══════════════════════════════════
-function set(id,val,color){
-  const el=document.getElementById(id);
-  if(!el)return; el.textContent=val; if(color)el.style.color=color;
-}
-function addLog(msg,type='info'){
-  const box=document.getElementById('log-box');
-  const t=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const d=document.createElement('div'); d.className='log-line';
-  d.innerHTML=`<span class="log-t">${t}</span><span class="lc-${type}">${msg}</span>`;
-  box.appendChild(d); box.scrollTop=box.scrollHeight;
-  if(box.children.length>60) box.removeChild(box.children[0]);
-}
-function now(){return new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
-
-// ═══════════════════════════════════
-// D3 — 고유값 플롯
-// ═══════════════════════════════════
-function drawEig(eigs) {
-  const el=document.getElementById('svg-eig');
-  const W=el.clientWidth,H=el.clientHeight;
-  const m={t:18,r:14,b:26,l:42};
-  const w=W-m.l-m.r, h=H-m.t-m.b;
-  d3.select('#svg-eig').selectAll('*').remove();
-  const svg=d3.select('#svg-eig').append('g').attr('transform',`translate(${m.l},${m.t})`);
-
-  const reV=eigs.map(e=>e.re), imV=eigs.map(e=>e.im);
-  const rPad=(d3.max(reV)-d3.min(reV))*.12||5;
-  const iPad=(d3.max(imV)-d3.min(imV))*.08||50;
-  const xS=d3.scaleLinear().domain([d3.min(reV)-rPad,d3.max(reV)+rPad]).range([0,w]);
-  const yS=d3.scaleLinear().domain([d3.min(imV)-iPad,d3.max(imV)+iPad]).range([h,0]);
-  const x0=xS(0);
-
-  // 불안정 영역
-  svg.append('rect').attr('x',x0).attr('y',0).attr('width',Math.max(0,w-x0)).attr('height',h)
-     .attr('fill','rgba(255,69,96,.05)');
-
-  // 허수축
-  svg.append('line').attr('x1',x0).attr('x2',x0).attr('y1',0).attr('y2',h)
-     .attr('stroke','rgba(255,69,96,.7)').attr('stroke-width',1.5).attr('stroke-dasharray','5,3');
-
-  // ζ=0.64 선
-  const th=Math.acos(ZETA_TH),R=Math.max(w,h)*2;
-  [[1,-1],[1,1]].forEach(([sy,sx])=>{
-    svg.append('line').attr('x1',x0).attr('y1',yS(0))
-       .attr('x2',xS(-R*Math.cos(th))).attr('y2',yS(sy*R*Math.sin(th)))
-       .attr('stroke','rgba(255,184,0,.45)').attr('stroke-width',1).attr('stroke-dasharray','4,3');
-  });
-
-  // 축
-  svg.append('g').attr('transform',`translate(0,${h})`).call(d3.axisBottom(xS).ticks(5))
-     .call(g=>{g.selectAll('text').attr('fill','#3d6080').attr('font-size',8);
-               g.select('.domain').attr('stroke','#1a3050');
-               g.selectAll('.tick line').attr('stroke','#1a3050');});
-  svg.append('g').call(d3.axisLeft(yS).ticks(4))
-     .call(g=>{g.selectAll('text').attr('fill','#3d6080').attr('font-size',8);
-               g.select('.domain').attr('stroke','#1a3050');
-               g.selectAll('.tick line').attr('stroke','#1a3050');});
-
-  // 고유값 점 (API 실제 데이터)
-  const tooltip=document.getElementById('tooltip');
-  svg.selectAll('circle').data(eigs).join('circle')
-    .attr('cx',d=>xS(d.re)).attr('cy',d=>yS(d.im))
-    .attr('r',d=>Math.abs(d.im)<0.5?3:5)
-    .attr('fill',d=>{
-      const f=Math.abs(d.im)/(2*Math.PI);
-      if(Math.abs(d.im)<0.5) return '#3d6080';
-      if(f<10)   return '#00d4ff';
-      if(f<50)   return '#ffb800';
-      return '#ff4560';
-    })
-    .attr('opacity',d=>Math.abs(d.im)<0.5?0.4:0.85)
-    .on('mouseover',(evt,d)=>{
-      const z=Math.abs(d.im)>0.5?(-d.re/Math.sqrt(d.re*d.re+d.im*d.im)).toFixed(4):'N/A';
-      const f=Math.abs(d.im)>0.5?(Math.abs(d.im)/(2*Math.PI)).toFixed(2)+'Hz':'실수극점';
-      tooltip.style.opacity=1;
-      tooltip.style.left=(evt.clientX+12)+'px';
-      tooltip.style.top=(evt.clientY-8)+'px';
-      tooltip.innerHTML=`λ = ${d.re.toFixed(3)} ${d.im>=0?'+':'-'} ${Math.abs(d.im).toFixed(3)}j<br>ζ = ${z}<br>f = ${f}`;
-    })
-    .on('mouseout',()=>tooltip.style.opacity=0);
-
-  // 범례
-  [['#00d4ff','VSG (<10Hz)'],['#ffb800','LCL (10~60Hz)'],['#ff4560','고속 (>60Hz)']].forEach(([c,l],i)=>{
-    svg.append('circle').attr('cx',6).attr('cy',h-14-i*14).attr('r',4).attr('fill',c);
-    svg.append('text').attr('x',14).attr('y',h-10-i*14).attr('fill','#7fa8c9').attr('font-size',8).text(l);
-  });
-
-  // API 출처 표시
-  svg.append('text').attr('x',w).attr('y',12).attr('text-anchor','end')
-     .attr('fill','rgba(0,212,255,.4)').attr('font-size',8).text('SRC: Flask /api/jacobian');
-}
-
-// ═══════════════════════════════════
-// D3 — 2D 히트맵
-// ═══════════════════════════════════
-function draw2D(data) {
-  const el=document.getElementById('svg-2d');
-  const W=el.clientWidth,H=el.clientHeight;
-  const m={t:18,r:58,b:34,l:42};
-  const w=W-m.l-m.r, h=H-m.t-m.b;
-  d3.select('#svg-2d').selectAll('*').remove();
-  const svg=d3.select('#svg-2d').append('g').attr('transform',`translate(${m.l},${m.t})`);
-
-  const scrPts=[...new Set(data.map(d=>d.scr))].sort((a,b)=>a-b);
-  const xrPts =[...new Set(data.map(d=>d.xr))].sort((a,b)=>a-b);
-  const cw=w/scrPts.length, ch=h/xrPts.length;
-
-  const cScale=t=>{
-    if(t>=1.0) return '#00e87a';
-    if(t>=0.64) return `rgb(${Math.round(255*(1-t))},${Math.round(232*t)},${Math.round(122*t)})`;
-    if(t>=0.3)  return `rgb(255,${Math.round(184*t/0.64)},0)`;
-    return '#ff4560';
-  };
-
-  const tooltip=document.getElementById('tooltip');
-  data.forEach(d=>{
-    const xi=scrPts.indexOf(d.scr), yi=xrPts.indexOf(d.xr);
-    if(xi<0||yi<0) return;
-    svg.append('rect').attr('x',xi*cw).attr('y',yi*ch).attr('width',cw-1).attr('height',ch-1)
-       .attr('fill',cScale(d.zeta)).attr('opacity',.85)
-       .on('mouseover',(evt)=>{
-         tooltip.style.opacity=1;
-         tooltip.style.left=(evt.clientX+12)+'px';
-         tooltip.style.top=(evt.clientY-8)+'px';
-         tooltip.innerHTML=`SCR=${d.scr} / X/R=${d.xr}<br>ζ=${d.zeta.toFixed(4)}<br>${d.stable?'✅ 안정':'❌ 불안정'}`;
-       })
-       .on('mouseout',()=>tooltip.style.opacity=0);
-
-    // 경계선
-    if(d.zeta>=ZETA_TH&&xi>0){
-      const prev=data.find(p=>p.scr===scrPts[xi-1]&&p.xr===d.xr);
-      if(prev&&prev.zeta<ZETA_TH)
-        svg.append('line').attr('x1',xi*cw).attr('x2',xi*cw)
-           .attr('y1',yi*ch).attr('y2',(yi+1)*ch-1)
-           .attr('stroke','white').attr('stroke-width',2.5).attr('opacity',.9);
-    }
-  });
-
-  // X축
-  scrPts.filter((_,i)=>i%4===0).forEach(s=>{
-    const xi=scrPts.indexOf(s);
-    svg.append('text').attr('x',xi*cw+cw/2).attr('y',h+12)
-       .attr('text-anchor','middle').attr('fill','#3d6080').attr('font-size',8).text(s);
-  });
-  svg.append('text').attr('x',w/2).attr('y',h+24).attr('text-anchor','middle')
-     .attr('fill','#3d6080').attr('font-size',9).text('SCR');
-
-  // Y축
-  xrPts.forEach((xr,yi)=>{
-    svg.append('text').attr('x',-4).attr('y',yi*ch+ch/2+4)
-       .attr('text-anchor','end').attr('fill','#7fa8c9').attr('font-size',9).text(xr);
-  });
-
-  // 컬러바
-  const defs=svg.append('defs');
-  const g=defs.append('linearGradient').attr('id','cbar').attr('x1',0).attr('y1',1).attr('x2',0).attr('y2',0);
-  [[0,'#ff4560'],[.5,'#ffb800'],[1,'#00e87a']].forEach(([o,c])=>g.append('stop').attr('offset',o).attr('stop-color',c));
-  svg.append('rect').attr('x',w+10).attr('y',0).attr('width',10).attr('height',h).attr('fill','url(#cbar)').attr('rx',2);
-  ['1.2','0.64','0.0'].forEach((v,i)=>{
-    svg.append('text').attr('x',w+23).attr('y',i===0?8:i===1?h/2:h)
-       .attr('fill','#3d6080').attr('font-size',8).text(v);
-  });
-  svg.append('line').attr('x1',w+8).attr('x2',w+22)
-     .attr('y1',h*(1-ZETA_TH/1.2)).attr('y2',h*(1-ZETA_TH/1.2))
-     .attr('stroke','white').attr('stroke-width',1.5);
-  svg.append('text').attr('x',w/2).attr('y',-6).attr('text-anchor','middle')
-     .attr('fill','rgba(0,212,255,.5)').attr('font-size',9)
-     .text('SRC: Flask /api/sweep2d · 흰 선: SCR*(X/R) 임계 경계');
-}
-
-// ═══════════════════════════════════
-// 감쇠비 vs SCR
-// ═══════════════════════════════════
-function drawZeta() {
-  if(!apiOk) return;
-  const el=document.getElementById('svg-zeta');
-  const W=el.clientWidth,H=el.clientHeight;
-  const m={t:6,r:10,b:22,l:34};
-  const w=W-m.l-m.r, h=H-m.t-m.b;
-  d3.select('#svg-zeta').selectAll('*').remove();
-  const svg=d3.select('#svg-zeta').append('g').attr('transform',`translate(${m.l},${m.t})`);
-
-  // 현재 파라미터로 여러 SCR 시뮬 (로컬 근사)
-  const scrPts=[5,4,3,2.5,2,1.5,1.2,1.0,0.8];
-  const zetaPts=scrPts.map(scr=>{
-    const sigma=-(params.Dp/(2*params.J))*(1+0.5/scr);
-    const wd=Math.sqrt(Math.max(0.01,1/(params.J*0.5)-sigma*sigma));
-    return -sigma/Math.sqrt(sigma*sigma+wd*wd);
-  });
-
-  const xS=d3.scaleLinear().domain([0.7,5.1]).range([0,w]);
-  const yS=d3.scaleLinear().domain([0,Math.max(1,...zetaPts)*1.1]).range([h,0]);
-
-  // 안정 영역
-  svg.append('rect').attr('x',0).attr('y',yS(ZETA_TH))
-     .attr('width',w).attr('height',h-yS(ZETA_TH)).attr('fill','rgba(0,232,122,.05)');
-
-  // ζ=0.64 선
-  svg.append('line').attr('x1',0).attr('x2',w)
-     .attr('y1',yS(ZETA_TH)).attr('y2',yS(ZETA_TH))
-     .attr('stroke','rgba(255,184,0,.6)').attr('stroke-width',1).attr('stroke-dasharray','4,3');
-
-  // 축
-  svg.append('g').attr('transform',`translate(0,${h})`).call(d3.axisBottom(xS).ticks(5))
-     .call(g=>{g.selectAll('text').attr('fill','#3d6080').attr('font-size',7);
-               g.select('.domain').attr('stroke','#1a3050');
-               g.selectAll('.tick line').attr('stroke','#1a3050');});
-  svg.append('g').call(d3.axisLeft(yS).ticks(3).tickFormat(d=>d.toFixed(2)))
-     .call(g=>{g.selectAll('text').attr('fill','#3d6080').attr('font-size',7);
-               g.select('.domain').attr('stroke','#1a3050');
-               g.selectAll('.tick line').attr('stroke','#1a3050');});
-
-  // 곡선
-  const line=d3.line().x((_,i)=>xS(scrPts[i])).y(d=>yS(d)).curve(d3.curveMonotoneX);
-  svg.append('path').datum(zetaPts).attr('fill','none').attr('stroke','var(--cyan)')
-     .attr('stroke-width',2).attr('d',line)
-     .style('filter','drop-shadow(0 0 4px var(--cyan))');
-
-  // 현재 SCR 점
-  const curZ=-(params.Dp/(2*params.J))*(1+0.5/params.SCR);
-  const curWd=Math.sqrt(Math.max(0.01,1/(params.J*0.5)-curZ*curZ));
-  const curZeta=-curZ/Math.sqrt(curZ*curZ+curWd*curWd);
-  svg.append('circle').attr('cx',xS(params.SCR)).attr('cy',yS(curZeta))
-     .attr('r',5).attr('fill','var(--cyan)').style('filter','drop-shadow(0 0 5px var(--cyan))');
-
-  // ζ=0.64 레이블
-  svg.append('text').attr('x',w).attr('y',yS(ZETA_TH)-3)
-     .attr('text-anchor','end').attr('fill','rgba(255,184,0,.7)').attr('font-size',8).text('ζ=0.64');
-  svg.append('text').attr('x',w/2).attr('y',h+18)
-     .attr('text-anchor','middle').attr('fill','#3d6080').attr('font-size',8).text('SCR');
-}
-
-// ═══════════════════════════════════
-// 모드 리스트
-// ═══════════════════════════════════
-function drawModes(modes) {
-  const box=document.getElementById('mode-list');
-  box.innerHTML='';
-  const typeMap={dom:'AC 지배 (VSG)',dc:'DC-AC 커플링',voltage:'전압 루프',current:'전류 루프',lcl:'LCL 공진'};
-  modes.slice(0,5).forEach(m=>{
-    const z=m.zeta;
-    const zc=z>=ZETA_TH?'var(--green)':z>=0.4?'var(--amber)':'var(--red)';
-    const bc=z>=ZETA_TH?'var(--green)':z>=0.4?'var(--amber)':'var(--red)';
-    const d=document.createElement('div');
-    d.className='mode-item'; d.style.borderLeftColor=bc;
-    d.innerHTML=`
-      <div class="mode-name">${m.freq_hz.toFixed(2)} Hz 진동 모드</div>
-      <div class="mode-vals">
-        <span>ζ = <b style="color:${zc}">${z.toFixed(4)}</b></span>
-        <span style="color:var(--text3);font-size:10px">${m.re.toFixed(2)}±${Math.abs(m.im).toFixed(2)}j</span>
-      </div>`;
-    box.appendChild(d);
-  });
-}
-
-// ═══════════════════════════════════
-// 다중 동작점
-// ═══════════════════════════════════
-function updateOP() {
-  const box=document.getElementById('op-list');
-  box.innerHTML='';
-  [3.0,2.0,1.5,1.0].forEach(scr=>{
-    const active=Math.abs(scr-params.SCR)<0.3;
-    const idc=0.9/scr;
-    const d=document.createElement('div');
-    d.className='op-row'+(active?' active':'');
-    d.innerHTML=`<span>SCR=${scr}</span><span>idc0=${idc.toFixed(3)}</span><span style="color:var(--amber)">Zg=${(1/scr).toFixed(3)}</span>`;
-    box.appendChild(d);
-  });
-}
-
-// ═══════════════════════════════════
-// 초기화
-// ═══════════════════════════════════
-window.addEventListener('load', async ()=>{
-  updateOP();
-  await checkAPI();
-  if(apiOk) {
-    await runJacobian();
-    await runSweep();
-  }
-});
-
-setInterval(()=>{
-  if(document.hasFocus()) checkAPI();
-}, 15000);
-
-window.addEventListener('resize',()=>{
-  if(lastResult) drawEig(lastResult.eigenvalues);
-  if(sweepData)  draw2D(sweepData);
-  drawZeta();
-});
-</script>
+<script src="js/config.js"></script>
+<script src="js/util.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/render.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>

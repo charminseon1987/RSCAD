@@ -1,0 +1,97 @@
+{
+  "run_name": "J0.50_Dp20.0_Kpv0.050_wc62.8_XR1.0_9be44c",
+  "model_version": "v3-22state",
+  "n_states": 22,
+  "n_dc_states": 8,
+  "timestamp": "2026-08-28 16:56:56",
+  "ctrl_params": {
+    "Kp_vpv": 0.1,
+    "Ki_vpv": 10.0,
+    "Kp_ipv": 0.001,
+    "Ki_ipv": 0.1,
+    "Kp_vdc": 0.5,
+    "Ki_vdc": 20.0,
+    "Kp_iess": 0.001,
+    "Ki_iess": 0.1,
+    "J": 0.5,
+    "Dp": 20.0,
+    "wc": 62.83185307179586,
+    "nq": 0.001,
+    "Kpv": 0.05,
+    "Kiv": 10.0
+  },
+  "fixed_params": {
+    "C_pv": 0.00047,
+    "L_pv": 0.002,
+    "C_dc": 0.0022,
+    "L_ess": 0.002,
+    "L1": 0.002,
+    "R1": 0.05,
+    "Cf": 1e-05,
+    "L2": 0.0005,
+    "R2": 0.02,
+    "w0": 376.99111843077515,
+    "Kpc": 5.0,
+    "Kic": 200.0,
+    "Lv": 0.001,
+    "V_ref": 325.0,
+    "v_dc_ref": 800.0,
+    "I0": 1e-09,
+    "nVt": 24.0
+  },
+  "inputs": {
+    "Iph": 25.0,
+    "v_pv_ref": 500.0,
+    "Pref": 10000.0,
+    "Qref": 0.0,
+    "Vg": 325.0,
+    "V_b": 400.0
+  },
+  "SCR_list": [
+    3.0,
+    2.0,
+    1.5,
+    1.0
+  ],
+  "XR": 1.0,
+  "zeta_target": 0.64,
+  "bands": {
+    "sync": [
+      0.0,
+      5.0
+    ],
+    "control": [
+      5.0,
+      100.0
+    ],
+    "lcl": [
+      100.0,
+      null
+    ]
+  },
+  "thresholds": {
+    "IMAG_TOL": 0.0001,
+    "STABLE_TOL": 1e-06,
+    "FD_TOL": 1e-06,
+    "DELTA_WARN": 75.0
+  },
+  "all_converged": true,
+  "all_stable": true,
+  "zeta_min_all": 0.2065,
+  "zeta_min_valid": true,
+  "zeta_min_band": "lcl",
+  "zeta_pass": false,
+  "band_zeta_min": {
+    "sync": 0.3232,
+    "control": 0.4387,
+    "lcl": 0.2065
+  },
+  "band_crossovers": [],
+  "max_fd_error": 1.1979598963307582e-09,
+  "max_fd_entry_error": 3.1776873196183134e-07,
+  "fd_exceed_SCR": [],
+  "delta_max_deg": 62.34,
+  "delta_near_limit_SCR": [],
+  "loadability_limit_SCR": [],
+  "nonconvergence_SCR": []
+}
