@@ -1,0 +1,346 @@
+# =============================================================================
+# schedule.yaml - 연구일정 단일 진실원 (Single Source of Truth)
+#
+# 위치: GFM_Research/schedule.yaml  (볼트 루트)
+# 미러: GFM_Research/checkList.md   (사람이 읽는 체크박스 뷰, 읽기 전용)
+#
+# 규칙
+#  1. 이 파일 외의 어떤 것도 상태 근거로 쓰지 않는다.
+#  2. state 는 not_started / in_progress / draft / verified 4단계만 사용.
+#  3. state: verified 는 evidence 경로가 있을 때만 유효하다.
+#     evidence 가 null 이면 agent 가 draft 로 강등한다. (규칙 R4)
+#  4. current_month 는 사용자가 직접 갱신한다. agent 가 추정하지 않는다.
+# =============================================================================
+
+meta:
+  title: "PSO 기반 2단 PV+ESS GFM 인버터 소신호 모델 최적화 및 SCR-X/R 2D 강건성 경계 정량화"
+  owner: "조연호"
+  deadline_month: 12          # 월차 기준. 학위논문 제출 마감
+  current_month: 4            # <-- 실제 값으로 수정할 것
+  buffer_months: 0            # 현재 일정상 여유 없음. Phase 8 종료 = 마감
+  updated: null               # agent 가 갱신할 때마다 ISO 날짜 기록
+
+# -----------------------------------------------------------------------------
+# 외부 자원 - 일정 전체를 좌우하는 제약
+# -----------------------------------------------------------------------------
+resources:
+  rtds_rack:
+    name: "RTDS NovaCor / RSCAD FX 랙"
+    required_by_phase: [P6, P7]
+    required_from_month: 7
+    required_to_month: 11
+    total_hours_needed: null    # <-- 파일럿 측정 후 기입 (P7-A0 산출물)
+    booked_slots: []            # 예약 확정분. 비어 있으면 R2 최우선 경보
+    booking_lead_time_weeks: 8
+    contact: null
+
+# -----------------------------------------------------------------------------
+# Phase 정의
+# -----------------------------------------------------------------------------
+phases:
+
+  - id: P2
+    name: "21x21 야코비안 유도 및 교차검증"
+    window: [2, 3]
+    depends_on: []
+    gate_for: [P3, P4]
+    risk: {level: medium, cause: "심볼릭 복잡도"}
+    artifacts:
+      - id: P2-A1
+        name: "21차 야코비안 A_num 구현 (sym.py)"
+        state: verified
+        evidence: "results/latest/A_num.npy"
+        note: "DC 8x8 + AC 13x13, A_k(9,6) 수동 보강. 4개 SCR 케이스 stable=True"
+      - id: P2-A2
+        name: "Simulink linmod 교차검증"
+        state: not_started
+        evidence: null
+        note: "고유값 비교. 허용오차 기준을 먼저 문서화할 것"
+        blocking: true
+      - id: P2-A3
+        name: "TABLE I / Ia - SCR별 A 행렬 수식"
+        state: draft
+        evidence: null
+      - id: P2-A4
+        name: "21개 상태변수 정의표 (부록)"
+        state: not_started
+        evidence: null
+        note: "기호 / 단위 / 물리적 의미"
+      - id: P2-A5
+        name: "A_k(9,6) 결합항 보강 근거 문서"
+        state: not_started
+        evidence: null
+        note: "리뷰어 필수 질문 지점. 이론 오차 <0.0001% 유도 포함"
+
+  - id: P3
+    name: "참여인자 분석 및 지배 모드 확정"
+    window: [3, 4]
+    depends_on: [P2]
+    gate_for: [P4, P7]
+    risk: {level: low, cause: null}
+    artifacts:
+      - id: P3-A1
+        name: "좌/우 고유벡터 기반 참여인자 행렬"
+        state: not_started
+        evidence: null
+      - id: P3-A2
+        name: "SCR 민감 지배 모드 식별"
+        state: not_started
+        evidence: null
+      - id: P3-A3
+        name: "지배 모드 물리적 귀속 분류"
+        state: not_started
+        evidence: null
+        note: "DC단 / 전류루프 / 전압루프 / 동기화루프"
+      - id: P3-A4
+        name: "f_dom 실측 (Prony 예비 적용)"
+        state: not_started
+        evidence: null
+      - id: P3-A5
+        name: "zeta_threshold = 0.64 재확정"
+        state: not_started
+        evidence: null
+        note: "UNIFI Category 3 조항 인용 위치까지 특정"
+
+  - id: P4
+    name: "PSO 예비실험 및 탐색범위 확정"
+    window: [4, 6]
+    depends_on: [P3]
+    gate_for: [P7]
+    risk: {level: medium, cause: "연산 시간"}
+    artifacts:
+      - id: P4-A1
+        name: "TABLE II - 14개 파라미터 탐색범위"
+        state: not_started
+        evidence: null
+        note: "범위 설정 근거도 함께 기술"
+        blocking: true
+      - id: P4-A2
+        name: "다중 운전점 목적함수 정의"
+        state: not_started
+        evidence: null
+        note: "운전점 개수 / 가중치 규칙"
+      - id: P4-A3
+        name: "예비 100회 -> N_final 결정"
+        state: not_started
+        evidence: null
+      - id: P4-A4
+        name: "가중치 민감도 분석"
+        state: not_started
+        evidence: null
+      - id: P4-A5
+        name: "MC 30회 수렴 재현성 통계"
+        state: not_started
+        evidence: null
+        note: "평균 / 표준편차 / 최악값"
+
+  - id: P5
+    name: "DSP 구현 및 EMT 시뮬레이션"
+    window: [5, 6]
+    depends_on: [P4]
+    gate_for: [P6]
+    risk: {level: low, cause: null}
+    artifacts:
+      - id: P5-A1
+        name: "원형 제한기 구현"
+        state: not_started
+        evidence: null
+      - id: P5-A2
+        name: "Anti-windup 설계"
+        state: not_started
+        evidence: null
+      - id: P5-A3
+        name: "X/R = 0.5 EMT - AW 유/무 파형 비교"
+        state: not_started
+        evidence: null
+      - id: P5-A4
+        name: "TMS320F28379D 이식 + 실행시간 프로파일링"
+        state: not_started
+        evidence: null
+        note: "제어주기 내 수렴 확인"
+
+  - id: P6
+    name: "RSCAD FX 모델 구축 및 CHIL 기본 연결"
+    window: [7, 9]
+    depends_on: [P5]
+    gate_for: [P7]
+    risk: {level: high, cause: "장비 가용성"}
+    artifacts:
+      - id: P6-A1
+        name: "RSCAD FX 모델 구축"
+        state: not_started
+        evidence: null
+      - id: P6-A2
+        name: "GTAO/GTAI 인터페이스 + 루프 지연 보상"
+        state: not_started
+        evidence: null
+      - id: P6-A3
+        name: "SNR 사전 측정 -> sigma_Z 보정"
+        state: not_started
+        evidence: null
+      - id: P6-A4
+        name: "측정 불확도 정량화"
+        state: not_started
+        evidence: null
+        note: "P7 에러바의 근거"
+        blocking: true
+
+  - id: P7
+    name: "88포인트 2D 스윕 및 SCR*(X/R) 경계 도출"
+    window: [9, 11]
+    depends_on: [P4, P6]
+    gate_for: [P8]
+    critical: true              # 논문 핵심 기여
+    min_duration_weeks: 8
+    risk: {level: high, cause: "실험 시간"}
+    artifacts:
+      - id: P7-A0
+        name: "1포인트당 실측 소요시간 파일럿"
+        state: not_started
+        evidence: null
+        note: "모델 로드 + 정상상태 도달 + 외란 인가 + 데이터 회수. 랙 예약 시간 산정의 입력"
+        blocking: true
+        do_now: true
+      - id: P7-A1
+        name: "88포인트 스윕 자동화 스크립트"
+        state: not_started
+        evidence: null
+        note: "배치 실행 + 전처리 재컴파일 + 결과 수집"
+      - id: P7-A2
+        name: "Prony + Matrix Pencil 이중 추출 파이프라인"
+        state: not_started
+        evidence: null
+        note: "두 방법 불일치 시 처리 규칙을 사전에 정의"
+      - id: P7-A3
+        name: "SCR*(X/R) 2D 경계 곡면"
+        state: not_started
+        evidence: null
+      - id: P7-A4
+        name: "zeta_thr 5세트 민감도"
+        state: not_started
+        evidence: null
+      - id: P7-A5
+        name: "sigma_SCR 에러바"
+        state: not_started
+        evidence: null
+      - id: P7-A6
+        name: "소신호 예측 vs CHIL 실측 오차 정량화"
+        state: not_started
+        evidence: null
+
+  - id: P8
+    name: "가설 검증 및 집필"
+    window: [11, 12]
+    depends_on: [P7]
+    gate_for: []
+    risk: {level: medium, cause: null}
+    artifacts:
+      - id: P8-A1
+        name: "H1 통계 검정 방법 확정"
+        state: not_started
+        evidence: null
+        note: "현재 미정의. 검정 방법부터 선택할 것"
+      - id: P8-A2
+        name: "H2 Wilcoxon - 표본 쌍 정의 및 표본 수"
+        state: not_started
+        evidence: null
+      - id: P8-A3
+        name: "H3 수정 - 인접 X/R 구간 dSCR* 부호 변화"
+        state: not_started
+        evidence: null
+        note: "n=4 Spearman 은 비단조성 주장과 논리적으로 불일치"
+      - id: P8-A4
+        name: "학위논문 본문"
+        state: not_started
+        evidence: null
+      - id: P8-A5
+        name: "IEEE Access 투고 원고"
+        state: not_started
+        evidence: null
+
+# -----------------------------------------------------------------------------
+# 상시 병렬 트랙 - phase 에 묶이지 않음
+# -----------------------------------------------------------------------------
+continuous:
+  - id: C1
+    name: "refs [115] 2D 임피던스 평면 경계 정독"
+    state: not_started
+    evidence: null
+  - id: C2
+    name: "refs [114] 전차수 VSG 상태공간 모델 정독"
+    state: not_started
+    evidence: null
+  - id: C3
+    name: "refs [94] Lyapunov 기반 파라미터 선정 정독"
+    state: not_started
+    evidence: null
+  - id: C4
+    name: "선행연구 비교표 (novelty 방어용)"
+    state: not_started
+    evidence: null
+    note: "다중 운전점 PSO / 2D 경계 / CHIL 3축 존재여부 매트릭스. 심사 필수 요구"
+  - id: C5
+    name: "논문 추출 파이프라인 3번째 호출 (렌더링)"
+    state: not_started
+    evidence: null
+
+# -----------------------------------------------------------------------------
+# 경보 규칙 - agent 는 매 호출 시 이 순서로 평가한다
+# -----------------------------------------------------------------------------
+alert_rules:
+
+  - id: R2
+    priority: 1
+    name: "장비 예약 경보"
+    condition: >
+      resources.rtds_rack.booked_slots 가 비어 있고,
+      current_month >= (required_from_month - booking_lead_time_weeks/4)
+    action: "랙 예약 요청. 필요 시간은 P7-A0 파일럿 결과로 산정"
+    severity: critical
+
+  - id: R1
+    priority: 2
+    name: "마감 역산 경보"
+    condition: >
+      (P7.window[0] 까지 남은 주) < (P7.min_duration_weeks + 4)
+      또는 (deadline_month - current_month) < 남은 phase 소요 합
+    action: "범위 축소 결정. 88포인트를 축소 격자로 낮출지 여기서 판단"
+    severity: critical
+
+  - id: R3
+    priority: 3
+    name: "게이트 미충족 경보"
+    condition: >
+      current_month >= 8 이고, P7 착수조건(P4-A1 verified AND P6-A4 verified)
+      중 하나라도 미충족
+    action: "미충족 산출물 하나를 즉시 착수"
+    severity: high
+
+  - id: R4
+    priority: 4
+    name: "증거 없는 완료"
+    condition: "state == verified 인데 evidence == null"
+    action: "draft 로 강등하고 사용자에게 통보"
+    severity: medium
+
+  - id: R5
+    priority: 5
+    name: "정체 phase"
+    condition: "14일간 어떤 artifact 의 state 변화도 없음"
+    action: "점검 요청 1건 발송"
+    severity: low
+
+# -----------------------------------------------------------------------------
+# 출력 정책
+# -----------------------------------------------------------------------------
+output_policy:
+  on_alert: "[등급] Phase / 조건 / 남은 여유 / 지금 해야 할 단일 행동"
+  on_clear: "다음 게이트 + 남은 일수. 한 줄."
+  max_actions_per_response: 1
+  mirror_file: "checkList.md"
+  mirror_sync: "state 변경 시 checkList.md 의 해당 체크박스도 함께 갱신한다"
+  forbidden:
+    - "진척률 퍼센트 보고"
+    - "전체 일정 재나열"
+    - "격려 문구"
+    - "사용자 확인 없는 state 상향"

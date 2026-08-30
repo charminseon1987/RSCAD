@@ -1,0 +1,17 @@
+# 원본 논문 PDF — 구독 저널 재배포 방지. 폴더째 제외.
+papers/
+
+# Obsidian 로컬 설정 (플러그인 설정은 공유하고 싶으면 아래 3줄 삭제)
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+
+# 시뮬레이션 산출물 — 용량이 크고 재생성 가능
+RSCAD/**/*.sav
+RSCAD/**/*.out
+*.mat
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
