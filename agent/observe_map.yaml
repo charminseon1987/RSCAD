@@ -1,0 +1,106 @@
+# observe_map.yaml — 파일 신호를 artifact 상태 제안으로 변환하는 규칙
+#
+# 3단계에서 정해야 할 유일한 실질적 결정이 이 파일이다.
+# schedule.yaml은 "무엇을 해야 하는가", 이 파일은 "무엇이 보이면 됐다고 볼 것인가"를 담는다.
+#
+# propose 허용값: in_progress | draft
+#   verified는 여기에 쓸 수 없다. 코드가 draft로 절삭하고 경고를 낸다.
+
+meta:
+  code_root: ".."          # 실제 저장소 절대경로로 교체
+  stale_days: 14          # 이 일수 이상 변경 없으면 정체로 표시
+
+signals:
+
+  # ── Phase 2 — 소신호 모델 ────────────────────────────────
+  - id: S-P2-JACOBIAN
+    pattern: "results/latest/A_num.npy"
+    reason: "22차 야코비안 수치 행렬 산출"
+    targets:
+      - {artifact: P2-A1, propose: draft}
+
+  - id: S-P2-XVAL
+    pattern: "Simulation/xval.py"
+    reason: "유한차분 교차검증 스크립트"
+    targets:
+      - {artifact: P2-A2, propose: in_progress}
+
+  - id: S-P2-XVAL-RESULT
+    pattern: "results/*/xval_report.json"
+    reason: "교차검증 수치 결과 산출"
+    targets:
+      - {artifact: P2-A2, propose: draft}
+
+  - id: S-P2-STATEDEF
+    pattern: "Simulation/model.py"
+    reason: "상태변수 정의 소스"
+    targets:
+      - {artifact: P2-A3, propose: in_progress}
+
+  # ── Phase 3 — 참여인자 ──────────────────────────────────
+  - id: S-P3-PF-CODE
+    pattern: "Simulation/pf.py"
+    reason: "참여인자 계산 코드"
+    targets:
+      - {artifact: P3-A1, propose: in_progress}
+
+  - id: S-P3-PF-RESULT
+    pattern: "results/*/pf_matrix.npy"
+    reason: "참여인자 행렬 산출"
+    targets:
+      - {artifact: P3-A1, propose: draft}
+
+  - id: S-P3-DOMMODE
+    pattern: "results/*/dominant_mode.json"
+    reason: "지배 모드 식별 결과"
+    targets:
+      - {artifact: P3-A2, propose: draft}
+
+  # ── Phase 4 — PSO ──────────────────────────────────────
+  - id: S-P4-PSO-RUN
+    pattern: "results/pso_*/meta.json"
+    reason: "PSO 실행 산출물"
+    targets:
+      - {artifact: P4-A3, propose: draft}
+
+  - id: S-P4-PSO-CODE
+    pattern: "Simulation/pso*.py"
+    reason: "PSO 구현 코드"
+    targets:
+      - {artifact: P4-A2, propose: in_progress}
+
+  - id: S-P4-MC
+    pattern: "results/mc_*/summary.json"
+    reason: "몬테카를로 30회 통계"
+    targets:
+      - {artifact: P4-A5, propose: draft}
+
+  # ── Phase 6·7 — CHIL / 2D 경계 ─────────────────────────
+  - id: S-P7-SWEEP-SCRIPT
+    pattern: "Automation/sweep_*.py"
+    reason: "88포인트 스윕 자동화 스크립트"
+    targets:
+      - {artifact: P7-A1, propose: in_progress}
+
+  - id: S-P7-SWEEP-RESULT
+    pattern: "results/sweep2d_*/points.csv"
+    reason: "스윕 실측 데이터 회수"
+    targets:
+      - {artifact: P7-A1, propose: draft}
+
+  - id: S-P7-BOUNDARY
+    pattern: "results/sweep2d_*/boundary.npy"
+    reason: "SCR* 경계 곡면 산출"
+    targets:
+      - {artifact: P7-A3, propose: draft}
+
+# ── 매핑하지 않은 것들 ─────────────────────────────────────
+# 아래는 의도적으로 신호를 걸지 않았다. 파일 생성이 완료를 뜻하지 않는 항목이다.
+#
+#   RTDS 랙 예약        — 외부 시스템. 사람이 booked_slots에 직접 입력
+#   ζ_threshold 재확정   — 판단이지 산출물이 아님
+#   H1~H3 통계 검정 확정  — 문서 존재 ≠ 방법 확정
+#   학위논문 본문·투고 원고 — 분량이 완성도를 뜻하지 않음
+#
+# 이 목록이 관측의 한계다. 에이전트가 영원히 모르는 영역이 있다는 사실을
+# 명시해 두지 않으면, 무경보를 이상 없음으로 오독하게 된다.

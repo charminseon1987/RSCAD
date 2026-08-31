@@ -1,0 +1,381 @@
+{
+  "run": "J0.50_Dp20.0_Kpv0.050_wc62.8_XR1.0_33d0cb_fine",
+  "input": "Vg",
+  "tol": 0.05,
+  "T_mode": "auto",
+  "tau_margin": 1.5,
+  "timestamp": "2026-08-31 16:24:28",
+  "threshold_common": 0.05,
+  "by_SCR": {
+    "1.7": {
+      "threshold_ratio": 0.1,
+      "T": 3.0169137633669685,
+      "slow_pole": -2.4859842170728044,
+      "dc_gain_error_max": 0.9999999999803516,
+      "dc_gain_error_delta": 0.10412120579957304,
+      "sweep": [
+        {
+          "ratio": 0.005,
+          "max_rel_error": 0.00154,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 1.0,
+          "dc_gain_state": "dw",
+          "dc_gain_delta": {
+            "rel": 0.005703262074453826,
+            "lin_deg": 0.01380770258097313,
+            "nl_deg": 0.013729400213430873
+          }
+        },
+        {
+          "ratio": 0.01,
+          "max_rel_error": 0.00307,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 1.0,
+          "dc_gain_state": "dw",
+          "dc_gain_delta": {
+            "rel": 0.01086123447478663,
+            "lin_deg": 0.02761540516194626,
+            "nl_deg": 0.027318690459323433
+          }
+        },
+        {
+          "ratio": 0.02,
+          "max_rel_error": 0.00613,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 0.02118,
+          "dc_gain_state": "delta",
+          "dc_gain_delta": {
+            "rel": 0.021184786980498534,
+            "lin_deg": 0.05523081032389252,
+            "nl_deg": 0.054085030474457375
+          }
+        },
+        {
+          "ratio": 0.05,
+          "max_rel_error": 0.01521,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 0.05221,
+          "dc_gain_state": "delta",
+          "dc_gain_delta": {
+            "rel": 0.052214831805633924,
+            "lin_deg": 0.13807702580972722,
+            "nl_deg": 0.13122512783134094
+          }
+        },
+        {
+          "ratio": 0.1,
+          "max_rel_error": 0.03004,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 0.10412,
+          "dc_gain_state": "delta",
+          "dc_gain_delta": {
+            "rel": 0.10412120579957304,
+            "lin_deg": 0.27615405161945444,
+            "nl_deg": 0.2501120802398425
+          }
+        }
+      ]
+    },
+    "1.6": {
+      "threshold_ratio": 0.1,
+      "T": 3.2251050778409356,
+      "slow_pole": -2.3255056250821187,
+      "dc_gain_error_max": 0.004513270412252139,
+      "dc_gain_error_delta": 0.11264860790025256,
+      "sweep": [
+        {
+          "ratio": 0.005,
+          "max_rel_error": 0.00111,
+          "pass": true,
+          "worst_state": "i_Less",
+          "dc_gain_error": 0.00023,
+          "dc_gain_state": "v_od",
+          "dc_gain_delta": {
+            "rel": 0.005911213595862791,
+            "lin_deg": 0.0037327089311249358,
+            "nl_deg": 0.0037107737548540713
+          }
+        },
+        {
+          "ratio": 0.01,
+          "max_rel_error": 0.00221,
+          "pass": true,
+          "worst_state": "i_Less",
+          "dc_gain_error": 0.00045,
+          "dc_gain_state": "v_od",
+          "dc_gain_delta": {
+            "rel": 0.011465894883314806,
+            "lin_deg": 0.0074654178622498716,
+            "nl_deg": 0.0073807904942866116
+          }
+        },
+        {
+          "ratio": 0.02,
+          "max_rel_error": 0.00443,
+          "pass": true,
+          "worst_state": "i_Less",
+          "dc_gain_error": 0.0009,
+          "dc_gain_state": "v_od",
+          "dc_gain_delta": {
+            "rel": 0.022596289073779918,
+            "lin_deg": 0.014930835724499743,
+            "nl_deg": 0.01460090935595258
+          }
+        },
+        {
+          "ratio": 0.05,
+          "max_rel_error": 0.01114,
+          "pass": true,
+          "worst_state": "i_Less",
+          "dc_gain_error": 0.00226,
+          "dc_gain_state": "v_od",
+          "dc_gain_delta": {
+            "rel": 0.056155645731472525,
+            "lin_deg": 0.0373270893112555,
+            "nl_deg": 0.03534241327224407
+          }
+        },
+        {
+          "ratio": 0.1,
+          "max_rel_error": 0.02249,
+          "pass": true,
+          "worst_state": "i_Less",
+          "dc_gain_error": 0.00451,
+          "dc_gain_state": "v_od",
+          "dc_gain_delta": {
+            "rel": 0.11264860790025256,
+            "lin_deg": 0.074654178622511,
+            "nl_deg": 0.06709591697903211
+          }
+        }
+      ]
+    },
+    "1.5": {
+      "threshold_ratio": 0.1,
+      "T": 3.4662156001408584,
+      "slow_pole": -2.163743074635986,
+      "dc_gain_error_max": 1.0000000001554876,
+      "dc_gain_error_delta": 0.09512611483502319,
+      "sweep": [
+        {
+          "ratio": 0.005,
+          "max_rel_error": 0.00135,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 1.0,
+          "dc_gain_state": "dw",
+          "dc_gain_delta": {
+            "rel": 0.005459284726097035,
+            "lin_deg": -0.007744691836674468,
+            "nl_deg": -0.0077026409267126564
+          }
+        },
+        {
+          "ratio": 0.01,
+          "max_rel_error": 0.00269,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 1.0,
+          "dc_gain_state": "dw",
+          "dc_gain_delta": {
+            "rel": 0.010193294647705863,
+            "lin_deg": -0.015489383673348936,
+            "nl_deg": -0.015333088979521186
+          }
+        },
+        {
+          "ratio": 0.02,
+          "max_rel_error": 0.00537,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 0.01966,
+          "dc_gain_state": "delta",
+          "dc_gain_delta": {
+            "rel": 0.01965679827911197,
+            "lin_deg": -0.030978767346697873,
+            "nl_deg": -0.03038156308964069
+          }
+        },
+        {
+          "ratio": 0.05,
+          "max_rel_error": 0.01332,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 0.04801,
+          "dc_gain_state": "delta",
+          "dc_gain_delta": {
+            "rel": 0.048009354162608424,
+            "lin_deg": -0.07744691836674143,
+            "nl_deg": -0.07389907166298519
+          }
+        },
+        {
+          "ratio": 0.1,
+          "max_rel_error": 0.02633,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 0.09513,
+          "dc_gain_state": "delta",
+          "dc_gain_delta": {
+            "rel": 0.09512611483502319,
+            "lin_deg": -0.15489383673348286,
+            "nl_deg": -0.1414392686241594
+          }
+        }
+      ]
+    },
+    "1.4": {
+      "threshold_ratio": 0.1,
+      "T": 3.7501452147673477,
+      "slow_pole": -1.999922555123052,
+      "dc_gain_error_max": 1.000000000383675,
+      "dc_gain_error_delta": 0.09884613273180236,
+      "sweep": [
+        {
+          "ratio": 0.005,
+          "max_rel_error": 0.00212,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 1.0,
+          "dc_gain_state": "dw",
+          "dc_gain_delta": {
+            "rel": 0.00555596477210815,
+            "lin_deg": -0.020990945061990438,
+            "nl_deg": -0.02087496449463921
+          }
+        },
+        {
+          "ratio": 0.01,
+          "max_rel_error": 0.00422,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 1.0,
+          "dc_gain_state": "dw",
+          "dc_gain_delta": {
+            "rel": 0.010467546518546051,
+            "lin_deg": -0.041981890123980875,
+            "nl_deg": -0.041546995020893866
+          }
+        },
+        {
+          "ratio": 0.02,
+          "max_rel_error": 0.00841,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 0.02029,
+          "dc_gain_state": "delta",
+          "dc_gain_delta": {
+            "rel": 0.020290538930729157,
+            "lin_deg": -0.08396378024796175,
+            "nl_deg": -0.08229399082339459
+          }
+        },
+        {
+          "ratio": 0.05,
+          "max_rel_error": 0.02075,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 0.04976,
+          "dc_gain_state": "delta",
+          "dc_gain_delta": {
+            "rel": 0.04975643768667028,
+            "lin_deg": -0.2099094506198625,
+            "nl_deg": -0.1999601460720129
+          }
+        },
+        {
+          "ratio": 0.1,
+          "max_rel_error": 0.04065,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 0.09885,
+          "dc_gain_state": "delta",
+          "dc_gain_delta": {
+            "rel": 0.09884613273180236,
+            "lin_deg": -0.419818901239725,
+            "nl_deg": -0.38205431018447333
+          }
+        }
+      ]
+    },
+    "1.3": {
+      "threshold_ratio": 0.05,
+      "T": 4.091586479364506,
+      "slow_pole": -1.8330298132094913,
+      "dc_gain_error_max": 1.0000000000162723,
+      "dc_gain_error_delta": 0.10020914904755811,
+      "sweep": [
+        {
+          "ratio": 0.005,
+          "max_rel_error": 0.00214,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 1.0,
+          "dc_gain_state": "dw",
+          "dc_gain_delta": {
+            "rel": 0.005599382930330351,
+            "lin_deg": -0.03653728253486076,
+            "nl_deg": -0.0363338354766991
+          }
+        },
+        {
+          "ratio": 0.01,
+          "max_rel_error": 0.00427,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 1.0,
+          "dc_gain_state": "dw",
+          "dc_gain_delta": {
+            "rel": 0.010577815791006097,
+            "lin_deg": -0.07307456506972151,
+            "nl_deg": -0.07230968652574676
+          }
+        },
+        {
+          "ratio": 0.02,
+          "max_rel_error": 0.00851,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 0.02054,
+          "dc_gain_state": "delta",
+          "dc_gain_delta": {
+            "rel": 0.02053534854426816,
+            "lin_deg": -0.14614913013944303,
+            "nl_deg": -0.14320829782909128
+          }
+        },
+        {
+          "ratio": 0.05,
+          "max_rel_error": 0.02101,
+          "pass": true,
+          "worst_state": "dw",
+          "dc_gain_error": 0.05041,
+          "dc_gain_state": "delta",
+          "dc_gain_delta": {
+            "rel": 0.050411710132780375,
+            "lin_deg": -0.3653728253486062,
+            "nl_deg": -0.34783773050513705
+          }
+        },
+        {
+          "ratio": 0.1,
+          "max_rel_error": 0.09953,
+          "pass": false,
+          "worst_state": "delta",
+          "dc_gain_error": 0.10021,
+          "dc_gain_state": "delta",
+          "dc_gain_delta": {
+            "rel": 0.10020914904755811,
+            "lin_deg": -0.7307456506972124,
+            "nl_deg": -0.6641879422015466
+          }
+        }
+      ]
+    }
+  }
+}

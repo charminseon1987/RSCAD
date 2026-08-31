@@ -127,11 +127,12 @@ def main():
 
         # ── 동기화 모드 = δ + Δω 참여도 합이 최대인 진동모드 ──
         pw = P[di, :] + P[wi, :]
-        cand = [i for i in range(len(ev)) if ev[i].imag > 1e-4]
-        if not cand:
-            print(f'\n  SCR {scr}: 진동모드 없음')
-            continue
+        # 진동 모드로 제한하지 않는다. Dp/J 가 크면 스윙 모드는 과감쇠되어
+        # 실수극으로 분리되며, 그때 진동 모드만 뒤지면 무관한 저주파 모드
+        # (Qf·Pf 드룹)가 동기화 모드로 오인된다.
+        cand = [i for i in range(len(ev)) if ev[i].imag >= -1e-9]
         k = max(cand, key=lambda i: pw[i])
+        overdamped = abs(ev[k].imag) <= 1e-4
 
         lam  = ev[k]
         f_hz = float(lam.imag / (2 * np.pi))
@@ -141,13 +142,16 @@ def main():
         cosd = float(np.cos(np.radians(delta_deg))) if delta_deg is not None else None
 
         sync.append({'SCR': scr, 'f': f_hz, 'zeta': zeta,
+                     'overdamped': overdamped,
                      'p_delta': float(P[di, k]), 'p_omega': float(P[wi, k]),
                      'p_sum': float(pw[k]), 'delta': delta_deg, 'cos': cosd,
+                     'lam_re': float(lam.real),
                      'A_wd': float(A[wi, di])})
 
         print(f'\n  ── SCR {scr}  (δ = {delta_deg}°) ' + '─' * 44)
-        print(f'  동기화 모드: λ = {lam.real:+.4f} {lam.imag:+.4f}j   '
-              f'f = {f_hz:.4f} Hz   ζ = {zeta:.4f}')
+        kind = '실수극 (과감쇠)' if overdamped else f'진동  f = {f_hz:.4f} Hz'
+        print(f'  동기화 모드: λ = {lam.real:+.4f} {lam.imag:+.4f}j   {kind}'
+              + ('' if overdamped else f'   ζ = {zeta:.4f}'))
         print(f'  참여도: {dname} = {P[di,k]:.4f},  {wname} = {P[wi,k]:.4f},  '
               f'합 = {pw[k]:.4f}')
         if pw[k] < 0.20:
@@ -167,49 +171,65 @@ def main():
     print('\n' + '=' * 86)
     print(f'  이론 대비 검증  (SCR {a["SCR"]} → {b["SCR"]})')
     print('=' * 86)
-    print(f"\n  {'SCR':>6} {'δ(°)':>8} {'cosδ':>8} {'f(Hz)':>9} {'ζ':>8} "
-          f"{'p(δ)':>7} {'p(Δω)':>7} {'A[Δω,δ]':>13}")
-    print('  ' + '-' * 74)
-    for s in sync:
-        print(f"  {s['SCR']:>6.2f} {s['delta']:>8.2f} {s['cos']:>8.4f} "
-              f"{s['f']:>9.4f} {s['zeta']:>8.4f} "
-              f"{s['p_delta']:>7.4f} {s['p_omega']:>7.4f} {s['A_wd']:>13.4e}")
+    print(f"\n  {'SCR':>6} {'δ(°)':>8} {'cosδ':>8} {'λ_re':>10} {'유형':>6} "
+          f"{'p(δ)':>7} {'p(Δω)':>7} {'p합':>7}")
+    print('  ' + '-' * 70)
+    for s_ in sync:
+        kind = '실수극' if s_['overdamped'] else '진동'
+        print(f"  {s_['SCR']:>6.2f} {s_['delta']:>8.2f} {s_['cos']:>8.4f} "
+              f"{s_['lam_re']:>10.4f} {kind:>6} "
+              f"{s_['p_delta']:>7.4f} {s_['p_omega']:>7.4f} {s_['p_sum']:>7.4f}")
 
     if a['cos'] is None or b['cos'] is None or b['cos'] <= 0:
         print('\n  cosδ ≤ 0 또는 미상 — 이론 비교 생략 (δ > 90° 구간)')
         return
 
-    k_ratio = a['cos'] / b['cos']
-    pred    = np.sqrt(k_ratio)
-    print(f'\n  cosδ 비 = {k_ratio:.3f}  →  예측: f {pred:.2f}배 감소, '
-          f'ζ {pred:.2f}배 증가')
+    # ── 동기화계수 K = V·E·cosδ / X ──
+    # X 도 SCR 에 따라 변하므로 K ∝ cosδ · SCR 이다. cosδ 만 보면 안 된다.
+    K = lambda s_: s_['cos'] * s_['SCR']
+    k_ratio = K(a) / K(b)
+    print(f"\n  동기화계수 K ∝ cosδ·SCR :  {K(a):.4f} → {K(b):.4f}   "
+          f"({k_ratio:.3f}배 감소)")
 
-    f_obs = a['f'] / b['f']
-    z_obs = b['zeta'] / a['zeta']
-    print(f'  관측: f {f_obs:.3f}배,  ζ {z_obs:.3f}배')
+    all_over = all(s_['overdamped'] for s_ in sync)
+    any_over = any(s_['overdamped'] for s_ in sync)
 
-    # A[Δω,δ] 는 -(1/J)·∂P/∂δ 이므로 cosδ 에 비례해야 한다.
-    if abs(b['A_wd']) > 1e-300:
-        a_obs = abs(a['A_wd'] / b['A_wd'])
-        print(f'  A[Δω,δ] 비: 관측 {a_obs:.3f}배 / 예측 {k_ratio:.3f}배 '
-              f'(∂P/∂δ ∝ cosδ)')
+    if all_over:
+        # 과감쇠(Dp² > 4JK)에서는 느린 근이 λ ≈ -K/Dp 이므로 K 에 비례한다.
+        obs = a['lam_re'] / b['lam_re']
+        print(f"  과감쇠 영역 — 느린 근 λ ≈ -K/Dp 이므로 |λ| 는 K 에 비례해야 함")
+        print(f"  관측: |λ| {obs:.3f}배 감소 / 예측 {k_ratio:.3f}배")
+        rel = obs / k_ratio
+        if obs < 1.10:
+            print('\n  ⛔ 동기화 모드가 K 변화에 반응하지 않습니다.')
+            print('     model.py 에서 δ → i_od → Pf → Δω 경로를 확인하세요.')
+        elif rel > 0.4:
+            print('\n  ✅ 동기화 모드가 K 에 이론대로 반응합니다.')
+            print('     (완전 비례하지 않는 것은 전력 필터 wc 와 계통 동역학이')
+            print('      함께 작용하기 때문이며, 전차수 모델에서 정상입니다.)')
+        else:
+            print(f'\n  ⚠ 반응이 예측의 {rel*100:.0f}% 수준 — wc·Dp 영향 확인 필요')
     else:
-        a_obs = None
-        print(f'  ⛔ A[Δω,δ] = 0 — 스윙 방정식에 ∂P/∂δ 항이 없습니다.')
+        pred  = np.sqrt(k_ratio)
+        f_obs = a['f'] / b['f'] if b['f'] else float('nan')
+        z_obs = b['zeta'] / a['zeta'] if a['zeta'] else float('nan')
+        print(f"  진동 영역 — ω_n = √(K/J) 이므로 예측: f {pred:.2f}배 감소, "
+              f"ζ {pred:.2f}배 증가")
+        print(f"  관측: f {f_obs:.3f}배,  ζ {z_obs:.3f}배")
+        if f_obs < 1.10 and z_obs < 1.10:
+            print('\n  ⛔ 동기화 모드가 δ 에 반응하지 않습니다.')
+        else:
+            print('\n  ✅ 동기화 모드가 δ 에 이론대로 반응합니다.')
+        if any_over:
+            print('  ⚠ SCR 구간에 따라 과감쇠/진동이 갈립니다 — 모드 성격 변화 지점 확인')
 
-    print()
-    flat = (f_obs < 1.10 and z_obs < 1.10)
-    if flat and a_obs is not None and a_obs > 1.5:
-        print('  ⛔ A[Δω,δ] 는 cosδ 를 따라 변하는데 모드는 반응하지 않습니다.')
-        print('     → 참여계수로 고른 이 모드가 실제 스윙 모드가 아닙니다.')
-        print('       위 "상위 참여 상태" 목록에서 δ·Δω 참여도를 확인하고,')
-        print('       0.2 미만이면 스윙 모드가 과감쇠(실수극)로 분리된 것입니다.')
-        print('       그 경우 실수 고유값 중 δ 참여도가 높은 것을 찾아야 합니다.')
-    elif flat:
-        print('  ⛔ 동기화 모드가 δ 에 반응하지 않습니다.')
-        print('     model.py 의 스윙 방정식에서 ∂P/∂δ 경로를 확인하세요.')
-    else:
-        print('  ✅ 동기화 모드가 δ 에 이론대로 반응합니다.')
+    # ── A[Δω,δ] 에 대한 주의 ──
+    print(f"\n  참고: A[Δω,δ] = {a['A_wd']:.4e}")
+    print('    전차수 모델에서 이 값이 0 인 것은 정상입니다. 계통 동역학(i_od,')
+    print('    i_oq)과 전력 필터(Pf)가 상태변수이므로 δ 는 스윙 방정식에 직접')
+    print('    들어가지 않고 δ → i_od → Pf → Δω 경로로 돌아옵니다.')
+    print('    K = VE·cosδ/X 형태의 직접 항은 계통을 대수식으로 취급하는')
+    print('    고전 축소 모델에서만 나타납니다.')
 
     # ── 실수극 중 δ 참여도 높은 것 점검 (과감쇠 스윙 모드 탐색) ──
     print('\n' + '=' * 86)

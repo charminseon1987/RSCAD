@@ -13,8 +13,8 @@ meta:
 
   # ⚠️ month_1_start 는 기록이 없어 추정값이다. 반드시 확인 후 확정할 것.
   #    (2026-08-20 시점에 current_month=4 였던 것에서 역산)
-  month_1_start: 2026-08       
-  deadline_month:12            # 추정 2027-04
+  month_1_start: 2026-05          
+  deadline_month: 12            # 추정 2027-04
   buffer_months: 0
   # model_version: [%model_version%]  
   model_version: v3-22state   # v0(21차) 폐기 — 블록삼각 결함
@@ -91,7 +91,8 @@ phases:
 
       - id: P2-A2
         name: "야코비안 검산 — 심볼릭 vs 유한차분"
-        state: verified
+        # state: verified
+        state: draft # 2026-08-31 수정
         evidence: "code_root/Simulation/op.py :: fd_jacobian"
         result: "최대 상대오차 1.2e-09 (X/R=1.0, 전 SCR)"   # 조건 한정
         superseded_result: "1.2e-09 (전 SCR) — X/R 축 미확인 상태의 과잉 일반화"
@@ -297,7 +298,9 @@ phases:
       - id: P4-A1
         name: "TABLE II — 14개 파라미터 탐색범위 + 설정 근거"
         state: not_started
-        evidence: null
+        evidence: "code_root/results/param_space/TABLE_II_ranges.json"
+        basis: "model.PARAM_NAMES 기준 14개 파라미터의 하한·상한·근거를 기계가 읽는 형식으로"
+        caveat: "issue/next_action 이 살아 있는 동안은 승격 보류됨 — 정상 동작"
         blocking: true
         issue: >
           ⚠ 기존 노트의 파라미터 목록이 구현과 다르다.
@@ -311,7 +314,9 @@ phases:
       - id: P4-A2
         name: "다중 운전점 목적함수 정의"
         state: not_started
-        evidence: null
+        evidence: "code_root/Simulation/objective.py"
+        basis: "구 F_multi 대체. 모드별 지표 분리(t_s / 대역별 ζ / 상수 페널티) 구현체"
+        caveat: "P3-A7 의 sigma_sync 필드를 소비하므로 그 전에는 생성 불가"
         blocking: true
         issue: >
           ⛔ 구 F_multi 는 강건성을 악화시킨다.
@@ -327,7 +332,9 @@ phases:
       - id: P4-A3
         name: "예비 100회 → N_particle / N_iter 결정"
         state: not_started
-        evidence: null
+        evidence: "code_root/results/pso_pilot_*/convergence.npz"
+        basis: "예비 100회 수렴 이력. N_particle / N_iter 결정 근거"
+        caveat: "PSO 격자(대표점 9)와 검증 격자(88점)를 분리 기록할 것"
         note: >
           ⚠ 계산량 확인 필요. MC 30 × N_final 390 × 입자 30 ≈ 35만 회 평가.
           88포인트를 목적함수 안에서 돌리면 성립하지 않는다.
@@ -457,7 +464,9 @@ phases:
       - id: P7-A1
         name: "88포인트 스윕 자동화 — 배치 실행 + 재컴파일 + 결과 수집"
         state: not_started
-        evidence: null
+        evidence: "code_root/results/sweep2d_*/points.csv"
+        basis: "88포인트 스윕 회수 결과. 점당 SCR·X/R·판정·반복 회차를 한 행으로"
+        caveat: "실행 식별자 설계원칙 — 스윕 축은 파일명, 공통 조건은 폴더명"
         note: >
           사전 결정 필요: 정착 타임아웃 규칙(경계 근처 Re→0이면 5τ 발산),
           점당 반복 횟수(에러바 요건), 실패 재시도 정책.
@@ -469,7 +478,9 @@ phases:
       - id: P7-A3
         name: "SCR*(X/R) 2D 경계 곡면 — 감쇠 경계"
         state: not_started
-        evidence: null
+        evidence: "code_root/results/sweep2d_*/boundary_damping.npz"
+        basis: "감쇠 경계 SCR*(X/R) 곡면"
+        caveat: "P7-A7 정적 부하가능성 경계와 파일을 분리 — 한 파일에 담으면 두 경계가 섞인다"
         note: >
           예비 근거: X/R=3.0 에서 SCR 2.0→1.5 사이에 ζ_min 이 control(37~43Hz)
           에서 lcl(178Hz)로 교체된다. 커플링 이동량도 26.97 → 1.00 으로 불연속.
@@ -489,7 +500,9 @@ phases:
       - id: P7-A5
         name: "σ_SCR 에러바"
         state: not_started
-        evidence: null
+        evidence: "code_root/results/sweep2d_*/sigma_scr.json"
+        basis: "σ_SCR 에러바. G-P8 게이트 요건"
+        caveat: "P6-A4(측정 불확도)가 선행되어야 값이 의미를 가짐"
       - id: P7-A6
         name: "소신호 예측 vs 실측 오차 정량화"
         state: not_started
