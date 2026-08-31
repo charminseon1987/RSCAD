@@ -1,7 +1,7 @@
 ---
 type: result
 run: J0.50_Dp20.0_Kpv1.0_wc62.8
-date: 2026-08-21 10:54
+date: 2026-08-24 14:28
 all_stable: True
 tags: [result, phase2, jacobian]
 ---

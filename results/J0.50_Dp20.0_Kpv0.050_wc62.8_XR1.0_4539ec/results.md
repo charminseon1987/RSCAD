@@ -1,15 +1,10 @@
 ---
 type: result
-<<<<<<< HEAD:results/_archive/J0.50_Dp20.0_Kpv1.0_wc62.8/results.md
-run: J0.50_Dp20.0_Kpv1.0_wc62.8
-date: 2026-08-24 14:28
-=======
 run: J0.50_Dp20.0_Kpv0.050_wc62.8_XR1.0_4539ec
 model_version: v1-22state
 n_states: 22
 date: 2026-08-25 13:16
 XR: 1.0
->>>>>>> eed25c79a0e1293b38691fde6baef4dfa49e1ca2:results/latest/results.md
 all_stable: True
 zeta_min: 0.2068
 tags: [result, phase2, jacobian, 22state]

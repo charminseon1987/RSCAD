@@ -1,9 +1,4 @@
 {
-<<<<<<< HEAD:GFM_Research/RSCAD/Phase01/results/J0.50_Dp20.0_Kpv1.0_wc62.8/meta.json
-  "run_name": "J0.50_Dp20.0_Kpv1.0_wc62.8",
-  "timestamp": "2026-08-21 09:28:51",
-  "params": {
-=======
   "run_name": "J0.50_Dp20.0_Kpv0.050_wc62.8_XR1.0_4539ec",
   "model_version": "v1-22state",
   "n_states": 22,
@@ -17,7 +12,6 @@
     "Ki_vdc": 20.0,
     "Kp_iess": 0.001,
     "Ki_iess": 0.1,
->>>>>>> eed25c79a0e1293b38691fde6baef4dfa49e1ca2:results/latest/meta.json
     "J": 0.5,
     "Dp": 20.0,
     "wc": 62.83185307179586,
@@ -59,15 +53,9 @@
     1.4,
     1.3
   ],
-<<<<<<< HEAD:GFM_Research/RSCAD/Phase01/results/J0.50_Dp20.0_Kpv1.0_wc62.8/meta.json
-  "XR_nom": 1.0,
-  "all_stable": true
-=======
   "XR": 1.0,
   "all_converged": true,
   "all_stable": true,
   "max_fd_error": 1.1979598963307582e-09,
-  "zeta_min_all": 0.2068,
-  "latest_copied_from": "J0.50_Dp20.0_Kpv0.050_wc62.8_XR1.0_4539ec"
->>>>>>> eed25c79a0e1293b38691fde6baef4dfa49e1ca2:results/latest/meta.json
+  "zeta_min_all": 0.2068
 }
