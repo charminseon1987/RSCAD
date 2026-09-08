@@ -1,346 +1,299 @@
-# =============================================================================
-# schedule.yaml - 연구일정 단일 진실원 (Single Source of Truth)
-#
-# 위치: GFM_Research/schedule.yaml  (볼트 루트)
-# 미러: GFM_Research/checkList.md   (사람이 읽는 체크박스 뷰, 읽기 전용)
-#
-# 규칙
-#  1. 이 파일 외의 어떤 것도 상태 근거로 쓰지 않는다.
-#  2. state 는 not_started / in_progress / draft / verified 4단계만 사용.
-#  3. state: verified 는 evidence 경로가 있을 때만 유효하다.
-#     evidence 가 null 이면 agent 가 draft 로 강등한다. (규칙 R4)
-#  4. current_month 는 사용자가 직접 갱신한다. agent 가 추정하지 않는다.
-# =============================================================================
+# ══════════════════════════════════════════════════════════
+# schedule.yaml — 연구 일정 단일 진실원
+# 갱신: 2026-09-01
+#   · P0-A3 Tier 결정 마감 도달 → Tier 2 확정 (소프트웨어 검증)
+#   · P5 를 주 검증 축으로 승격, 4~7월차로 재배치
+#   · P6/P7 을 조건부(Tier 1/3 복귀 시)로 강등, 소신호 스윕은 P7S 로 분리
+#   · P4-A0 안정도 지표 재정의 완료 반영
+# ══════════════════════════════════════════════════════════
 
 meta:
-  title: "PSO 기반 2단 PV+ESS GFM 인버터 소신호 모델 최적화 및 SCR-X/R 2D 강건성 경계 정량화"
-  owner: "조연호"
-  deadline_month: 12          # 월차 기준. 학위논문 제출 마감
-  current_month: 4            # <-- 실제 값으로 수정할 것
-  buffer_months: 0            # 현재 일정상 여유 없음. Phase 8 종료 = 마감
-  updated: null               # agent 가 갱신할 때마다 ISO 날짜 기록
+  project: GFM-PSO-2D-Robustness
+  owner: 조연호
+  affiliation: 연세대 전기전자공학부 스마트그리드 연구실
+  advisor: 허견
 
-# -----------------------------------------------------------------------------
-# 외부 자원 - 일정 전체를 좌우하는 제약
-# -----------------------------------------------------------------------------
-resources:
-  rtds_rack:
-    name: "RTDS NovaCor / RSCAD FX 랙"
-    required_by_phase: [P6, P7]
-    required_from_month: 7
-    required_to_month: 11
-    total_hours_needed: null    # <-- 파일럿 측정 후 기입 (P7-A0 산출물)
-    booked_slots: []            # 예약 확정분. 비어 있으면 R2 최우선 경보
-    booking_lead_time_weeks: 8
-    contact: null
+  month_1_start: 2026-05        # ⚠️ 추정값 — 확인 필요
+  current_month: 5
+  current_date: 2026-09-01
+  deadline_month: 12
+  buffer_months: 0
 
-# -----------------------------------------------------------------------------
-# Phase 정의
-# -----------------------------------------------------------------------------
+  model_version: v3-22state
+  code_root: ~/dev/RSCAD
+  vault_root: RSCAD
+
+  tier: 2                       # ← 2026-09-01 확정
+  tier_decided_on: 2026-09-01
+  tier_rationale: >
+    5월차 마감까지 RTDS 접근 가능 여부가 확인되지 않아, 사전에 정한 규칙에
+    따라 Tier 2(소프트웨어 검증)로 자동 확정. 두 갈래를 병행 준비하다
+    양쪽 모두 미완으로 끝나는 것이 버퍼 0 일정에서 가장 큰 위험이므로,
+    검증 경로를 하나로 고정한다.
+    장비 접근이 이후 확보되면 P6/P7 을 재활성화한다. SIL 이 선행되어 있으면
+    CHIL 이행이 빨라지므로 순서상 손해가 아니다.
+
+tier_definition:
+  1: {name: "RTDS CHIL",        status: "미확보"}
+  2: {name: "소프트웨어 검증 (EMT + SIL)", status: "확정"}
+  3: {name: "저비용 CHIL (F28379D ×2, SPI)", status: "조건부 — P5 완료 후 재검토"}
+
+# ──────────────────────────────────────────────────────────
 phases:
-
-  - id: P2
-    name: "21x21 야코비안 유도 및 교차검증"
-    window: [2, 3]
-    depends_on: []
-    gate_for: [P3, P4]
-    risk: {level: medium, cause: "심볼릭 복잡도"}
+  - id: P0
+    name: "장비 접근 경로 확정"
+    window: [4, 5]
+    status: closed
+    closed_on: 2026-09-01
+    outcome: "Tier 2 확정"
     artifacts:
-      - id: P2-A1
-        name: "21차 야코비안 A_num 구현 (sym.py)"
+      - id: P0-A1
+        name: "랙 접근 자격·창구·마감 확인"
+        state: not_started
+        note: >
+          미해결 상태로 종결. 다만 완전히 폐기하지는 않는다 — 확인되면
+          P6/P7 재활성화 판단 근거가 된다. 우선순위는 '낮음'으로 강등.
+      - id: P0-A2
+        name: "pre-processor 재컴파일 소요시간 문의"
+        state: not_started
+        note: "Tier 1 복귀 시에만 필요"
+      - id: P0-A3
+        name: "Tier 결정"
         state: verified
-        evidence: "results/latest/A_num.npy"
-        note: "DC 8x8 + AC 13x13, A_k(9,6) 수동 보강. 4개 SCR 케이스 stable=True"
-      - id: P2-A2
-        name: "Simulink linmod 교차검증"
+        evidence: "meta.tier = 2"
+        result: "Tier 2 — 소프트웨어 검증"
+      - id: P0-A4
+        name: "저비용 CHIL 대안 조사"
         state: not_started
-        evidence: null
-        note: "고유값 비교. 허용오차 기준을 먼저 문서화할 것"
-        blocking: true
-      - id: P2-A3
-        name: "TABLE I / Ia - SCR별 A 행렬 수식"
-        state: draft
-        evidence: null
-      - id: P2-A4
-        name: "21개 상태변수 정의표 (부록)"
-        state: not_started
-        evidence: null
-        note: "기호 / 단위 / 물리적 의미"
+        window: [7, 8]
+        note: >
+          P5 완료 후 판단. 여유가 있으면 Tier 3 로 대표점 3~5개만 실증.
+          88포인트를 여기서 수행하려 하면 부업이 본업을 잠식한다.
+
+  # ────────────────────────────────────────────────────────
+  - id: P2
+    name: "22차 야코비안 유도·검증"
+    window: [2, 3]
+    status: substantially_complete
+    artifacts:
+      - {id: P2-A1, name: "22차 심볼릭 f(x,u) 및 야코비안", state: verified,
+         evidence: "Simulation/model.py"}
+      - {id: P2-A2, name: "유한차분 교차검증", state: verified,
+         result: "최대 상대오차 1.2e-09"}
+      - {id: P2-A3, name: "동작점 SCR 의존성", state: verified,
+         result: "δ 22.4° → 62.3°"}
+      - {id: P2-A4, name: "양방향 DC-AC 커플링 유도·정량화", state: verified,
+         result: "커플링 제거 시 고유값 이동 ≠ 0 (v0: 0.000e+00)"}
       - id: P2-A5
-        name: "A_k(9,6) 결합항 보강 근거 문서"
-        state: not_started
-        evidence: null
-        note: "리뷰어 필수 질문 지점. 이론 오차 <0.0001% 유도 포함"
+        name: "선형화 유효 범위"
+        state: draft
+        evidence: "results/*/linearization_validity_*.json"
+        result: >
+          Pref 기준 13.10%(SCR 1.7) → 11.09%(SCR 1.3), 단조 감소.
+          회귀 지수 n=1.99~2.02, R² ≥ 0.9999 → 오차 ∝ 섭동².
+        blocking_issue: "허용치 0.5% 의 근거 미확정 → P5-A7 로 이관"
+      - {id: P2-A6, name: "TABLE I/Ia — SCR별 A 행렬", state: not_started}
+      - {id: P2-A7, name: "22개 상태변수 정의표", state: not_started}
+      - {id: P2-A8, name: "SOC 제외·차수 확정 근거 문서화", state: not_started}
+      - {id: P2-A9, name: "제어 블록도 4종", state: not_started,
+         note: "VSG / Q드룹 / 종속 전압·전류 루프 / DC 이중 루프"}
 
+  # ────────────────────────────────────────────────────────
   - id: P3
-    name: "참여인자 분석 및 지배 모드 확정"
+    name: "참여계수·지배 모드"
     window: [3, 4]
-    depends_on: [P2]
-    gate_for: [P4, P7]
-    risk: {level: low, cause: null}
+    status: substantially_complete
     artifacts:
-      - id: P3-A1
-        name: "좌/우 고유벡터 기반 참여인자 행렬"
-        state: not_started
-        evidence: null
+      - {id: P3-A1, name: "참여계수 행렬", state: verified, evidence: "Simulation/pf.py"}
       - id: P3-A2
-        name: "SCR 민감 지배 모드 식별"
+        name: "지배 모드 식별"
+        state: verified
+        result: >
+          δ 지배 동기화 모드가 임계 모드. Dp/J=40 으로 과감쇠되어 실수극.
+          λ: -4.6445(SCR 3.0) → -1.2965(SCR 1.0), 참여도 0.924 → 0.978.
+      - {id: P3-A3, name: "모드 물리적 귀속", state: verified}
+      - {id: P3-A4, name: "Decision Gate — 22차 유지", state: verified}
+      - {id: P3-A5, name: "Prony 예비 적용", state: not_started,
+         note: "Tier 2 에서는 EMT 파형 대상으로 수행"}
+      - id: P3-A6
+        name: "정착시간 요구의 출처 확정"
         state: not_started
-        evidence: null
-      - id: P3-A3
-        name: "지배 모드 물리적 귀속 분류"
-        state: not_started
-        evidence: null
-        note: "DC단 / 전류루프 / 전압루프 / 동기화루프"
-      - id: P3-A4
-        name: "f_dom 실측 (Prony 예비 적용)"
-        state: not_started
-        evidence: null
-      - id: P3-A5
-        name: "zeta_threshold = 0.64 재확정"
-        state: not_started
-        evidence: null
-        note: "UNIFI Category 3 조항 인용 위치까지 특정"
-
-  - id: P4
-    name: "PSO 예비실험 및 탐색범위 확정"
-    window: [4, 6]
-    depends_on: [P3]
-    gate_for: [P7]
-    risk: {level: medium, cause: "연산 시간"}
-    artifacts:
-      - id: P4-A1
-        name: "TABLE II - 14개 파라미터 탐색범위"
-        state: not_started
-        evidence: null
-        note: "범위 설정 근거도 함께 기술"
         blocking: true
+        note: >
+          ★ 과제 성격이 바뀜. 당초 'UNIFI 에서 ζ=0.64 조항 찾기' 였으나,
+          0.64 는 표준 조항이 아니라 t_s=1s 를 1 Hz 모드로 환산한 값임이
+          확인됨 (4/(2π·1) = 0.6366). UNIFI 사양서에는 정성적 'positive
+          damping' 요구만 확인된다.
+          → 이제 'σ_ref = 4/t_s 의 t_s 가 어느 문서 어느 조항에서 오는가'
+          IEEE 2800 / 국내 계통연계 기준 쪽이 유망.
+
+  # ────────────────────────────────────────────────────────
+  - id: P4
+    name: "PSO 파라미터 최적화"
+    window: [5, 7]
+    depends_on: [P3]
+    gate_for: [P7S]
+    artifacts:
+      - id: P4-A0
+        name: "안정도 지표 재정의"
+        state: verified
+        evidence: "Simulation/metrics.py"
+        result: >
+          ζ_min(진동 모드 한정) → σ = -Re(λ) 로 전환.
+          t_s ≈ 4/σ 이므로 실수극·진동 모드에 공통 적용된다.
+          효과: score 가 1.161 → 0.324 로 3.6배 변화 (구 지표는 0.323→0.324 평탄).
+          임계 모드 지배 상태가 전 SCR 에서 delta 로 확정.
+      - {id: P4-A1, name: "TABLE II — 14개 파라미터 탐색범위 + 근거",
+         state: not_started, blocking: true}
       - id: P4-A2
         name: "다중 운전점 목적함수 정의"
         state: not_started
-        evidence: null
-        note: "운전점 개수 / 가중치 규칙"
-      - id: P4-A3
-        name: "예비 100회 -> N_final 결정"
-        state: not_started
-        evidence: null
-      - id: P4-A4
-        name: "가중치 민감도 분석"
-        state: not_started
-        evidence: null
-      - id: P4-A5
-        name: "MC 30회 수렴 재현성 통계"
-        state: not_started
-        evidence: null
-        note: "평균 / 표준편차 / 최악값"
+        note: >
+          metrics.objective(A) 를 기반으로 운전점 집합과 가중 규칙을 정한다.
+          불안정 시 벌점은 불안정 정도에 비례(계단형 금지 — 기울기 소실).
+      - {id: P4-A3, name: "예비 100회 → N_particle / N_iter 결정", state: not_started}
+      - {id: P4-A4, name: "가중치 민감도 분석", state: not_started}
+      - {id: P4-A5, name: "MC 30회 수렴 재현성", state: not_started,
+         note: "난수 시드 고정·기록 필수"}
 
+  # ────────────────────────────────────────────────────────
   - id: P5
-    name: "DSP 구현 및 EMT 시뮬레이션"
-    window: [5, 6]
-    depends_on: [P4]
-    gate_for: [P6]
-    risk: {level: low, cause: null}
+    name: "오프라인 EMT · SIL 검증"
+    window: [5, 8]
+    depends_on: [P2]
+    gate_for: [P7S, P8]
+    critical: true
+    priority: highest
+    note: >
+      ★ Tier 2 확정으로 주 검증 축이 되었다. 당초 5~6월차 보조 단계에서
+      5~8월차 핵심 단계로 승격. 장비와 무관하게 즉시 착수 가능하다.
+      RTDS 를 이후 확보하더라도 이 단계가 선행되어야 하므로 손실이 없다.
     artifacts:
       - id: P5-A1
-        name: "원형 제한기 구현"
+        name: "오프라인 EMT 환경 구축"
         state: not_started
-        evidence: null
-      - id: P5-A2
-        name: "Anti-windup 설계"
-        state: not_started
-        evidence: null
-      - id: P5-A3
-        name: "X/R = 0.5 EMT - AW 유/무 파형 비교"
-        state: not_started
-        evidence: null
-      - id: P5-A4
-        name: "TMS320F28379D 이식 + 실행시간 프로파일링"
-        state: not_started
-        evidence: null
-        note: "제어주기 내 수렴 확인"
-
-  - id: P6
-    name: "RSCAD FX 모델 구축 및 CHIL 기본 연결"
-    window: [7, 9]
-    depends_on: [P5]
-    gate_for: [P7]
-    risk: {level: high, cause: "장비 가용성"}
-    artifacts:
-      - id: P6-A1
-        name: "RSCAD FX 모델 구축"
-        state: not_started
-        evidence: null
-      - id: P6-A2
-        name: "GTAO/GTAI 인터페이스 + 루프 지연 보상"
-        state: not_started
-        evidence: null
-      - id: P6-A3
-        name: "SNR 사전 측정 -> sigma_Z 보정"
-        state: not_started
-        evidence: null
-      - id: P6-A4
-        name: "측정 불확도 정량화"
-        state: not_started
-        evidence: null
-        note: "P7 에러바의 근거"
-        blocking: true
-
-  - id: P7
-    name: "88포인트 2D 스윕 및 SCR*(X/R) 경계 도출"
-    window: [9, 11]
-    depends_on: [P4, P6]
-    gate_for: [P8]
-    critical: true              # 논문 핵심 기여
-    min_duration_weeks: 8
-    risk: {level: high, cause: "실험 시간"}
-    artifacts:
-      - id: P7-A0
-        name: "1포인트당 실측 소요시간 파일럿"
-        state: not_started
-        evidence: null
-        note: "모델 로드 + 정상상태 도달 + 외란 인가 + 데이터 회수. 랙 예약 시간 산정의 입력"
-        blocking: true
         do_now: true
-      - id: P7-A1
-        name: "88포인트 스윕 자동화 스크립트"
+        note: "PLECS / Simulink / DPsim 중 택1. 스위칭 모델 구성"
+      - id: P5-A2
+        name: "스위칭 모델 vs 22차 평균 모델 대조"
         state: not_started
-        evidence: null
-        note: "배치 실행 + 전처리 재컴파일 + 결과 수집"
-      - id: P7-A2
-        name: "Prony + Matrix Pencil 이중 추출 파이프라인"
+        note: >
+          평균화 가정의 타당성 확인. xval.py 의 비선형 궤적 적분 로직을
+          재사용할 수 있다. 대조 지표는 정격 정규화 오차 + σ 추출값.
+      - {id: P5-A3, name: "원형 전류제한기 구현", state: not_started}
+      - {id: P5-A4, name: "Anti-windup 설계", state: not_started}
+      - {id: P5-A5, name: "X/R = 0.5 EMT — AW 유/무 파형 비교", state: not_started}
+      - id: P5-A6
+        name: "SIL — DSP C 코드를 EMT 루프에 실제 제어주기로 연동"
         state: not_started
-        evidence: null
-        note: "두 방법 불일치 시 처리 규칙을 사전에 정의"
-      - id: P7-A3
-        name: "SCR*(X/R) 2D 경계 곡면"
-        state: not_started
-        evidence: null
-      - id: P7-A4
-        name: "zeta_thr 5세트 민감도"
-        state: not_started
-        evidence: null
-      - id: P7-A5
-        name: "sigma_SCR 에러바"
-        state: not_started
-        evidence: null
-      - id: P7-A6
-        name: "소신호 예측 vs CHIL 실측 오차 정량화"
-        state: not_started
-        evidence: null
+        blocking: true
+        note: >
+          ★ Tier 2 의 핵심. 고정소수점 연산, ADC 양자화, 1샘플 지연,
+          포화·anti-windup 을 재현한다. CHIL 이 추가로 주는 것은 아날로그
+          노이즈와 타이밍 지터 정도이므로, 소신호 안정도 경계 검증의
+          상당 부분을 대체한다. 이 근거를 논문에 명시할 것.
+      - {id: P5-A7, name: "측정 불확도 정량화 (SIL 기반)", state: not_started,
+         note: "구 P6-A4 대체. P2-A5 허용치 근거와 P7S 에러바를 함께 공급"}
+      - {id: P5-A8, name: "TMS320F28379D 이식 + 제어주기 내 실행시간 프로파일링",
+         state: not_started}
 
+  # ────────────────────────────────────────────────────────
+  - id: P7S
+    name: "2D 경계면 도출 — 소신호 + EMT"
+    window: [8, 10]
+    depends_on: [P4, P5]
+    gate_for: [P8]
+    critical: true
+    note: >
+      ★ 구 P7 을 Tier 2 기준으로 재정의. 소신호 스윕은 노트북에서 수행
+      가능하므로 격자 제약이 없다. 88포인트는 하한이며 더 조밀하게 가능.
+      대표점만 EMT/SIL 로 교차확인한다.
+    artifacts:
+      - id: P7S-A1
+        name: "SCR–X/R 스윕 자동화"
+        state: not_started
+        note: >
+          runner.py 가 누적·resume 을 지원하므로 기반은 완성. 격자만 확장.
+          정착 타임아웃 규칙 필요 — 경계 근처에서 σ→0 이면 t_s 가 발산한다.
+      - {id: P7S-A2, name: "SCR*(X/R) 2D 경계면", state: not_started}
+      - {id: P7S-A3, name: "대표점 EMT/SIL 교차확인 (5~8점)", state: not_started}
+      - {id: P7S-A4, name: "t_s 요구 5세트 민감도", state: not_started,
+         note: "구 ζ_thr 민감도. σ_ref = 4/t_s 를 변화시킨다"}
+      - {id: P7S-A5, name: "σ_SCR 에러바 (P5-A7 불확도 기반)", state: not_started}
+      - {id: P7S-A6, name: "소신호 예측 vs EMT 실측 오차 정량화", state: not_started}
+
+  # ────────────────────────────────────────────────────────
+  - id: P6
+    name: "RTDS CHIL 구축 (조건부 — 비활성)"
+    window: [9, 11]
+    status: deferred
+    condition: "P0-A1 이 '접근 가능'으로 확인될 경우에만 재활성화"
+    note: >
+      Tier 2 확정으로 비활성화. 항목은 삭제하지 않고 보존한다 —
+      장비가 확보되면 그대로 되살릴 수 있고, 논문 Future Work 서술의
+      근거가 되기도 한다.
+    artifacts:
+      - {id: P6-A1, name: "RSCAD FX 모델 구축", state: deferred}
+      - {id: P6-A2, name: "GTAO/GTAI 인터페이스 + 루프 지연 보상", state: deferred}
+      - {id: P6-A3, name: "SNR 사전 측정", state: deferred}
+      - {id: P6-A5, name: "1포인트당 소요시간 파일럿", state: deferred}
+      - {id: P6-A6, name: "스윕 격자 확정", state: deferred}
+
+  # ────────────────────────────────────────────────────────
   - id: P8
     name: "가설 검증 및 집필"
-    window: [11, 12]
-    depends_on: [P7]
-    gate_for: []
-    risk: {level: medium, cause: null}
+    window: [10, 12]
+    depends_on: [P7S]
     artifacts:
-      - id: P8-A1
-        name: "H1 통계 검정 방법 확정"
-        state: not_started
-        evidence: null
-        note: "현재 미정의. 검정 방법부터 선택할 것"
-      - id: P8-A2
-        name: "H2 Wilcoxon - 표본 쌍 정의 및 표본 수"
-        state: not_started
-        evidence: null
-      - id: P8-A3
-        name: "H3 수정 - 인접 X/R 구간 dSCR* 부호 변화"
-        state: not_started
-        evidence: null
-        note: "n=4 Spearman 은 비단조성 주장과 논리적으로 불일치"
+      - {id: P8-A1, name: "H1 통계 검정 방법 확정", state: not_started}
+      - {id: P8-A2, name: "H2 Wilcoxon — 표본 쌍 정의", state: not_started}
+      - {id: P8-A3, name: "H3 — 인접 X/R 구간 ΔSCR* 부호 변화", state: not_started}
       - id: P8-A4
-        name: "학위논문 본문"
+        name: "검증 축 재서술"
         state: not_started
-        evidence: null
-      - id: P8-A5
-        name: "IEEE Access 투고 원고"
-        state: not_started
-        evidence: null
+        note: >
+          ★ Tier 2 확정에 따른 신규 항목. 차별화 4축 중 검증 축을
+          'CHIL' 에서 'SIL 기반 제어기 인더루프 검증' 으로 재서술한다.
+          나머지 3축(22차 결합 모델 / 14 파라미터 PSO / 2D 경계)은 유지.
+          SIL 이 포착하는 것과 CHIL 만이 포착하는 것을 명확히 구분해 서술.
+      - {id: P8-A5, name: "학위논문 본문", state: not_started}
+      - {id: P8-A6, name: "IEEE Access 투고 원고", state: not_started,
+         note: "TSTE 는 실험 검증 요구가 강해 Tier 2 로는 난도 상승"}
 
-# -----------------------------------------------------------------------------
-# 상시 병렬 트랙 - phase 에 묶이지 않음
-# -----------------------------------------------------------------------------
+# ──────────────────────────────────────────────────────────
 continuous:
-  - id: C1
-    name: "refs [115] 2D 임피던스 평면 경계 정독"
-    state: not_started
-    evidence: null
-  - id: C2
-    name: "refs [114] 전차수 VSG 상태공간 모델 정독"
-    state: not_started
-    evidence: null
-  - id: C3
-    name: "refs [94] Lyapunov 기반 파라미터 선정 정독"
-    state: not_started
-    evidence: null
+  - {id: C1, name: "refs [115] 2D 임피던스 평면 안정도 경계", state: not_started}
+  - {id: C2, name: "refs [114] 전차수 VSG 상태공간 모델", state: not_started}
+  - {id: C3, name: "refs [94] Lyapunov 기반 파라미터 선정", state: not_started}
   - id: C4
-    name: "선행연구 비교표 (novelty 방어용)"
+    name: "선행연구 비교표 — 3축 매트릭스"
     state: not_started
-    evidence: null
-    note: "다중 운전점 PSO / 2D 경계 / CHIL 3축 존재여부 매트릭스. 심사 필수 요구"
+    note: "Tier 2 확정 반영: 검증 축을 SIL 기준으로 서술"
   - id: C5
-    name: "논문 추출 파이프라인 3번째 호출 (렌더링)"
+    name: "SIL 이 CHIL 을 어디까지 대체하는가 — 근거 문헌"
     state: not_started
-    evidence: null
+    note: "★ 신규. P8-A4 재서술의 방어 근거. 심사 필수 대응 항목"
 
-# -----------------------------------------------------------------------------
-# 경보 규칙 - agent 는 매 호출 시 이 순서로 평가한다
-# -----------------------------------------------------------------------------
-alert_rules:
+# ──────────────────────────────────────────────────────────
+gates:
+  - {id: G-P4, target: P4, requires: [P3-A6, P4-A0],
+     on_fail: "최적화 기준선 부재 → 전량 재실행 위험"}
+  - {id: G-P7S, target: P7S, requires: [P4-A1, P5-A6, P5-A7],
+     on_fail: "경계면에 에러바를 붙일 수 없음"}
+  - {id: G-P8, target: P8, requires: [P7S-A2, P7S-A5],
+     on_fail: "가설 검증 불가"}
 
-  - id: R2
-    priority: 1
-    name: "장비 예약 경보"
-    condition: >
-      resources.rtds_rack.booked_slots 가 비어 있고,
-      current_month >= (required_from_month - booking_lead_time_weeks/4)
-    action: "랙 예약 요청. 필요 시간은 P7-A0 파일럿 결과로 산정"
-    severity: critical
+# ──────────────────────────────────────────────────────────
+rules:
+  - {id: R1, desc: "마감 역산 — 잔여 월수 < 필요 월수 이면 경보"}
+  - {id: R2, desc: "P5 정체 감지 — 주 검증 축이므로 2주 정체 시 최고 등급",
+     priority: highest}
+  - {id: R3, desc: "게이트 조건 — 하류 착수 시 상류 blocking 항목 verified 확인"}
+  - {id: R4, desc: "증거 없는 완료 — verified 인데 evidence=null 이면 draft 강등"}
+  - {id: R5, desc: "정체 감지 — 동일 state 4주 이상 유지 시 경보"}
+  - {id: R6, desc: "Tier 복귀 — P0-A1 이 '접근 가능'이 되면 P6 재활성화 여부 질의",
+     note: "8월차 이후 확인 시에는 재활성화하지 않는다 — 착수해도 완료 불가"}
 
-  - id: R1
-    priority: 2
-    name: "마감 역산 경보"
-    condition: >
-      (P7.window[0] 까지 남은 주) < (P7.min_duration_weeks + 4)
-      또는 (deadline_month - current_month) < 남은 phase 소요 합
-    action: "범위 축소 결정. 88포인트를 축소 격자로 낮출지 여기서 판단"
-    severity: critical
-
-  - id: R3
-    priority: 3
-    name: "게이트 미충족 경보"
-    condition: >
-      current_month >= 8 이고, P7 착수조건(P4-A1 verified AND P6-A4 verified)
-      중 하나라도 미충족
-    action: "미충족 산출물 하나를 즉시 착수"
-    severity: high
-
-  - id: R4
-    priority: 4
-    name: "증거 없는 완료"
-    condition: "state == verified 인데 evidence == null"
-    action: "draft 로 강등하고 사용자에게 통보"
-    severity: medium
-
-  - id: R5
-    priority: 5
-    name: "정체 phase"
-    condition: "14일간 어떤 artifact 의 state 변화도 없음"
-    action: "점검 요청 1건 발송"
-    severity: low
-
-# -----------------------------------------------------------------------------
-# 출력 정책
-# -----------------------------------------------------------------------------
-output_policy:
-  on_alert: "[등급] Phase / 조건 / 남은 여유 / 지금 해야 할 단일 행동"
-  on_clear: "다음 게이트 + 남은 일수. 한 줄."
-  max_actions_per_response: 1
-  mirror_file: "checkList.md"
-  mirror_sync: "state 변경 시 checkList.md 의 해당 체크박스도 함께 갱신한다"
-  forbidden:
-    - "진척률 퍼센트 보고"
-    - "전체 일정 재나열"
-    - "격려 문구"
-    - "사용자 확인 없는 state 상향"
+status_definition:
+  states: [not_started, in_progress, draft, verified, deferred]
+  note: "verified 는 evidence 경로가 존재할 때만 유효"

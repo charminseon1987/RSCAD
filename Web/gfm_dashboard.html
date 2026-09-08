@@ -90,6 +90,45 @@
     </div>
   </div>
 
+  <div class="sec">Report</div>
+
+  <!-- 판정 기준. 물리 상수가 아니라 판단 기준이므로 입력받는다.
+       TS_COEF(2% 정착 계수)는 정의이므로 코드에 고정한다. -->
+  <div class="op-row">
+    <span>정착시간 t_s [s]</span>
+    <input type="number" id="in-ts" step="0.1" min="0.1" value="1.0"
+           style="width:64px;background:var(--bg2);border:1px solid var(--line);
+                  color:var(--fg);padding:2px 6px;border-radius:3px;
+                  font:inherit;font-size:11px;text-align:right">
+  </div>
+  <div class="op-row">
+    <span>링잉 하한 ζ</span>
+    <input type="number" id="in-zf" step="0.01" min="0" value="0.10"
+           style="width:64px;background:var(--bg2);border:1px solid var(--line);
+                  color:var(--fg);padding:2px 6px;border-radius:3px;
+                  font:inherit;font-size:11px;text-align:right">
+  </div>
+  <div class="op-row active">
+    <span>σ_ref = 4 / t_s</span><span id="lbl-sigma">4.00</span>
+  </div>
+
+  <div class="btn-grp">
+    <label class="btn btn-sec" for="rep-files" style="cursor:pointer">결과 · 그림 불러오기</label>
+    <input type="file" id="rep-files" multiple accept=".json,.png" style="display:none">
+    <div class="btn-grid">
+      <button class="btn btn-sec" id="btn-doc" disabled>보고서 출력</button>
+      <button class="btn btn-sec" id="btn-md"  disabled>지식 노트</button>
+    </div>
+    <button class="btn btn-sec" id="btn-reset-crit">기준 초기화</button>
+  </div>
+
+  <div class="res-box">
+    <div class="res-title">EXPORT SOURCE</div>
+    <div id="rep-list" style="margin-top:8px"></div>
+  </div>
+
+  <div class="sec">Result</div>
+
   <div class="sec">Result</div>
   <div class="res-box">
     <div class="res-title">STABILITY METRICS</div>
@@ -160,6 +199,7 @@
 <script src="js/charts.js"></script>
 <script src="js/render.js"></script>
 <script src="js/api.js"></script>
+<script src="js/report.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

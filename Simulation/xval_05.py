@@ -42,8 +42,6 @@ parser.add_argument('--T', default='auto',
                     help="적분 구간 [s]. 'auto' 이면 동작점별 5τ×1.5 로 자동 산출")
 parser.add_argument('--tau-margin', type=float, default=1.5,
                     help='auto 구간의 5τ 대비 여유 배수')
-parser.add_argument('--fresh', action='store_true',
-                    help='기존 결과를 무시하고 새로 시작')
 parser.add_argument('--traj-at', type=float, default=None,
                     help='이 섭동 비율의 시간영역 궤적을 저장 (예: 0.1)')
 parser.add_argument('--steps', type=float, nargs='+',
@@ -212,43 +210,6 @@ if not files:
     raise SystemExit(f'❌ {RES_DIR} 에 A_num_SCR*.npy 없음')
 report, export, TRAJ = {}, {}, {}
 
-# ── 기존 결과 병합 준비 ──
-# 섭동점은 누적한다. 파형 저장용으로 --steps 를 좁게 주고 다시 돌려도
-# 이전에 계산한 점이 사라지지 않는다. (실행_식별자_설계원칙: 선언이 아니라
-# 레지스트리로 관리한다)
-PREV_PATH = RES_DIR / f'linearization_validity_{args.input}.json'
-PREV = {}
-if PREV_PATH.exists() and not args.fresh:
-    _p = json.loads(PREV_PATH.read_text(encoding='utf-8'))
-    if (_p.get('T_mode') == args.T
-            and _p.get('tau_margin') == args.tau_margin):
-        PREV = {k: v.get('sweep', []) for k, v in _p.get('by_SCR', {}).items()}
-        n_pts = sum(len(v) for v in PREV.values())
-        if n_pts:
-            print(f"  ↻ 기존 결과 {n_pts}점 병합 (--fresh 로 무시)")
-    else:
-        print(f"  ⚠ 적분 구간 설정이 달라 기존 결과를 병합하지 않습니다")
-
-
-def merge_rows(scr, new_rows):
-    """기존 섭동점과 병합. 같은 비율은 새 값으로 갱신."""
-    m = {round(r['ratio'], 12): r for r in PREV.get(f'{scr}', [])}
-    m.update({round(r['ratio'], 12): r for r in new_rows})
-    return [m[k] for k in sorted(m)]
-
-
-def summarize(rows, tol):
-    """병합된 전체 점에서 판정·임계값·DC이득 요약을 다시 계산."""
-    thr = 0.0
-    for r in sorted(rows, key=lambda r: r['ratio']):
-        e = r['max_rel_error']
-        r['pass'] = bool(e is not None and e <= tol)
-        if r['pass']:
-            thr = r['ratio']
-    dc = [r['dc_gain_error'] for r in rows if r.get('dc_gain_error') is not None]
-    dd = [r['dc_gain_delta']['rel'] for r in rows if r.get('dc_gain_delta')]
-    return thr, (max(dc) if dc else None), (max(dd) if dd else None)
-
 for fp in files:
     SCR = float(fp.stem.replace('A_num_SCR', ''))
     A   = np.load(fp)
@@ -263,37 +224,44 @@ for fp in files:
     print(f"  {'섭동':>8} {'정규화 오차':>13} {'판정':>6}  {'최악':>8}  "
           f"{'DC이득오차':>10}  {'상태':>7}")
 
-    done = {round(x['ratio'], 12) for x in PREV.get(f'{SCR}', [])}
-    rows = []
+    rows, thr, dcs = [], 0.0, []
     for r in args.steps:
-        if round(r, 12) in done and args.traj_at != r:
-            continue                      # 이미 계산됨 (파형 저장 대상은 예외)
         e, k, dc, traj = trajectory_error(x0, A, B, SCR, r, T)
         if args.traj_at is not None and abs(r - args.traj_at) < 1e-12 and traj:
             TRAJ[f'{SCR:.2f}'] = traj
         ok = (not np.isnan(e)) and e <= args.tol
+        if ok:
+            thr = r
         worst = k
         rows.append({'ratio': r, 'max_rel_error': None if np.isnan(e) else round(e, 5),
                      'pass': bool(ok), 'worst_state': worst,
                      'dc_gain_error': None if dc is None else round(dc['rel'], 5),
                      'dc_gain_state': None if dc is None else dc['state'],
                      'dc_gain_delta': None if dc is None else dc.get('delta')})
+        if dc:
+            dcs.append(dc)
         es = 'nan' if np.isnan(e) else f"{e:.4f}"
         ds = f"{dc['rel']:.4f}" if dc else '     -'
         dn = dc['state'] if dc else '-'
         print(f"  {r:>7.1%} {es:>14} {'✅' if ok else '❌':>5}  {worst:>8}  "
               f"{ds:>10}  {dn:>7}")
 
-    rows = merge_rows(SCR, rows)          # 기존 점과 병합
-    thr, dc_max, dc_delta = summarize(rows, args.tol)
     thr_fit, fit = fit_threshold(rows, args.tol)
     print(f"  → 선형화 유효 임계값(격자): {args.input} 섭동 {thr:.1%} 이내")
     if thr_fit:
         print(f"  → 선형화 유효 임계값(피팅): {thr_fit:.2%}   "
               f"err ≈ {fit['k']:.3g}·r^{fit['exponent']:.2f}  (R²={fit['r2']:.4f})")
+    dc_max = max((d['rel'] for d in dcs), default=None)
+    dc_delta = max((d['delta']['rel'] for d in dcs if 'delta' in d), default=None)
     if dc_max is not None:
-        print(f"  → DC 이득 오차 최대 {dc_max:.1%}   δ 기준 {dc_delta:.1%}"
-              f"   (병합 {len(rows)}점)")
+        w = max(dcs, key=lambda d: d['rel'])
+        print(f"  → DC 이득 오차 최대 {dc_max:.1%}  ({w['state']}: "
+              f"선형 {w['lin']:+.4g} vs 비선형 {w['nl']:+.4g})")
+        dd = [d['delta'] for d in dcs if 'delta' in d]
+        if dd:
+            g = max(dd, key=lambda d: d['rel'])
+            print(f"  → δ  DC 이득 오차 {g['rel']:.1%}  "
+                  f"(선형 {g['lin_deg']:+.3f}° vs 비선형 {g['nl_deg']:+.3f}°)")
     report[SCR] = {'threshold_ratio': thr, 'threshold_fit': thr_fit,
                    'fit': fit, 'T': T, 'slow_pole': slow,
                    'dc_gain_error_max': dc_max, 'dc_gain_error_delta': dc_delta,

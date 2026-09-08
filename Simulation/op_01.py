@@ -28,59 +28,6 @@ INP = dict(Iph=25.0, v_pv_ref=500.0, Pref=10e3, Qref=0.0, Vg=325.0, V_b=400.0)
 Z_BASE = 400.0**2 / 10e3            # 16 Ω
 
 
-# ══════════════════════════════════════════════
-# 정격 (정규화 기준)
-# ══════════════════════════════════════════════
-# 오차 지표의 분모는 반드시 설비 정격에서 가져온다.
-# 데이터(|x0|, 궤적 진폭 등)에서 척도를 뽑으면 그 값이 0 에 가까워질 때
-# 분모가 소멸해 오차가 발산한다. 실제로 i_oq 진폭 극소(SCR 1.4)와
-# dw 동작점 0 에서 각각 가짜 골짜기와 100% 오차가 발생했다.
-#
-# 제어기 내부 적분기는 물리적 관측량이 아니므로 정격이 정의되지 않으며,
-# 유효성 판정 대상에서 제외한다.
-
-OBSERVABLE = [
-    'v_pv', 'i_Lpv', 'v_dc', 'i_Less',                   # DC 4
-    'delta', 'dw', 'Pf', 'Qf',                           # VSG 4
-    'i_ld', 'i_lq', 'v_od', 'v_oq', 'i_od', 'i_oq',      # AC 6
-]
-INTEGRATORS = ['x_vpv', 'x_ipv', 'x_vdc', 'x_iess',
-               'phi_d', 'phi_q', 'gam_d', 'gam_q']
-
-
-def nominals():
-    """상태별 정규화 정격. 관측량만 반환한다."""
-    S = INP['Pref']                                   # 정격 용량 [VA]
-    V = FIXED['V_ref']                                # 상 전압 피크 [V]
-    I = S / (1.5 * V)                                 # 정격 전류 피크 [A]
-    return {
-        'v_pv':   INP['v_pv_ref'],
-        'i_Lpv':  I,
-        'v_dc':   FIXED['v_dc_ref'],
-        'i_Less': I,
-        # δ 는 절대 크기가 아니라 동작점 자체가 물리적 척도다.
-        # 정격을 1 rad(57.3°)로 두면 수 도(度)의 변화가 희석되어
-        # 동기화 특성의 오차가 보이지 않는다. π/4(45°)를 기준으로 삼는다.
-        # (전형적인 정격 부하 전력각 규모)
-        'delta':  np.pi / 4,
-        'dw':     FIXED['w0'],                        # 정격 각주파수
-        'Pf':     S,
-        'Qf':     S,
-        'i_ld':   I, 'i_lq': I,
-        'v_od':   V, 'v_oq': V,
-        'i_od':   I, 'i_oq': I,
-    }
-
-
-def nominal_vector():
-    """M.STATE_NAMES 순서의 정격 배열과 관측량 마스크."""
-    nom_d = nominals()
-    nom  = np.array([nom_d.get(s, np.nan) for s in M.STATE_NAMES], float)
-    mask = np.array([s in nom_d for s in M.STATE_NAMES], bool)
-    nom[~mask] = 1.0                                  # 제외 상태는 사용 안 함
-    return nom, mask
-
-
 def grid_RL(SCR, XR):
     Zg = Z_BASE / SCR
     Rg = Zg / np.sqrt(1 + XR**2)

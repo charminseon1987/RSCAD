@@ -3,7 +3,7 @@ type: result
 run: J0.50_Dp20.0_Kpv0.050_wc62.8_XR1.0_9be44c
 model_version: v3-22state
 n_states: 22
-date: 2026-08-28 16:56
+date: 2026-09-08 10:43
 XR: 1.0
 all_stable: True
 zeta_min: 0.2065

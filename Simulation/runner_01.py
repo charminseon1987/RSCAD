@@ -48,7 +48,6 @@ from datetime import datetime
 
 import model as M
 import op
-import metrics as MT
 
 MODEL_VERSION = 'v3-22state'
 
@@ -327,8 +326,8 @@ def run(ctrl, SCR_list, XR=1.0, tag='',
 
     results, x_prev, prev_delta, prev_SCR = {}, None, None, None
 
-    log(f"\n  {'SCR':>5} {'수렴':>4} {'stbl':>4} {'σ_min':>8} {'t_s[s]':>7} "
-        f"{'score':>7} {'구속':>6} {'임계지배':>9} {'ζ_min':>8} "
+    log(f"\n  {'SCR':>5} {'수렴':>4} {'stbl':>4} {'ζ_min':>8} {'대역':>8} "
+        f"{'f_dom':>10} {'ζ_sync':>8} {'ζ_ctrl':>8} {'ζ_lcl':>8} "
         f"{'δ(°)':>7} {'검산':>10} {'커플링':>12}")
     log("  " + "─" * 106)
 
@@ -356,7 +355,6 @@ def run(ctrl, SCR_list, XR=1.0, tag='',
         fd_worst = max(fd_glob, fd_entry)
 
         an     = analyze(A)
-        st     = MT.metrics(A)          # σ 기준 지표 (P4-A0)
         max_re = float(np.max(an['ev'].real))
         stable = max_re < -STABLE_TOL
 
@@ -369,12 +367,6 @@ def run(ctrl, SCR_list, XR=1.0, tag='',
             'stable':       stable,
             'max_real':     round(max_re, 6),
             'min_abs_real': round(an['min_abs_real'], 8),
-            'sigma_min':    round(st['sigma_min'], 5),
-            't_s_max':      round(st['t_s_max'], 4),
-            'score':        round(st['score'], 5),
-            'binding':      st['binding'],
-            'crit_state':   st['critical']['top_state'],
-            'crit_osc':     st['critical']['oscillatory'],
             'zeta_min':     None if np.isnan(an['zeta_min']) else round(an['zeta_min'], 4),
             'zeta_band':    an['zeta_band'],
             'zeta_valid':   bool(not np.isnan(an['zeta_min'])),
@@ -412,9 +404,9 @@ def run(ctrl, SCR_list, XR=1.0, tag='',
         cs = coup.get('shift_crit')
         cs_s = 'nan' if cs is None else f'{cs:.4e}'
         log(f"  {SCR:>5} {'✓':>4} {fs:>3} "
-            f"{r['sigma_min']:>8.4f} {r['t_s_max']:>7.2f} "
-            f"{r['score']:>7.3f} {r['binding']:>6} {r['crit_state']:>9} "
-            f"{f_(r['zeta_min'])} "
+            f"{r['zeta_min']:>8.4f} {str(r['zeta_band']):>8} "
+            f"{r['f_dom_hz']:>8.3f}Hz "
+            f"{f_(bz['sync'])} {f_(bz['control'])} {f_(bz['lcl'])} "
             f"{delta_deg:>6.2f}{dm} {vs}{fd_worst:>8.1e} {cs_s:>12}")
 
         if persist:
@@ -441,10 +433,6 @@ def run(ctrl, SCR_list, XR=1.0, tag='',
 
     z_vals     = [v['zeta_min'] for v in ok_runs.values() if v['zeta_valid']]
     zeta_all   = float(np.min(z_vals)) if z_vals else float('nan')
-    sc_vals    = [v['score'] for v in ok_runs.values() if v.get('score') is not None]
-    score_all  = float(np.min(sc_vals)) if sc_vals else float('nan')
-    sig_vals   = [v['sigma_min'] for v in ok_runs.values() if v.get('sigma_min') is not None]
-    sigma_all  = float(np.min(sig_vals)) if sig_vals else float('nan')
     zeta_valid = len(z_vals) == len(ok_runs)
 
     band_min = {}
@@ -471,11 +459,6 @@ def run(ctrl, SCR_list, XR=1.0, tag='',
                           'FD_TOL': FD_TOL, 'DELTA_WARN': DELTA_WARN},
         'all_converged': len(ok_runs) == len(SCR_list),
         'all_stable':    all(v['stable'] for v in ok_runs.values()),
-        'score_min_all':      None if np.isnan(score_all) else round(score_all, 5),
-        'sigma_min_all':      None if np.isnan(sigma_all) else round(sigma_all, 5),
-        'sigma_ref':          MT.SIGMA_REF,
-        't_s_spec':           MT.T_S_SPEC,
-        'metric_pass':        bool(score_all >= 1.0),
         'zeta_min_all':       None if np.isnan(zeta_all) else round(zeta_all, 4),
         'zeta_min_valid':     zeta_valid,
         'zeta_min_band':      last_b,
@@ -509,12 +492,12 @@ def run(ctrl, SCR_list, XR=1.0, tag='',
 
     if not quiet:
         z_str = 'nan' if np.isnan(zeta_all) else f'{zeta_all:.4f}'
-        s_str = 'nan' if np.isnan(score_all) else f'{score_all:.4f}'
-        verdict = '기준 충족' if meta['metric_pass'] else 'PSO 필요'
+        verdict = ('기준 충족' if meta['zeta_pass'] else
+                   ('판정 불가 — 진동모드 미검출 SCR 존재' if not zeta_valid
+                    else 'PSO 필요'))
         log("\n" + "=" * 108)
-        log(f"  ✅ 완료 — score={s_str}  σ_min={sigma_all:.4f} "
-            f"(목표 {MT.SIGMA_REF:.2f}, t_s≤{MT.T_S_SPEC:.0f}s)  {verdict}")
-        log(f"     참고 — 구 지표 ζ_min={z_str} [{last_b}]   " + "  ".join(
+        log(f"  ✅ 완료 — ζ_min={z_str} [{last_b}] ({verdict})")
+        log("     대역별 최소 ζ:  " + "   ".join(
             f"{b}={'-' if band_min[b] is None else band_min[b]}" for b, _, _ in BANDS))
         if crossovers:
             log(f"  ⚠  모드 교차 {len(crossovers)}회 — ζ_min 이 서로 다른 물리 모드를 가리킴:")

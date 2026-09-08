@@ -42,10 +42,6 @@ parser.add_argument('--T', default='auto',
                     help="적분 구간 [s]. 'auto' 이면 동작점별 5τ×1.5 로 자동 산출")
 parser.add_argument('--tau-margin', type=float, default=1.5,
                     help='auto 구간의 5τ 대비 여유 배수')
-parser.add_argument('--fresh', action='store_true',
-                    help='기존 결과를 무시하고 새로 시작')
-parser.add_argument('--traj-at', type=float, default=None,
-                    help='이 섭동 비율의 시간영역 궤적을 저장 (예: 0.1)')
 parser.add_argument('--steps', type=float, nargs='+',
                     default=[0.001, 0.005, 0.01, 0.02, 0.05, 0.10, 0.20, 0.30],
                     help='입력 섭동 비율 목록')
@@ -99,32 +95,6 @@ def horizon(A):
     if slow >= -1e-9:                       # 불안정·중립이면 고정 구간
         return 5.0, True
     return 5.0 / abs(slow) * args.tau_margin, True
-
-
-def fit_threshold(rows, tol):
-    """오차 곡선을 멱함수로 피팅해 허용치를 넘는 섭동 크기를 연속값으로 구한다.
-
-    격자점 중 마지막 통과값을 임계값으로 쓰면 해상도에 갇힌다. 0.1/0.2/0.3
-    격자에서는 0.13 과 0.19 가 모두 0.1 로 보고되며, SCR 의존성이 계단으로
-    뭉개진다.
-
-    선형화 오차는 테일러 전개의 2차 항이 지배하므로 err ≈ k·r^n (n≈2) 형태다.
-    log-log 에서 직선이므로 1차 회귀로 k, n 을 얻고 err = tol 을 역산한다.
-    """
-    pts = [(r['ratio'], r['max_rel_error']) for r in rows
-           if r['max_rel_error'] and r['max_rel_error'] > 0 and r['ratio'] > 0]
-    if len(pts) < 3:
-        return None, None
-    x = np.log(np.array([p[0] for p in pts]))
-    y = np.log(np.array([p[1] for p in pts]))
-    n, logk = np.polyfit(x, y, 1)
-    if n <= 0:
-        return None, None
-    r_star = float(np.exp((np.log(tol) - logk) / n))
-    resid = y - (n * x + logk)
-    r2 = 1.0 - resid.var() / y.var() if y.var() > 0 else np.nan
-    return r_star, {'exponent': float(n), 'k': float(np.exp(logk)),
-                    'r2': float(r2), 'n_points': len(pts)}
 
 
 def dc_gain_error(A, B, du, x0, s_nl):
@@ -188,7 +158,7 @@ def trajectory_error(x0, A, B, SCR, ratio, T):
     s_nl  = integrate.solve_ivp(rhs_nl,  (0, T), x0,            **kw)
     s_lin = integrate.solve_ivp(rhs_lin, (0, T), np.zeros(M.N), **kw)
     if not (s_nl.success and s_lin.success):
-        return np.nan, '-', None, None
+        return np.nan, '-', None
 
     dx_nl  = s_nl.y - x0[:, None]           # 비선형 편차 궤적
     dx_lin = s_lin.y                        # 선형 예측 궤적
@@ -199,8 +169,7 @@ def trajectory_error(x0, A, B, SCR, ratio, T):
     e  = np.abs(dx_nl - dx_lin)[OBS] / NOM[OBS, None]
     ek = e.max(axis=1)
     k  = int(np.argmax(ek))
-    traj = (s_nl.t, s_nl.y, x0[:, None] + dx_lin)   # 시간, 비선형, 선형예측
-    return float(ek[k]), OBS_NAMES[k], dc_gain_error(A, B, du, x0, s_nl), traj
+    return float(ek[k]), OBS_NAMES[k], dc_gain_error(A, B, du, x0, s_nl)
 
 
 # ══════════════════════════════════════════════
@@ -210,44 +179,7 @@ files = sorted(RES_DIR.glob('A_num_SCR*.npy'),
                key=lambda p: -float(p.stem.replace('A_num_SCR', '')))
 if not files:
     raise SystemExit(f'❌ {RES_DIR} 에 A_num_SCR*.npy 없음')
-report, export, TRAJ = {}, {}, {}
-
-# ── 기존 결과 병합 준비 ──
-# 섭동점은 누적한다. 파형 저장용으로 --steps 를 좁게 주고 다시 돌려도
-# 이전에 계산한 점이 사라지지 않는다. (실행_식별자_설계원칙: 선언이 아니라
-# 레지스트리로 관리한다)
-PREV_PATH = RES_DIR / f'linearization_validity_{args.input}.json'
-PREV = {}
-if PREV_PATH.exists() and not args.fresh:
-    _p = json.loads(PREV_PATH.read_text(encoding='utf-8'))
-    if (_p.get('T_mode') == args.T
-            and _p.get('tau_margin') == args.tau_margin):
-        PREV = {k: v.get('sweep', []) for k, v in _p.get('by_SCR', {}).items()}
-        n_pts = sum(len(v) for v in PREV.values())
-        if n_pts:
-            print(f"  ↻ 기존 결과 {n_pts}점 병합 (--fresh 로 무시)")
-    else:
-        print(f"  ⚠ 적분 구간 설정이 달라 기존 결과를 병합하지 않습니다")
-
-
-def merge_rows(scr, new_rows):
-    """기존 섭동점과 병합. 같은 비율은 새 값으로 갱신."""
-    m = {round(r['ratio'], 12): r for r in PREV.get(f'{scr}', [])}
-    m.update({round(r['ratio'], 12): r for r in new_rows})
-    return [m[k] for k in sorted(m)]
-
-
-def summarize(rows, tol):
-    """병합된 전체 점에서 판정·임계값·DC이득 요약을 다시 계산."""
-    thr = 0.0
-    for r in sorted(rows, key=lambda r: r['ratio']):
-        e = r['max_rel_error']
-        r['pass'] = bool(e is not None and e <= tol)
-        if r['pass']:
-            thr = r['ratio']
-    dc = [r['dc_gain_error'] for r in rows if r.get('dc_gain_error') is not None]
-    dd = [r['dc_gain_delta']['rel'] for r in rows if r.get('dc_gain_delta')]
-    return thr, (max(dc) if dc else None), (max(dd) if dd else None)
+report, export = {}, {}
 
 for fp in files:
     SCR = float(fp.stem.replace('A_num_SCR', ''))
@@ -263,39 +195,39 @@ for fp in files:
     print(f"  {'섭동':>8} {'정규화 오차':>13} {'판정':>6}  {'최악':>8}  "
           f"{'DC이득오차':>10}  {'상태':>7}")
 
-    done = {round(x['ratio'], 12) for x in PREV.get(f'{SCR}', [])}
-    rows = []
+    rows, thr, dcs = [], 0.0, []
     for r in args.steps:
-        if round(r, 12) in done and args.traj_at != r:
-            continue                      # 이미 계산됨 (파형 저장 대상은 예외)
-        e, k, dc, traj = trajectory_error(x0, A, B, SCR, r, T)
-        if args.traj_at is not None and abs(r - args.traj_at) < 1e-12 and traj:
-            TRAJ[f'{SCR:.2f}'] = traj
+        e, k, dc = trajectory_error(x0, A, B, SCR, r, T)
         ok = (not np.isnan(e)) and e <= args.tol
+        if ok:
+            thr = r
         worst = k
         rows.append({'ratio': r, 'max_rel_error': None if np.isnan(e) else round(e, 5),
                      'pass': bool(ok), 'worst_state': worst,
                      'dc_gain_error': None if dc is None else round(dc['rel'], 5),
                      'dc_gain_state': None if dc is None else dc['state'],
                      'dc_gain_delta': None if dc is None else dc.get('delta')})
+        if dc:
+            dcs.append(dc)
         es = 'nan' if np.isnan(e) else f"{e:.4f}"
         ds = f"{dc['rel']:.4f}" if dc else '     -'
         dn = dc['state'] if dc else '-'
         print(f"  {r:>7.1%} {es:>14} {'✅' if ok else '❌':>5}  {worst:>8}  "
               f"{ds:>10}  {dn:>7}")
 
-    rows = merge_rows(SCR, rows)          # 기존 점과 병합
-    thr, dc_max, dc_delta = summarize(rows, args.tol)
-    thr_fit, fit = fit_threshold(rows, args.tol)
-    print(f"  → 선형화 유효 임계값(격자): {args.input} 섭동 {thr:.1%} 이내")
-    if thr_fit:
-        print(f"  → 선형화 유효 임계값(피팅): {thr_fit:.2%}   "
-              f"err ≈ {fit['k']:.3g}·r^{fit['exponent']:.2f}  (R²={fit['r2']:.4f})")
+    print(f"  → 선형화 유효 임계값: {args.input} 섭동 {thr:.1%} 이내")
+    dc_max = max((d['rel'] for d in dcs), default=None)
+    dc_delta = max((d['delta']['rel'] for d in dcs if 'delta' in d), default=None)
     if dc_max is not None:
-        print(f"  → DC 이득 오차 최대 {dc_max:.1%}   δ 기준 {dc_delta:.1%}"
-              f"   (병합 {len(rows)}점)")
-    report[SCR] = {'threshold_ratio': thr, 'threshold_fit': thr_fit,
-                   'fit': fit, 'T': T, 'slow_pole': slow,
+        w = max(dcs, key=lambda d: d['rel'])
+        print(f"  → DC 이득 오차 최대 {dc_max:.1%}  ({w['state']}: "
+              f"선형 {w['lin']:+.4g} vs 비선형 {w['nl']:+.4g})")
+        dd = [d['delta'] for d in dcs if 'delta' in d]
+        if dd:
+            g = max(dd, key=lambda d: d['rel'])
+            print(f"  → δ  DC 이득 오차 {g['rel']:.1%}  "
+                  f"(선형 {g['lin_deg']:+.3f}° vs 비선형 {g['nl_deg']:+.3f}°)")
+    report[SCR] = {'threshold_ratio': thr, 'T': T, 'slow_pole': slow,
                    'dc_gain_error_max': dc_max, 'dc_gain_error_delta': dc_delta,
                    'sweep': rows}
 
@@ -360,19 +292,6 @@ sys = ss(c.A, c.B, eye(numel(names)), 0, ...
 """
 (RES_DIR / 'xval_check.m').write_text(m_script, encoding='utf-8')
 
-# ── 시간영역 궤적 저장 ──
-if TRAJ:
-    pack = {'states': np.array(M.STATE_NAMES, dtype=object),
-            'input': TAG, 'ratio': args.traj_at, 'XR': XR,
-            'scrs': np.array(sorted(TRAJ, key=float, reverse=True), dtype=object)}
-    for scr, (t, y_nl, y_lin) in TRAJ.items():
-        pack[f't_{scr}'] = t
-        pack[f'nl_{scr}'] = y_nl
-        pack[f'lin_{scr}'] = y_lin
-    tp = RES_DIR / f'trajectory_{TAG}_r{args.traj_at:g}.npz'
-    np.savez_compressed(tp, **pack)
-    print(f"\n  💾 {tp.name}  (시간영역 궤적 {len(TRAJ)}개 운전점)")
-
 # ══════════════════════════════════════════════
 # 요약
 # ══════════════════════════════════════════════
@@ -381,28 +300,17 @@ thr_min = min(v['threshold_ratio'] for v in report.values())
 print("\n" + "=" * 76)
 print("  Phase 2 게이트 산출물")
 print("=" * 76)
-print(f"  {'SCR':>6} {'T[s]':>7} {'임계(격자)':>11} {'임계(피팅)':>11} "
-      f"{'지수 n':>7} {'R²':>7} {'DC오차(δ)':>10}")
+print(f"  {'SCR':>6} {'T[s]':>7} {'유효 임계값':>13} {'DC오차(max)':>12} {'DC오차(δ)':>10}")
 for SCR, v in report.items():
+    dg = '-' if v['dc_gain_error_max'] is None else f"{v['dc_gain_error_max']:.1%}"
     dd = '-' if v['dc_gain_error_delta'] is None else f"{v['dc_gain_error_delta']:.1%}"
-    tf = '-' if v['threshold_fit'] is None else f"{v['threshold_fit']:.2%}"
-    ex = '-' if not v['fit'] else f"{v['fit']['exponent']:.2f}"
-    r2 = '-' if not v['fit'] else f"{v['fit']['r2']:.4f}"
-    print(f"  {SCR:>6} {v['T']:>7.2f} {v['threshold_ratio']:>11.1%} {tf:>11} "
-          f"{ex:>7} {r2:>7} {dd:>10}")
-
-fits = [v['threshold_fit'] for v in report.values() if v['threshold_fit']]
-thr_fit_min = min(fits) if fits else None
-print(f"\n  ★ 보수적 임계값 (전 SCR 공통)")
-print(f"     격자 기준: {args.input} 섭동 {thr_min:.1%} 이내")
-if thr_fit_min:
-    print(f"     피팅 기준: {args.input} 섭동 {thr_fit_min:.2%} 이내")
+    print(f"  {SCR:>6} {v['T']:>7.2f} {v['threshold_ratio']:>12.1%} {dg:>12} {dd:>10}")
+print(f"\n  ★ 보수적 임계값 (전 SCR 공통): {args.input} 섭동 {thr_min:.1%} 이내")
 
 out = {'run': RUN_NAME, 'input': args.input, 'tol': args.tol,
        'T_mode': args.T, 'tau_margin': args.tau_margin,
        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
        'threshold_common': thr_min,
-       'threshold_common_fit': thr_fit_min,
        'by_SCR': {str(k): v for k, v in report.items()}}
 (RES_DIR / f'linearization_validity_{TAG}.json').write_text(
     json.dumps(out, indent=2, ensure_ascii=False), encoding='utf-8')

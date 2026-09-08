@@ -1,0 +1,29 @@
+5.0월차 / 마감 12월차
+
+[R3] 긴급 — P3-A6
+  조건: P4 착수 시점인데 P3-A6 가 not_started (G-P4 요구사항)
+  → 판정 기준·모드 식별 미확정 → 목적함수 기준 없이 PSO 실행 시 전량 재실행. 특히 P3-A7 이 없으면 sigma_sync 를 산출할 수 없어 목적함수 구현 불가.
+
+[R2] 높음 — P0-A1
+  조건: 지금 실행 가능한 선행 항목이 not_started (1건)
+  여유: Tier 결정 마감까지 0.0개월
+  → 랙 접근 자격 · 신청 창구 · 마감 주기 확인
+
+[R4] 중간 — P3-A4
+  조건: verified 인데 evidence 가 null (1건)
+  → P3-A4 를 draft 로 강등하거나 evidence 경로를 기입할 것
+
+[R7] 낮음 — P2-A9
+  조건: deprecation_log 는 있으나 superseded_result 가 없음
+  → P2-A9 에 구 값을 superseded_result 로 남길 것
+
+[R5] 낮음 — schedule.yaml
+  조건: last_changed 필드가 없어 정체 감지를 할 수 없음
+  → in_progress 항목에 last_changed: YYYY-MM-DD 를 기입할 것
+ 
+---------------------------------------- 
+관측 결과 (dry-run, 파일 미변경)
+  [제안 없음] 상태를 바꿀 만한 관측 신호가 없습니다.
+
+  [관측 불가] C1, C2, C3, C4, C5, C6, P0-A1, P0-A2 외 39건
+      매핑 규칙이 없거나 산출물이 파일로 남지 않는 항목입니다.
