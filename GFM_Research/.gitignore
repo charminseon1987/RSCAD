@@ -15,3 +15,7 @@ RSCAD/**/*.out
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# RAG 청크 및 인덱스
+GFM_Research/00_Knowledge/rag/chunks/
+GFM_Research/00_Knowledge/rag/index/
