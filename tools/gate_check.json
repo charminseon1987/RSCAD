@@ -1,0 +1,10 @@
+{
+  "SCHEDULE_YAML": "C:/Users/hyese/Dev/RSCAD/GFM_Research/schedule.yaml",
+  "MIRROR_MD": "",
+  "FIX_R4": "false",
+  "_schema": {
+    "SCHEDULE_YAML": { "type": "text", "label": "schedule.yaml 경로", "hint": "볼트 루트의 단일 진실원" },
+    "MIRROR_MD": { "type": "text", "label": "checkList.md 경로", "hint": "비우면 yaml 옆 checkList.md" },
+    "FIX_R4": { "type": "select", "label": "R4 자동 강등", "options": ["false", "true"], "hint": "verified인데 evidence 없는 항목을 draft로" }
+  }
+}

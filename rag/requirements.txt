@@ -1,0 +1,7 @@
+chromadb>=0.5
+requests
+pyyaml
+fastapi
+uvicorn
+# 폴백 임베딩 (Ollama 없을 때만 필요)
+# sentence-transformers

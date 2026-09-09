@@ -1,1 +1,6 @@
 connect-ai/
+__pycache__/
+*.pyc
+.env
+agent/chroma/
+*.bak.*
