@@ -1,0 +1,2 @@
+#This is for the batch files to be run on Windows
+*.bat text eol=crlf

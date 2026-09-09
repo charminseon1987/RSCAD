@@ -10,7 +10,11 @@
       ],
       "outFiles": [
         "${workspaceFolder}/out/**/*.js"
-      ]
+      ],
+      "env": {
+        "PLAZA_DB_URL": "https://gmf-labs-default-rtdb.firebaseio.com"
+      },
+      "preLaunchTask": "npm: compile"
     }
   ]
 }
