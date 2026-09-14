@@ -48,18 +48,35 @@ def _band(s):
     return 'none'
 
 
-def _lazy():
-    """모델과 색인을 한 번만 올린다. 매 호출마다 로드하면 CPU 에서 감당이 안 된다."""
+def _col():
+    """색인만 연다. 임베딩 모델은 올리지 않는다.
+
+    목록 조회처럼 벡터가 필요 없는 작업까지 모델을 로드하면, 모델 쪽에
+    문제가 있을 때 멀쩡한 기능까지 함께 죽는다.
+    """
     if _state['col'] is None:
         import chromadb
         if not INDEX.exists():
-            raise RuntimeError(f'{INDEX} 없음. 02_index.py 를 먼저 실행하라.')
+            raise RuntimeError(f'색인 폴더 없음: {INDEX}. 02_index.py 를 먼저 실행하라.')
         cli = chromadb.PersistentClient(path=str(INDEX))
+        names = [getattr(c, 'name', c) for c in cli.list_collections()]
+        if 'section' not in names:
+            raise RuntimeError(f"컬렉션 'section' 없음. 있는 것: {names}")
         _state['col'] = cli.get_collection('section')
+    return _state['col']
+
+
+def _emb():
+    """임베딩 모델. 검색할 때만 필요하다."""
     if _state['emb'] is None:
-        from sentence_transformers import SentenceTransformer
+        try:
+            from sentence_transformers import SentenceTransformer
+        except Exception as e:                          # noqa: BLE001
+            raise RuntimeError(
+                f'임베딩 모델을 불러올 수 없다 ({type(e).__name__}: {e}). '
+                '벡터 검색은 쓸 수 없으니 list_papers 로 목록만 확인하라.') from e
         _state['emb'] = SentenceTransformer('BAAI/bge-m3')
-    return _state['emb'], _state['col']
+    return _state['emb']
 
 
 # ══════════════════════════════════════════════
@@ -81,7 +98,7 @@ def search(query, n=5, per_doc=0, chars=320):
     if len(query) < 3:
         return {'error': '질의가 너무 짧다'}
     try:
-        emb, col = _lazy()
+        col, emb = _col(), _emb()
     except Exception as e:                              # noqa: BLE001
         return {'error': str(e)}
 
@@ -127,7 +144,7 @@ def search(query, n=5, per_doc=0, chars=320):
     ['chunk'])
 def read_chunk(chunk):
     try:
-        _, col = _lazy()
+        col = _col()
     except Exception as e:                              # noqa: BLE001
         return {'error': str(e)}
     r = col.get(ids=[chunk])
@@ -145,12 +162,20 @@ def read_chunk(chunk):
     {}, [])
 def list_papers():
     try:
-        _, col = _lazy()
+        col = _col()
     except Exception as e:                              # noqa: BLE001
         return {'error': str(e)}
-    got = col.get(include=[])
+    # include 인수는 chromadb 버전에 따라 빈 리스트를 거부한다.
+    # ids 는 항상 반환되므로 인수 없이 부르고, 실패하면 메타데이터로 대체한다.
     from collections import Counter
-    c = Counter(i.split('::')[0] for i in got['ids'])
+    try:
+        got = col.get()
+        ids = got.get('ids') or []
+    except Exception as e:                              # noqa: BLE001
+        return {'error': f'색인 조회 실패: {type(e).__name__}: {e}'}
+    if not ids:
+        return {'error': '색인이 비어 있다. 02_index.py 를 실행하라.'}
+    c = Counter(i.split('::')[0] for i in ids)
     return {'n_papers': len(c), 'n_chunks': sum(c.values()),
             'papers': [{'doc': d, 'chunks': n} for d, n in c.most_common()]}
 
@@ -159,10 +184,20 @@ def list_papers():
 SYSTEM = """너는 논문 검색을 수행하는 조수다. 사용자의 질문에 답하는 근거를
 색인된 논문에서 찾아 제시한다.
 
+용어 대응 (반드시 이대로 옮긴다)
+  약계통        weak grid            강계통      strong grid
+  단락비        short circuit ratio  전력각      power angle, delta
+  동기화 안정도 synchronization stability        감쇠  damping
+  가상 동기기   virtual synchronous generator, VSG
+  그리드포밍    grid-forming, GFM    인버터      inverter, converter
+  소신호        small-signal         고유값      eigenvalue
+  참여계수      participation factor 전류 제한   current limiting
+  ※ '약계통' 은 weak grid 다. 약학(pharmacology) 이 아니다.
+
 검색 요령
   1. 자료가 무엇인지 모르면 list_papers 로 먼저 본다.
   2. 질의는 영어로 만든다. 본문이 영어라 점수와 순위가 크게 나아진다.
-     사용자가 한국어로 물어도 검색어는 영어로 바꿔서 넣는다.
+     사용자가 한국어로 물어도 검색어는 위 대응표대로 영어로 바꿔 넣는다.
   3. 결과를 보고 판단한다.
      · band 가 low 나 none 뿐이면 질의가 부적절하다. 다른 표현으로 다시.
      · spread 가 0.05 미만이면 순위에 변별력이 없다. 질의를 더 구체적으로.
@@ -170,6 +205,10 @@ SYSTEM = """너는 논문 검색을 수행하는 조수다. 사용자의 질문�
        단어를 넣는다. 그것이 없으면 개론 설명만 올라온다.
   4. 한 논문만 나오면 per_doc=1 로 다시 검색해 다른 논문도 훑는다.
   5. 판단이 어려우면 read_chunk 로 전문을 읽는다.
+
+도구가 실패하면
+  오류 메시지를 읽고 다른 도구나 다른 인수로 우회하라. 한 번 실패했다고
+  바로 포기하지 마라. 원인을 추측해 지어내지 말고, 오류 문구를 그대로 전하라.
 
 종료
   3~5회 검색 안에 결론을 낸다. 같은 질의를 반복하지 않는다.
@@ -183,6 +222,10 @@ def main():
     ap.add_argument('goal', nargs='*')
     ap.add_argument('--model', default='qwen3:8b')
     ap.add_argument('--steps', type=int, default=10)
+    ap.add_argument('--timeout', type=int, default=900,
+                    help='LLM 응답 대기 초. CPU 추론이면 넉넉히')
+    ap.add_argument('--think', action='store_true',
+                    help='추론 과정 생성을 켠다. 느려지지만 판단이 나아질 수 있다')
     ap.add_argument('--dry', action='store_true')
     args = ap.parse_args()
 
@@ -208,7 +251,7 @@ def main():
         sys.exit(1)
 
     print('  색인·임베딩 모델 로딩은 첫 검색에서 1~2분 걸립니다.')
-    Agent(llm=Ollama(args.model), reg=reg, system=SYSTEM,
+    Agent(llm=Ollama(args.model, timeout=args.timeout, think=args.think), reg=reg, system=SYSTEM,
           max_steps=args.steps, auto_approve=True,   # 검색은 부작용이 없다
           log_dir=ROOT / 'agent' / 'logs').run(' '.join(args.goal))
 

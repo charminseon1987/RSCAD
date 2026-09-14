@@ -1,0 +1,16 @@
+{
+  "goal": "안정도 지표를 확인하고 요약하라",
+  "model": "qwen3:14b",
+  "transcript": [
+    {
+      "t": "16:41:28",
+      "kind": "goal",
+      "text": "안정도 지표를 확인하고 요약하라"
+    },
+    {
+      "t": "16:46:28",
+      "kind": "llm_error",
+      "error": "HTTPConnectionPool(host='localhost', port=11434): Read timed out. (read timeout=300)"
+    }
+  ]
+}

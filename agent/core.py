@@ -88,10 +88,18 @@ class Registry:
 # LLM 클라이언트
 # ══════════════════════════════════════════════
 class Ollama:
-    def __init__(self, model='qwen3:14b', url=OLLAMA, temperature=0.2,
-                 timeout=300):
+    """Ollama /api/chat 클라이언트.
+
+    CPU 추론에서는 응답 하나에 수 분이 걸린다. 특히 qwen3 계열은 답하기 전에
+    추론 과정(thinking)을 생성하므로 시간이 두세 배로 늘어난다.
+    도구 호출에는 그 과정이 크게 도움이 되지 않으므로 기본적으로 끈다.
+    """
+
+    def __init__(self, model='qwen3:8b', url=OLLAMA, temperature=0.2,
+                 timeout=900, think=False, num_ctx=8192):
         self.model, self.url = model, url
         self.temperature, self.timeout = temperature, timeout
+        self.think, self.num_ctx = think, num_ctx
 
     def chat(self, messages, tools=None):
         import requests
@@ -100,11 +108,20 @@ class Ollama:
             'messages': messages,
             'stream': False,
             # 판단이 매번 달라지면 재현이 안 된다. 낮게 고정한다.
-            'options': {'temperature': self.temperature},
+            # num_ctx 가 크면 CPU 메모리와 시간을 많이 쓴다. 필요한 만큼만.
+            'options': {'temperature': self.temperature, 'num_ctx': self.num_ctx},
         }
+        # think=False 를 모르는 구버전 서버는 이 키를 무시한다.
+        if not self.think:
+            body['think'] = False
         if tools:
             body['tools'] = tools
-        r = requests.post(self.url, json=body, timeout=self.timeout)
+        try:
+            r = requests.post(self.url, json=body, timeout=self.timeout)
+        except requests.exceptions.ReadTimeout:
+            raise TimeoutError(
+                f'{self.timeout}초 안에 응답이 없다. CPU 추론이면 정상일 수 있다. '
+                f'--timeout 을 늘리거나 더 작은 모델을 쓸 것.') from None
         r.raise_for_status()
         return r.json()['message']
 
@@ -206,6 +223,8 @@ class Agent:
                     print(f'  [{step}] {name}  {json.dumps(args, ensure_ascii=False)}')
                     out = self._call(name, args)
 
+                if isinstance(out, dict) and out.get('error'):
+                    print(f'      ⚠ {out["error"]}')
                 self._log('tool', name=name, args=args, result=out)
                 msgs.append({'role': 'tool', 'content':
                              json.dumps(out, ensure_ascii=False, default=str)})
