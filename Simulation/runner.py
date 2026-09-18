@@ -154,7 +154,11 @@ def coupling_effect(A, idx_map=None):
         if idx is None or idx < 0:
             out[f'shift_{label}'] = None
             continue
-        pos = int(np.where(r == idx)[0][0])
+        matches = np.where(r == idx)[0]
+        if len(matches) == 0:
+            out[f'shift_{label}'] = None
+            continue
+        pos = int(matches[0])
         out[f'shift_{label}'] = float(shifts[pos])
     return out
 

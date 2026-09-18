@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "citation-management": {
+      "source": "k-dense-ai/scientific-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/citation-management/SKILL.md",
+      "computedHash": "0c2aac095756aca614071de10b98c5cd2808120beca754ba48c9e236ca090094"
+    }
+  }
+}
