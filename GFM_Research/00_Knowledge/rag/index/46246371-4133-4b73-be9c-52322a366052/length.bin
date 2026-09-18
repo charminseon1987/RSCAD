@@ -1,0 +1,2 @@
+invalid type: string "# schedule_sync › 출력\n## 출력\n- `schedule.v{n+1}.yaml` (기존 파일 덮어쓰지 않음)\n- 사람에게 보낼 한 줄: \"초안 생성. draft {k}건 evidence 경로 필요: <id 목록>. 확정 후 schedule.yaml 로 교체.\"", expected f64oolean�졌을 때 실행한다.
+출력은 **초안**이다. state 상향은 사람이 확정한다 (output_policy.forbidden).�
