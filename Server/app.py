@@ -569,6 +569,40 @@ def get_note():
     return jsonify({'status': 'ok', 'path': path, 'content': text})
 
 
+@app.route('/api/command', methods=['POST'])
+def run_command():
+    """비서/광장에서 자연어 명령을 받아 에이전트에 분배한다.
+
+    요청: {"command": "SCR 1.5에서 안정도 분석해줘", "agent": "experiment"}
+    agent 생략 시 키워드 기반 자동 감지.
+    """
+    d = request.json or {}
+    command = d.get('command', '').strip()
+    if not command:
+        return jsonify({'status': 'error', 'error': 'command 필요'}), 400
+
+    sys.path.insert(0, str(ROOT / 'agent'))
+    import orchestrator
+    result = orchestrator.dispatch(
+        command,
+        agent_id=d.get('agent'),
+        model=d.get('model', 'qwen3:8b'),
+        auto=True,
+    )
+
+    return jsonify({
+        'status': 'ok' if result['ok'] else 'error',
+        'agent': result.get('agent'),
+        'agent_name': result.get('agent_name'),
+        'agent_emoji': result.get('agent_emoji'),
+        'command': command,
+        'conclusion': result.get('conclusion', ''),
+        'note_path': result.get('note_path'),
+        'elapsed': result.get('elapsed'),
+        'error': result.get('error') if not result['ok'] else None,
+    })
+
+
 @app.route('/api/pso', methods=['POST'])
 def pso_not_implemented():
     return jsonify({
