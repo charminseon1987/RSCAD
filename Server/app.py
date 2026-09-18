@@ -26,6 +26,7 @@ import sys, json
 from pathlib import Path
 
 import numpy as np
+import yaml
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -462,6 +463,110 @@ def reload_run():
                     'run': STATE['run_dir'].name,
                     'loaded_SCR': sorted(STATE['A'], reverse=True),
                     'meta': meta})
+
+
+@app.route('/api/schedule_status', methods=['GET'])
+def schedule_status():
+    """schedule.yaml 를 읽어 페이즈별 상태를 JSON 으로 반환한다."""
+    sched_path = ROOT / 'GFM_Research' / 'schedule.yaml'
+    if not sched_path.exists():
+        return jsonify({'status': 'error',
+                        'error': f'schedule.yaml not found: {sched_path}'}), 404
+    try:
+        with open(sched_path, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f)
+    except Exception as e:                          # noqa: BLE001
+        return jsonify({'status': 'error',
+                        'error': f'YAML parse error: {e}'}), 500
+
+    meta = data.get('meta', {})
+    phases_raw = data.get('phases', [])
+
+    phases = []
+    for ph in phases_raw:
+        phases.append({
+            'id':     ph.get('id'),
+            'name':   ph.get('name'),
+            'window': ph.get('window'),
+            'status': ph.get('status', 'in_progress'),
+            'critical': ph.get('critical', False),
+            'depends_on': ph.get('depends_on', []),
+            'artifacts': [
+                {'id': a.get('id'), 'name': a.get('name'), 'state': a.get('state')}
+                for a in ph.get('artifacts', [])
+            ],
+        })
+
+    return jsonify({
+        'status': 'ok',
+        'project': meta.get('project'),
+        'current_month': meta.get('current_month'),
+        'deadline_month': meta.get('deadline_month'),
+        'buffer_months': meta.get('buffer_months'),
+        'tier': meta.get('tier'),
+        'phases': phases,
+    })
+
+
+@app.route('/api/plaza', methods=['GET'])
+def plaza():
+    """Firebase RTDB plaza URL 을 반환한다."""
+    # TODO: connect-ai 설정에서 읽어오도록 교체
+    plaza_url = 'https://rscad-plaza-default-rtdb.firebaseio.com'
+    return jsonify({
+        'status': 'ok',
+        'plaza_url': plaza_url,
+    })
+
+
+@app.route('/api/notes')
+def list_notes():
+    """GFM_Research 볼트의 실험 노트·문헌 노트 목록을 반환."""
+    vault = ROOT / 'GFM_Research'
+    notes = []
+    for pattern, category in [
+        ('RSCAD/Phase*/*.md', 'phase'),
+        ('RSCAD/Phase*/*/*.md', 'phase'),
+        ('00_Knowledge/literature/*.md', 'literature'),
+        ('00_Knowledge/claims/*.md', 'claim'),
+    ]:
+        for p in sorted(vault.glob(pattern)):
+            if p.name.startswith('.') or p.name.startswith('_'):
+                continue
+            try:
+                text = p.read_text(encoding='utf-8')
+                title = next((l.lstrip('#').strip() for l in text.split('\n')
+                              if l.startswith('#') and not l.startswith('---')), p.stem)
+                notes.append({
+                    'name': p.stem,
+                    'title': title[:80],
+                    'category': category,
+                    'path': str(p.relative_to(vault)),
+                    'size': len(text),
+                    'mtime': p.stat().st_mtime,
+                })
+            except Exception:
+                continue
+    notes.sort(key=lambda n: -n['mtime'])
+    return jsonify({'status': 'ok', 'notes': notes[:50], 'total': len(notes)})
+
+
+@app.route('/api/note')
+def get_note():
+    """특정 노트의 마크다운 내용을 반환."""
+    path = request.args.get('path')
+    if not path:
+        return jsonify({'status': 'error', 'error': 'path 파라미터 필요'}), 400
+    vault = ROOT / 'GFM_Research'
+    fp = vault / path
+    if not fp.exists() or not fp.suffix == '.md':
+        return jsonify({'status': 'error', 'error': f'파일 없음: {path}'}), 404
+    try:
+        fp.resolve().relative_to(vault.resolve())
+    except ValueError:
+        return jsonify({'status': 'error', 'error': '경로 이탈'}), 403
+    text = fp.read_text(encoding='utf-8')
+    return jsonify({'status': 'ok', 'path': path, 'content': text})
 
 
 @app.route('/api/pso', methods=['POST'])

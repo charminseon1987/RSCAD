@@ -14,16 +14,18 @@
 
 <div class="topbar">
   <div class="tb-dot"></div>
-  <div class="tb-name">GFM SIMULATOR</div>
+  <div class="tb-name">GFM LABS</div>
   <div class="tb-sep"></div>
   <div class="tb-tag on" id="tb-order">MODEL —</div>
   <div class="tb-tag">FLASK API</div>
+  <div class="tb-sep"></div>
+  <div id="phase-strip" style="display:flex;gap:4px;align-items:center;"></div>
   <div class="tb-right">
     <div class="api-status">
       <div class="api-dot" id="api-dot"></div>
       <span id="api-label" style="font-size:11px;color:var(--text3)">서버 확인 중…</span>
     </div>
-    <div class="tb-tag" id="tb-phase">Phase —</div>
+    <button onclick="togglePlaza()" class="btn" style="padding:2px 10px;font-size:11px;background:var(--bg2);border:1px solid var(--line);color:var(--fg);cursor:pointer;border-radius:3px;">🏛️ 광장</button>
   </div>
 </div>
 
@@ -147,22 +149,69 @@
 
 <!-- CENTER -->
 <div class="center">
-  <div class="chart-cell">
-    <div class="chart-hdr">
-      <div class="chart-title">고유값 분포 — 복소 평면</div>
-      <div class="badge badge-idle" id="badge-eig">API 대기</div>
-      <div class="chart-sub">Re(λ) &lt; 0 안정 · 음영 = ζ ≥ 0.64</div>
-    </div>
-    <div class="chart-body"><svg id="svg-eig"></svg></div>
+  <!-- Tab bar -->
+  <div style="display:flex;gap:0;margin-bottom:0;border-bottom:1px solid var(--line);">
+    <button class="tab-btn active" onclick="switchTab('charts')" id="tab-charts" style="flex:1;padding:8px;background:var(--bg2);border:none;border-bottom:2px solid var(--accent);color:var(--fg);cursor:pointer;font-size:11px;font-weight:600;">📊 시뮬레이션</button>
+    <button class="tab-btn" onclick="switchTab('notes')" id="tab-notes" style="flex:1;padding:8px;background:var(--bg1);border:none;border-bottom:2px solid transparent;color:var(--text3);cursor:pointer;font-size:11px;">📋 실험 일지</button>
+    <button class="tab-btn" onclick="switchTab('paper')" id="tab-paper" style="flex:1;padding:8px;background:var(--bg1);border:none;border-bottom:2px solid transparent;color:var(--text3);cursor:pointer;font-size:11px;">✍️ 논문</button>
   </div>
 
-  <div class="chart-cell">
-    <div class="chart-hdr">
-      <div class="chart-title">SCR* × (X/R) 안정 경계</div>
-      <div class="badge badge-idle" id="badge-2d">스윕 대기</div>
-      <div class="chart-sub">ζ_threshold = 0.64 · 흰 선 = 임계 경계</div>
+  <!-- Tab: Charts (default) -->
+  <div id="panel-charts">
+    <div class="chart-cell">
+      <div class="chart-hdr">
+        <div class="chart-title">고유값 분포 — 복소 평면</div>
+        <div class="badge badge-idle" id="badge-eig">API 대기</div>
+        <div class="chart-sub">Re(λ) &lt; 0 안정 · 음영 = ζ ≥ 0.64</div>
+      </div>
+      <div class="chart-body"><svg id="svg-eig"></svg></div>
     </div>
-    <div class="chart-body"><svg id="svg-2d"></svg></div>
+
+    <div class="chart-cell">
+      <div class="chart-hdr">
+        <div class="chart-title">SCR* × (X/R) 안정 경계</div>
+        <div class="badge badge-idle" id="badge-2d">스윕 대기</div>
+        <div class="chart-sub">ζ_threshold = 0.64 · 흰 선 = 임계 경계</div>
+      </div>
+      <div class="chart-body"><svg id="svg-2d"></svg></div>
+    </div>
+  </div>
+
+  <!-- Tab: Experiment Notes -->
+  <div id="panel-notes" style="display:none;padding:12px;overflow-y:auto;height:calc(100vh - 100px);">
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <select id="note-filter" onchange="loadNotes()" style="background:var(--bg2);border:1px solid var(--line);color:var(--fg);padding:4px 8px;border-radius:4px;font-size:11px;">
+        <option value="">전체</option>
+        <option value="phase">Phase 노트</option>
+        <option value="literature">문헌</option>
+        <option value="claim">주장</option>
+      </select>
+      <span style="font-size:11px;color:var(--text3);line-height:28px;" id="note-count"></span>
+    </div>
+    <div id="note-list" style="display:flex;flex-direction:column;gap:4px;"></div>
+    <div id="note-viewer" style="display:none;margin-top:12px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:16px;max-height:60vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span id="note-title" style="font-size:14px;font-weight:600;color:var(--fg);"></span>
+        <button onclick="document.getElementById('note-viewer').style.display='none'" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;">✕</button>
+      </div>
+      <pre id="note-content" style="white-space:pre-wrap;font-size:12px;color:var(--text2);line-height:1.6;font-family:'Roboto Mono',monospace;"></pre>
+    </div>
+  </div>
+
+  <!-- Tab: Paper Progress -->
+  <div id="panel-paper" style="display:none;padding:12px;overflow-y:auto;height:calc(100vh - 100px);">
+    <div style="font-size:14px;font-weight:600;color:var(--fg);margin-bottom:12px;">✍️ IEEE Access 논문 진행 상황</div>
+    <div id="paper-sections" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div style="margin-top:16px;font-size:12px;font-weight:600;color:var(--fg);">🔧 품질 검사 도구</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+      <span class="exp-tag" style="background:#3b82f622;color:#60a5fa;padding:4px 8px;font-size:11px;">terminology-consistency</span>
+      <span class="exp-tag" style="background:#16a34a22;color:#4ade80;padding:4px 8px;font-size:11px;">ieee-access-format-check</span>
+      <span class="exp-tag" style="background:#eab30822;color:#fbbf24;padding:4px 8px;font-size:11px;">citation-management</span>
+      <span class="exp-tag" style="background:#a855f722;color:#c084fc;padding:4px 8px;font-size:11px;">academic-paper-reviewer</span>
+    </div>
+    <div style="margin-top:16px;font-size:11px;color:var(--text3);">
+      ※ Claude Code에서 각 스킬을 실행하면 결과가 여기에 반영됩니다.
+    </div>
   </div>
 </div>
 
@@ -185,6 +234,9 @@
   <div class="sec">CLI 결과</div>
   <div id="cli-list"><div class="empty"><span>불러오지 않음 — “CLI 결과 불러오기”</span></div></div>
 
+  <div class="sec">실험 이력</div>
+  <div id="experiment-history"><div class="empty"><span>로딩 중...</span></div></div>
+
   <div class="sec">로그</div>
   <div class="log-box" id="log-box">
     <div class="log-line sev-info"><div class="log-bar"></div><span class="log-t">--:--</span><span class="log-m">Flask API 연결 대기 중…</span></div>
@@ -192,7 +244,234 @@
 </div>
 </div>
 
+<!-- AGENT PLAZA OVERLAY -->
+<div id="plaza-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;background:rgba(0,0,0,0.85);padding:40px;">
+  <div style="max-width:900px;margin:0 auto;height:100%;display:flex;flex-direction:column;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:18px;font-weight:600;color:#F8FAFC;">🏛️ GFM Labs 에이전트 광장</div>
+      <button onclick="togglePlaza()" style="background:none;border:1px solid #555;color:#aaa;padding:4px 12px;cursor:pointer;border-radius:4px;font-size:12px;">닫기 ✕</button>
+    </div>
+    <div style="display:flex;gap:16px;flex:1;overflow:hidden;">
+      <!-- Agent Roster -->
+      <div style="width:220px;background:#1a1a2e;border-radius:8px;padding:16px;overflow-y:auto;">
+        <div style="font-size:12px;color:#888;margin-bottom:12px;font-weight:600;">RESEARCH TEAM</div>
+        <div id="agent-roster"></div>
+      </div>
+      <!-- Chat -->
+      <div style="flex:1;display:flex;flex-direction:column;background:#1a1a2e;border-radius:8px;overflow:hidden;">
+        <div id="plaza-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px;"></div>
+        <div style="padding:12px;border-top:1px solid #333;display:flex;gap:8px;">
+          <input type="text" id="plaza-input" placeholder="에이전트에게 명령..."
+            style="flex:1;background:#0d0d1a;border:1px solid #333;color:#eee;padding:8px 12px;border-radius:6px;font-size:13px;"
+            onkeydown="if(event.key==='Enter')sendPlazaMsg()">
+          <button onclick="sendPlazaMsg()" style="background:#3b82f6;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;">전송</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPERIMENT HISTORY PANEL (bottom of right sidebar) -->
+<style>
+  #experiment-history { margin-top:8px; }
+  .exp-card { background:var(--bg2); border:1px solid var(--line); border-radius:4px; padding:8px 10px; margin-bottom:4px; cursor:pointer; transition:border-color .15s; }
+  .exp-card:hover { border-color:var(--accent); }
+  .exp-card.active { border-color:#3b82f6; }
+  .exp-tag { display:inline-block; font-size:9px; padding:1px 5px; border-radius:3px; }
+  .exp-tag.pass { background:#16a34a22; color:#4ade80; }
+  .exp-tag.fail { background:#dc262622; color:#f87171; }
+  .exp-tag.latest { background:#3b82f622; color:#60a5fa; }
+  .phase-pill { display:inline-block; font-size:9px; padding:2px 6px; border-radius:3px; margin-right:2px; }
+  .phase-pill.done { background:#16a34a33; color:#4ade80; }
+  .phase-pill.active { background:#eab30833; color:#fbbf24; }
+  .phase-pill.pending { background:#33333366; color:#888; }
+</style>
+
 <div class="tooltip" id="tooltip"></div>
+
+<script>
+// ── Agent Plaza ──
+const RESEARCH_AGENTS = [
+  { id:'ceo', name:'연구소장', emoji:'🧭', role:'Research Director', color:'#F8FAFC' },
+  { id:'developer', name:'시뮬엔지니어', emoji:'💻', role:'Simulation Engineer', color:'#22D3EE' },
+  { id:'business', name:'검증판정자', emoji:'⚖️', role:'Verification Judge', color:'#F5C518' },
+  { id:'secretary', name:'실험노트관리자', emoji:'📋', role:'Note Manager', color:'#84CC16' },
+  { id:'researcher', name:'문헌추적자', emoji:'📚', role:'Literature Tracker', color:'#60A5FA' },
+  { id:'writer', name:'논문작가', emoji:'✍️', role:'Paper Writer', color:'#FBBF24' },
+  { id:'designer', name:'그림담당', emoji:'📊', role:'Figure Creator', color:'#A78BFA' },
+];
+
+function initPlaza() {
+  const roster = document.getElementById('agent-roster');
+  roster.innerHTML = RESEARCH_AGENTS.map(a => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:6px;margin-bottom:4px;background:#0d0d1a;">
+      <span style="font-size:20px;">${a.emoji}</span>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:${a.color};">${a.name}</div>
+        <div style="font-size:10px;color:#666;">${a.role}</div>
+      </div>
+    </div>
+  `).join('');
+
+  addPlazaMessage('🧭', '연구소장', 'GFM Labs 에이전트 광장에 오신 것을 환영합니다. 명령을 입력하세요.', '#F8FAFC');
+}
+
+function togglePlaza() {
+  const el = document.getElementById('plaza-overlay');
+  el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+}
+
+function addPlazaMessage(emoji, name, text, color) {
+  const box = document.getElementById('plaza-messages');
+  const now = new Date().toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'});
+  box.innerHTML += `<div style="display:flex;gap:10px;align-items:flex-start;">
+    <span style="font-size:18px;">${emoji}</span>
+    <div style="flex:1;">
+      <div style="display:flex;gap:8px;align-items:baseline;">
+        <span style="font-size:12px;font-weight:600;color:${color||'#eee'};">${name}</span>
+        <span style="font-size:10px;color:#555;">${now}</span>
+      </div>
+      <div style="font-size:13px;color:#ccc;margin-top:2px;line-height:1.5;">${text}</div>
+    </div>
+  </div>`;
+  box.scrollTop = box.scrollHeight;
+}
+
+function sendPlazaMsg() {
+  const inp = document.getElementById('plaza-input');
+  const msg = inp.value.trim();
+  if (!msg) return;
+  inp.value = '';
+  addPlazaMessage('👤', '연구자', msg, '#eee');
+  // Route to appropriate agent
+  setTimeout(() => {
+    addPlazaMessage('🧭', '연구소장', `"${msg}" — 분석 중입니다. 해당 에이전트에 작업을 배분합니다.`, '#F8FAFC');
+  }, 500);
+}
+
+// ── Phase Status Strip ──
+function loadPhaseStatus() {
+  fetch(API + '/api/schedule_status')
+    .then(r => r.json())
+    .then(d => {
+      if (d.status !== 'ok') return;
+      const strip = document.getElementById('phase-strip');
+      strip.innerHTML = (d.phases || []).map(p => {
+        const cls = p.status === 'complete' ? 'done' : p.status === 'active' ? 'active' : 'pending';
+        return `<span class="phase-pill ${cls}" title="${p.name}: ${p.status}">${p.id}</span>`;
+      }).join('');
+    })
+    .catch(() => {});
+}
+
+// ── Experiment History ──
+function loadExperimentHistory() {
+  fetch(API + '/api/runs')
+    .then(r => r.json())
+    .then(d => {
+      if (d.status !== 'ok') return;
+      const box = document.getElementById('experiment-history');
+      if (!box) return;
+      const runs = (d.runs || []).slice(-8).reverse();
+      box.innerHTML = runs.map(r => {
+        const tags = [];
+        if (r.is_active) tags.push('<span class="exp-tag latest">active</span>');
+        if (r.all_stable) tags.push('<span class="exp-tag pass">stable</span>');
+        else tags.push('<span class="exp-tag fail">unstable</span>');
+        const zeta = r.zeta_min != null ? `ζ=${r.zeta_min.toFixed(3)}` : '';
+        const ts = r.timestamp ? r.timestamp.split(' ')[0] : '';
+        return `<div class="exp-card${r.is_active?' active':''}" onclick="switchRun('${r.run_name}')">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:10px;color:var(--text2);font-family:'Roboto Mono',monospace;">X/R=${r.XR} SCR=${(r.SCR_list||[]).join(',')}</span>
+            ${tags.join(' ')}
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;">${ts} ${zeta}</div>
+        </div>`;
+      }).join('');
+    })
+    .catch(() => {});
+}
+
+// ── Tab switching ──
+function switchTab(tab) {
+  ['charts','notes','paper'].forEach(t => {
+    document.getElementById('panel-'+t).style.display = t===tab ? '' : 'none';
+    const btn = document.getElementById('tab-'+t);
+    btn.style.background = t===tab ? 'var(--bg2)' : 'var(--bg1)';
+    btn.style.borderBottomColor = t===tab ? 'var(--accent)' : 'transparent';
+    btn.style.color = t===tab ? 'var(--fg)' : 'var(--text3)';
+  });
+  if(tab==='notes') loadNotes();
+  if(tab==='paper') loadPaperStatus();
+}
+
+// ── Notes ──
+function loadNotes() {
+  const filter = document.getElementById('note-filter').value;
+  fetch(API + '/api/notes')
+    .then(r=>r.json())
+    .then(d=>{
+      if(d.status!=='ok') return;
+      let notes = d.notes;
+      if(filter) notes = notes.filter(n=>n.category===filter);
+      document.getElementById('note-count').textContent = notes.length+'개 노트';
+      const cats = {phase:'📁',literature:'📚',claim:'🔵'};
+      document.getElementById('note-list').innerHTML = notes.map(n=>{
+        const date = new Date(n.mtime*1000).toLocaleDateString('ko-KR');
+        return `<div class="exp-card" onclick="viewNote('${n.path}','${n.title.replace(/'/g,"\\'")}')">
+          <div style="display:flex;justify-content:space-between;">
+            <span style="font-size:12px;color:var(--fg);">${cats[n.category]||'📄'} ${n.title.substring(0,50)}</span>
+            <span style="font-size:10px;color:var(--text3);">${date}</span>
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;">${n.path}</div>
+        </div>`;
+      }).join('');
+    }).catch(()=>{});
+}
+
+function viewNote(path, title) {
+  fetch(API + '/api/note?path=' + encodeURIComponent(path))
+    .then(r=>r.json())
+    .then(d=>{
+      if(d.status!=='ok') return;
+      document.getElementById('note-viewer').style.display = '';
+      document.getElementById('note-title').textContent = title;
+      document.getElementById('note-content').textContent = d.content;
+    }).catch(()=>{});
+}
+
+// ── Paper status ──
+const PAPER_SECTIONS = [
+  { id:'I', title:'Introduction', desc:'GFM 필요성, 기존 한계, 차별화 4축', deps:['claims','literature'] },
+  { id:'II', title:'System Model', desc:'22차 ODE, DC-AC 양방향 커플링', deps:['model.py','pf_export.py'] },
+  { id:'III', title:'Methodology', desc:'PSO 다중운전점 + σ 기반 지표', deps:['metrics.py','pso.py'] },
+  { id:'IV', title:'Results', desc:'2D 경계, EMT/SIL 검증', deps:['results/','P5 데이터'] },
+  { id:'V', title:'Conclusion', desc:'기여 요약, 한계, 향후 연구', deps:['전체 완료'] },
+];
+
+function loadPaperStatus() {
+  const box = document.getElementById('paper-sections');
+  box.innerHTML = PAPER_SECTIONS.map(s=>{
+    const status = 'pending'; // TODO: check actual draft existence
+    const color = status==='done'?'#4ade80':status==='draft'?'#fbbf24':'#888';
+    return `<div class="exp-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;font-weight:600;color:var(--fg);">§${s.id}. ${s.title}</span>
+        <span class="exp-tag" style="background:${color}22;color:${color};">${status}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text2);margin-top:4px;">${s.desc}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px;">의존: ${s.deps.join(', ')}</div>
+    </div>`;
+  }).join('');
+}
+
+function switchRun(name) {
+  fetch(API + '/api/reload', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({run:name}) })
+    .then(r => r.json())
+    .then(d => { if(d.status==='ok') { addLog('info', `실행 전환: ${name}`); loadLatest(); loadExperimentHistory(); }})
+    .catch(e => addLog('error', e.message));
+}
+</script>
 
 <script src="js/config.js"></script>
 <script src="js/util.js"></script>

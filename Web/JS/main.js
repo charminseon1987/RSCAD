@@ -7,7 +7,10 @@
 window.addEventListener('load', async ()=>{
   syncSliders();
   updateOP(null); drawZeta(); drawDupv();
+  initPlaza();
   await checkAPI();
+  loadPhaseStatus();
+  loadExperimentHistory();
   if(apiOk){ await runJacobian(); await runSweep(); }
 });
 

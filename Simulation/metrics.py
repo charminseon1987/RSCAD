@@ -174,6 +174,68 @@ def objective(A):
     return -m['score']
 
 
+def objective_multi(ctrl, SCR_list, XR=1.0):
+    """다중 운전점 PSO 목적함수.
+
+    F_multi = min_k score(SCR_k)
+
+    전 SCR 에서 동시에 기준을 만족해야 하므로 최솟값(가장 나쁜 운전점)이
+    전체를 대표한다. 가중합이 아닌 min 을 쓰는 이유: 한 운전점이 아무리
+    좋아도 다른 운전점의 미달을 보상해서는 안 되기 때문이다.
+
+    반환: (cost, detail)
+      cost   — PSO 최소화 대상 (작을수록 좋음)
+      detail — 디버깅용 dict {SCR: {score, sigma_min, zeta_min, stable, ...}}
+    """
+    import op
+    import runner
+
+    op.CTRL.update(ctrl)
+    SCR_list = sorted((float(s) for s in SCR_list), reverse=True)
+
+    detail = {}
+    worst_score = float('inf')
+    penalty = 0.0
+
+    xg = None
+    for SCR in SCR_list:
+        x0, ok, _ = op.solve_op(SCR, XR, xg)
+        if not ok:
+            detail[SCR] = {'converged': False}
+            penalty += 1e4
+            continue
+        xg = x0
+        A = op.jacobian(x0, SCR, XR)
+        m = metrics(A)
+        if m is None:
+            detail[SCR] = {'converged': True, 'modes': False}
+            penalty += 1e5
+            continue
+
+        detail[SCR] = {
+            'converged': True,
+            'stable': m['stable'],
+            'score': m['score'],
+            'sigma_min': m['sigma_min'],
+            'zeta_min': m['zeta_min'],
+            'binding': m['binding'],
+        }
+
+        if not m['stable']:
+            penalty += 1e3 + abs(m['sigma_min'])
+        else:
+            worst_score = min(worst_score, m['score'])
+
+    if penalty > 0:
+        cost = penalty
+    elif worst_score == float('inf'):
+        cost = 1e6
+    else:
+        cost = -worst_score
+
+    return cost, detail
+
+
 def report(A, label=''):
     """사람이 읽는 요약."""
     m = metrics(A)
