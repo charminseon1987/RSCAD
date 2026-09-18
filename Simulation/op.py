@@ -127,15 +127,15 @@ def jacobian(x0, SCR, XR=1.0):
 def fd_jacobian(x0, SCR, XR=1.0, h=1e-6):
     """유한차분 야코비안 — 심볼릭 검산용"""
     n = M.N
-    Jm = np.zeros((n, n))
+    A_fd = np.zeros((n, n))
     for j in range(n):
         dx = max(abs(x0[j]), 1.0) * h
         xp, xm = x0.copy(), x0.copy()
         xp[j] += dx; xm[j] -= dx
         fp = np.array(f_fn(*_args(xp, SCR, XR))).ravel()
         fm = np.array(f_fn(*_args(xm, SCR, XR))).ravel()
-        Jm[:, j] = (fp - fm) / (2*dx)
-    return Jm
+        A_fd[:, j] = (fp - fm) / (2*dx)
+    return A_fd
 
 
 if __name__ == '__main__':
