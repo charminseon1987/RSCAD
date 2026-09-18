@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-error": "#690005", "primary-fixed": "#9cf0ff", "surface-variant": "#313540", "error-container": "#93000a", "tertiary-fixed-dim": "#ffb68b", "tertiary-fixed": "#ffdbc8", "error": "#ffb4ab", "surface-container-low": "#171b26", "on-tertiary-container": "#914300", "tertiary-container": "#ffc4a2", "surface": "#0f131d", "inverse-surface": "#dfe2f1", "surface-dim": "#0f131d", "secondary-fixed": "#d6e3ff", "background": "#0f131d", "surface-container-highest": "#313540", "on-secondary-fixed": "#001b3e", "outline": "#849396", "on-tertiary": "#522300", "primary-fixed-dim": "#00daf3", "secondary": "#aac7ff", "on-secondary": "#003064", "secondary-container": "#3e90ff", "inverse-on-surface": "#2c303b", "inverse-primary": "#006875", "outline-variant": "#3b494c", "surface-tint": "#00daf3", "on-surface-variant": "#bac9cc", "on-background": "#dfe2f1", "on-secondary-fixed-variant": "#00468d", "on-error-container": "#ffdad6", "surface-container-high": "#262a35", "on-secondary-container": "#002957", "surface-container-lowest": "#0a0e18", "on-primary-container": "#00626e", "on-primary-fixed-variant": "#004f58", "on-surface": "#dfe2f1", "primary": "#c3f5ff", "tertiary": "#ffe8dd", "secondary-fixed-dim": "#aac7ff", "on-primary": "#00363d", "on-tertiary-fixed": "#321200", "surface-bright": "#353944", "on-tertiary-fixed-variant": "#753400", "surface-container": "#1c1f2a", "primary-container": "#00e5ff", "on-primary-fixed": "#001f24" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-md": "1rem", "gutter": "1.25rem", "space-xl": "2.5rem", "space-xs": "0.25rem", "space-sm": "0.5rem", "space-lg": "1.5rem", "margin": "2rem" }, "fontFamily": { "display-lg": [ "Space Grotesk" ], "body-lg": [ "Inter" ], "headline-lg": [ "Space Grotesk" ], "body-md": [ "Inter" ], "body-sm": [ "Inter" ], "label-sm": [ "JetBrains Mono" ], "display-lg-mobile": [ "Space Grotesk" ], "label-lg": [ "JetBrains Mono" ], "headline-md": [ "Space Grotesk" ], "headline-sm": [ "Space Grotesk" ], "label-md": [ "JetBrains Mono" ] }, "fontSize": { "display-lg": [ "40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "body-lg": [ "16px", { "lineHeight": "26px", "fontWeight": "400" } ], "headline-lg": [ "28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "body-md": [ "14px", { "lineHeight": "22px", "fontWeight": "400" } ], "body-sm": [ "12px", { "lineHeight": "18px", "fontWeight": "400" } ], "label-sm": [ "10px", { "lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "500" } ], "display-lg-mobile": [ "32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "label-lg": [ "14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" } ], "headline-md": [ "22px", { "lineHeight": "30px", "fontWeight": "600" } ], "headline-sm": [ "18px", { "lineHeight": "26px", "fontWeight": "600" } ], "label-md": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500" } ] } } } };</script></head><body class="bg-surface font-body-md text-on-surface antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-low z-50 flex flex-col justify-between py-space-lg px-gutter border-r border-outline-variant/40"><div class="flex flex-col gap-space-lg"><div class="flex flex-col gap-space-xs"><div class="flex items-center gap-space-sm"><div class="w-2.5 h-2.5 rounded-full bg-primary-container animate-pulse"></div><span class="font-headline-sm text-headline-sm text-primary tracking-tight">GFM LABS</span></div><p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">PV-GFM Optimization &amp; CHIL</p><div class="mt-space-xs inline-flex items-center gap-space-xs px-space-sm py-0.5 rounded bg-surface-container-high border border-outline-variant"><span class="font-label-sm text-label-sm text-secondary-fixed">Yonsei Smart Grid Lab</span></div><span class="font-label-sm text-label-sm text-outline">지도: 허견 교수</span></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-surface-container-high text-primary border-l-2 border-primary-container"><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-2 rounded transition-colors font-label-md bg-surface-container-high text-primary border-l-2 border-primary-container" data-path="research-overview-and-guidelines" href="#"><span class="material-symbols-outlined text-[18px]">menu_book</span><span>01. 연구 개요 및 지침</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="22-state-small-signal-model-and-jacobian" href="#"><span class="material-symbols-outlined text-[18px]">functions</span><span>02. 22차 모델링 및 Jacobian</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="multi-operating-point-pso-optimization" href="#"><span class="material-symbols-outlined text-[18px]">tune</span><span>03. 다중 운전점 PSO 최적화</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="hil-chil-real-time-hardware-validation" href="#"><span class="material-symbols-outlined text-[18px]">memory</span><span>04. 실시간 CHIL 하드웨어 검증</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="2d-scr-xr-robust-stability-boundary" href="#"><span class="material-symbols-outlined text-[18px]">grid_4x4</span><span>05. 2D SCR-X/R 안정 경계</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="agent-directives-and-obsidian-vault" href="#"><span class="material-symbols-outlined text-[18px]">terminal</span><span>06. Agent 지침 &amp; Vault</span></a></nav></div><div class="flex flex-col gap-space-sm pt-space-md border-t border-outline-variant/40"><div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm"><span>RTDS NovaCor</span><span class="text-primary-container font-mono">LOCKED (50μs)</span></div><div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm"><span>DSP TMS320</span><span class="text-secondary-fixed font-mono">SYNCED (10kHz)</span></div><div class="p-space-sm rounded bg-surface-container border border-outline-variant"><span class="font-label-sm text-label-sm text-outline block">RESEARCH TARGET</span><span class="font-label-md text-label-md text-primary font-semibold block">Tier 3 Target (IEEE TSTE/TPEL)</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/90 backdrop-blur-md z-40 border-b border-outline-variant/40"><div class="w-full h-full px-gutter flex items-center justify-between"><div class="flex items-center gap-space-md"><span class="px-space-sm py-0.5 rounded font-label-sm text-label-sm bg-surface-container-high text-primary border border-outline-variant">v1.0 (2026.09 기준 확정)</span><span class="hidden lg:inline-flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant"><span class="material-symbols-outlined text-[16px] text-primary-container">verified</span>Yonsei Smart Grid Lab · 허견 교수 연구실</span></div><div class="flex items-center gap-space-md"><div class="hidden xl:flex items-center gap-space-sm text-on-surface-variant font-label-sm text-label-sm"><span class="text-outline">Quick Jumps:</span><a class="hover:text-primary transition-colors" href="#model-jacobian">#Jacobian</a><span class="text-outline-variant">|</span><a class="hover:text-primary transition-colors" href="#pso-matrix">#PSO-Matrix</a><span class="text-outline-variant">|</span><a class="hover:text-primary transition-colors" href="#chil-loop">#CHIL-Scope</a></div><div class="flex items-center gap-space-sm pl-space-md border-l border-outline-variant/40"><div class="text-right hidden sm:block"><span class="block font-label-sm text-label-sm text-on-surface font-semibold">Academic Lead</span><span class="block font-label-sm text-label-sm text-outline">Smart Grid Lab</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover border border-primary-container/40" src="https://lh3.googleusercontent.com/aida/AEtjO1U03r-wLTD6W2sScvL-lF_M-4SF-v_rKI09I0cm9YDkXCS0CCGyMbWntMoC6tHR1_2xOpBRMPt-R2m7Vd3-bp6DAGBdbCkW0c3RyqJGyHWgMnMQqlbsSo9plw7cPLN5dnEluQ0JZ1-m-juaf_B8d_fXY6H61DdNQWTLKSfmXe9d-N76wFvcKw9565BII7P8rUuHzzIZTb7SnUHcA_9o0JVcJIv8DEVbA-LLslHSK8H5CTk4MabVxdAZihk-bOek16tB0pmXbnGOCLk"/></div></div></div></header><main class="w-full pt-16 bg-surface"><div class="flex flex-col w-full">
+<!-- Top Global Analytical Subheader -->
+<div class="w-full bg-surface-container-lowest px-gutter py-space-md shadow-sm">
+<div class="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-space-md">
+<!-- Title & Breadcrumb Block -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm flex-wrap">
+<span class="px-space-sm py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-primary-fixed border-l-2 border-primary-container">
+            SECTION 05 :: 2D STABILITY BOUNDARY
+          </span>
+<span class="text-outline text-body-sm font-label-sm">/</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+            Mode: 검증·실험 (L1 소신호 + L2 EMT 교차 + L3 CHIL 실시간 검증)
+          </span>
+<span class="px-space-sm py-0.5 rounded bg-primary-container/10 font-label-sm text-label-sm text-primary-container">
+            UNIFI Cat.3 Verified
+          </span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight flex items-center gap-space-sm">
+          88-Point SCR-X/R 2D Stability Boundary Scan &amp; Sensitivity Analytics
+        </h1>
+</div>
+<!-- Hardware Real-Time Synchronizer Ribbon -->
+<div class="flex items-center gap-space-sm flex-wrap bg-surface-container-low p-space-xs rounded-lg">
+<div class="flex items-center gap-space-xs px-space-sm py-1 bg-surface-container rounded">
+<div class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">RTDS NovaCor:</span>
+<span class="font-label-sm text-label-sm text-primary-container font-semibold">LOCKED (50μs)</span>
+</div>
+<div class="flex items-center gap-space-xs px-space-sm py-1 bg-surface-container rounded">
+<div class="w-2 h-2 rounded-full bg-secondary-container"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">TI TMS320F28379D:</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed font-semibold">SYNCED (10kHz)</span>
+</div>
+<div class="flex items-center gap-space-xs px-space-sm py-1 bg-surface-container rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Sweep Matrix:</span>
+<span class="font-label-sm text-label-sm text-tertiary-fixed font-semibold">88/88 (100%)</span>
+</div>
+<div class="flex items-center gap-space-xs px-space-sm py-1 bg-primary-container text-on-primary font-semibold rounded">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+<span class="font-label-sm text-label-sm">IEEE TSTE Target</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Primary Workspace Layout -->
+<div class="w-full px-gutter py-space-lg flex flex-col gap-space-lg">
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg">
+<!-- Central/Left 2D Scatter Visualization Area (7 Columns on XL) -->
+<div class="xl:col-span-7 flex flex-col gap-space-md">
+<!-- Interactive Chart Canvas Frame -->
+<div class="bg-surface-container-low rounded-xl p-space-md relative overflow-hidden flex flex-col shadow-md">
+<!-- Canvas Top Controls -->
+<div class="flex items-center justify-between flex-wrap gap-space-sm mb-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary-container text-[20px]">grid_4x4</span>
+<div>
+<span class="font-headline-sm text-headline-sm text-on-surface block">Parametric Sweep State Map</span>
+<span class="font-label-sm text-label-sm text-outline block">Grid Strength (SCR) vs. Reactance-to-Resistance Ratio (X/R)</span>
+</div>
+</div>
+<!-- Legend Indicators -->
+<div class="flex items-center gap-space-sm bg-surface-container-lowest px-space-sm py-1 rounded">
+<span class="flex items-center gap-1 font-label-sm text-label-sm text-primary-container">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span> Stable (σ ≥ 0.707)
+              </span>
+<span class="flex items-center gap-1 font-label-sm text-label-sm text-tertiary-container">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span> Marginal Mode Cross
+              </span>
+<span class="flex items-center gap-1 font-label-sm text-label-sm text-error">
+<span class="w-2 h-2 rounded-full bg-error"></span> Instability / δ&gt;90°
+              </span>
+</div>
+</div>
+<!-- The Coordinate Map Graphic (SVG) -->
+<div class="relative w-full aspect-[16/10] bg-surface-container-lowest rounded-lg p-space-xs overflow-hidden">
+<!-- Non-monotonicity annotation badge -->
+<div class="absolute top-4 left-4 z-20 bg-surface-container-high/90 backdrop-blur-md p-space-xs rounded text-on-surface max-w-[240px] shadow-sm">
+<div class="flex items-center gap-1 text-primary-container font-label-sm text-label-sm mb-0.5">
+<span class="material-symbols-outlined text-[14px]">tune</span>
+<span>H3 Hyp: Non-Monotonic Curvature</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-tight">
+                High sensitivity dSCR*/d(X/R) at low X/R ≤ 1.0 indicates virtual flux coupling destabilization. (Ganguly et al. [3])
+              </p>
+</div>
+<svg class="w-full h-full select-none" id="stability-svg" viewbox="0 0 800 480">
+<defs>
+<!-- Background Grid Pattern -->
+<pattern height="20" id="grid-sub" patternunits="userSpaceOnUse" width="20">
+<path class="text-surface-container" d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" stroke-width="0.75"></path>
+</pattern>
+<pattern height="100" id="grid-main" patternunits="userSpaceOnUse" width="100">
+<rect fill="url(#grid-sub)" height="100" width="100"></rect>
+<path class="text-surface-container-high" d="M 100 0 L 0 0 0 100" fill="none" stroke="currentColor" stroke-width="1.25"></path>
+</pattern>
+<!-- Striped pattern for GFL Loss-of-Lock -->
+<pattern height="12" id="gfl-fail-stripes" patterntransform="rotate(45 0 0)" patternunits="userSpaceOnUse" width="12">
+<line class="text-error/15" stroke="currentColor" stroke-width="3" x1="0" x2="0" y1="0" y2="12"></line>
+</pattern>
+<!-- Gradient glow for GFM boundary -->
+<lineargradient id="gfm-envelope-grad" x1="0" x2="1" y1="0" y2="0">
+<stop class="text-primary-container" offset="0%" stop-color="currentColor" stop-opacity="0.18"></stop>
+<stop class="text-primary-container" offset="100%" stop-color="currentColor" stop-opacity="0.02"></stop>
+</lineargradient>
+</defs>
+<!-- Grid Canvas -->
+<rect fill="url(#grid-main)" height="480" width="800"></rect>
+<!-- Axis Mapping Parameters:
+                   X: SCR (0.8 -> 5.0) mapped to X: 80px -> 760px (Range 680px for 4.2 SCR -> ~162px/SCR)
+                   Y: X/R (0.5, 1.0, 2.0, 5.0) mapped to 4 categorical Y bands:
+                      X/R = 5.0 -> Y = 90px
+                      X/R = 2.0 -> Y = 190px
+                      X/R = 1.0 -> Y = 290px
+                      X/R = 0.5 -> Y = 390px
+              -->
+<!-- GFL Failure Zone Shading (SCR < 2.4) -->
+<!-- SCR=2.4 corresponds to X = 80 + (1.6 / 4.2) * 680 = 80 + 259 = 339px -->
+<rect fill="url(#gfl-fail-stripes)" height="390" width="259" x="80" y="40"></rect>
+<text class="font-label-sm text-[11px] fill-error tracking-wide font-mono" x="86" y="58">CONVENTIONAL GFL PLL LOSS-OF-LOCK ZONE (SCR &lt; 2.4)</text>
+<!-- Proposed PV-GFM Stable Operating Envelope Polyline Fill (Down to SCR* ≈ 1.15) -->
+<path d="M 137,390 L 140,290 L 175,190 L 210,90 L 760,90 L 760,390 Z" fill="url(#gfm-envelope-grad)"></path>
+<!-- Stability Threshold Contour Line: SCR*(X/R) -->
+<!-- SCR*(0.5)=1.155 (X=137), SCR*(1.0)=1.17 (X=140), SCR*(2.0)=1.39 (X=175), SCR*(5.0)=1.61 (X=210) -->
+<path class="text-primary-container" d="M 137,390 C 138,340 145,240 175,190 C 190,165 195,120 210,90" fill="none" stroke="currentColor" stroke-dasharray="6,4" stroke-width="2.5"></path>
+<text class="font-label-sm text-[10px] fill-primary-container font-mono" x="218" y="105">SCR*(X/R) Stability Limit Boundary</text>
+<!-- Grid Horizontal Guide Lines & Labels for Y (X/R) -->
+<!-- X/R = 5.0 -->
+<line class="text-surface-container-high" stroke="currentColor" stroke-width="1" x1="80" x2="760" y1="90" y2="90"></line>
+<text class="font-label-md text-[11px] fill-on-surface-variant font-mono" x="35" y="94">X/R=5.0</text>
+<text class="font-label-sm text-[9px] fill-outline font-mono" x="765" y="94">HV Trans</text>
+<!-- X/R = 2.0 -->
+<line class="text-surface-container-high" stroke="currentColor" stroke-width="1" x1="80" x2="760" y1="190" y2="190"></line>
+<text class="font-label-md text-[11px] fill-on-surface-variant font-mono" x="35" y="194">X/R=2.0</text>
+<text class="font-label-sm text-[9px] fill-outline font-mono" x="765" y="194">MV Sub</text>
+<!-- X/R = 1.0 -->
+<line class="text-surface-container-high" stroke="currentColor" stroke-width="1" x1="80" x2="760" y1="290" y2="290"></line>
+<text class="font-label-md text-[11px] fill-on-surface-variant font-mono" x="35" y="294">X/R=1.0</text>
+<text class="font-label-sm text-[9px] fill-outline font-mono" x="765" y="294">Dist Feed</text>
+<!-- X/R = 0.5 -->
+<line class="text-surface-container-high" stroke="currentColor" stroke-width="1" x1="80" x2="760" y1="390" y2="390"></line>
+<text class="font-label-md text-[11px] fill-on-surface-variant font-mono" x="35" y="394">X/R=0.5</text>
+<text class="font-label-sm text-[9px] fill-outline font-mono" x="765" y="394">Resistive</text>
+<!-- Vertical Grid Lines & Ticks for SCR -->
+<!-- SCR=0.8 (X=80), 1.0(X=112), 1.2(X=145), 1.5(X=193), 2.0(X=274), 2.4(X=339), 3.0(X=436), 4.0(X=598), 5.0(X=760) -->
+<g class="text-surface-container-highest" stroke="currentColor" stroke-dasharray="2,2" stroke-width="1">
+<line x1="80" x2="80" y1="40" y2="430"></line>
+<line x1="112" x2="112" y1="40" y2="430"></line>
+<line x1="145" x2="145" y1="40" y2="430"></line>
+<line x1="193" x2="193" y1="40" y2="430"></line>
+<line x1="274" x2="274" y1="40" y2="430"></line>
+<line x1="339" x2="339" y1="40" y2="430"></line>
+<line x1="436" x2="436" y1="40" y2="430"></line>
+<line x1="598" x2="598" y1="40" y2="430"></line>
+<line x1="760" x2="760" y1="40" y2="430"></line>
+</g>
+<!-- X Axis Numeric Labels -->
+<g class="font-label-sm text-[11px] fill-on-surface-variant font-mono">
+<text x="75" y="448">0.8</text>
+<text x="106" y="448">1.0</text>
+<text class="fill-primary-container font-semibold" x="139" y="448">1.2</text>
+<text x="187" y="448">1.5</text>
+<text x="268" y="448">2.0</text>
+<text class="fill-error font-semibold" x="333" y="448">2.4</text>
+<text x="430" y="448">3.0</text>
+<text x="592" y="448">4.0</text>
+<text x="754" y="448">5.0</text>
+</g>
+<text class="font-label-md text-[12px] fill-outline tracking-wider uppercase font-mono" text-anchor="middle" x="420" y="468">
+                Short Circuit Ratio (SCR) → Increasing Grid Strength
+              </text>
+<!-- Y Axis Label -->
+<text class="font-label-md text-[12px] fill-outline tracking-wider uppercase font-mono" text-anchor="middle" transform="rotate(-90)" x="-240" y="20">
+                Line Inductance Ratio (X/R)
+              </text>
+<!-- ============================================== -->
+<!-- 88 Swept Data Points (Rendered via procedural sets) -->
+<!-- ============================================== -->
+<!-- Row 1: X/R = 5.0 (Y=90) -->
+<!-- Unstable: 0.8(80), 1.0(112), 1.2(145), 1.5(193) -->
+<circle class="fill-error cursor-pointer hover:r-6 transition-all" cx="80" cy="90" r="4.5"></circle>
+<circle class="fill-error cursor-pointer hover:r-6 transition-all" cx="112" cy="90" r="4.5"></circle>
+<circle class="fill-error cursor-pointer hover:r-6 transition-all" cx="145" cy="90" r="4.5"></circle>
+<circle class="fill-tertiary-container cursor-pointer hover:r-6 transition-all" cx="178" cy="90" r="4.5"></circle>
+<!-- Marginal Mode Crossings: 1.8(242), 2.0(274) -->
+<circle class="fill-tertiary-container cursor-pointer hover:r-6 transition-all" cx="210" cy="90" r="5"></circle>
+<circle class="fill-tertiary-container cursor-pointer hover:r-6 transition-all" cx="242" cy="90" r="5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="274" cy="90" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="306" cy="90" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="339" cy="90" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="371" cy="90" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="404" cy="90" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="436" cy="90" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="468" cy="90" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="501" cy="90" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="533" cy="90" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="566" cy="90" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="598" cy="90" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="630" cy="90" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="663" cy="90" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="695" cy="90" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="728" cy="90" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="760" cy="90" r="4.5"></circle>
+<!-- Row 2: X/R = 2.0 (Y=190) -->
+<circle class="fill-error cursor-pointer hover:r-6 transition-all" cx="80" cy="190" r="4.5"></circle>
+<circle class="fill-error cursor-pointer hover:r-6 transition-all" cx="112" cy="190" r="4.5"></circle>
+<circle class="fill-tertiary-container cursor-pointer hover:r-6 transition-all" cx="145" cy="190" r="5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="178" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="210" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="242" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="274" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="306" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="339" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="371" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="404" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="436" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="468" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="501" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="533" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="566" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="598" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="630" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="663" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="695" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="728" cy="190" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="760" cy="190" r="4.5"></circle>
+<!-- Row 3: X/R = 1.0 (Y=290) - Includes Highlighted Target Point #42 (SCR=1.2) -->
+<circle class="fill-error cursor-pointer hover:r-6 transition-all" cx="80" cy="290" r="4.5"></circle>
+<circle class="fill-tertiary-container cursor-pointer hover:r-6 transition-all" cx="112" cy="290" r="5"></circle>
+<!-- KEY ACTIVE INSPECTION POINT: Point #42 (SCR=1.2, X/R=1.0, cx=145, cy=290) -->
+<g class="cursor-pointer" id="active-point-42">
+<!-- Ping halo -->
+<circle class="fill-primary-container/20 animate-ping" cx="145" cy="290" r="14"></circle>
+<circle class="fill-primary-container/30" cx="145" cy="290" r="9"></circle>
+<circle class="fill-primary-container" cx="145" cy="290" r="6"></circle>
+<circle class="fill-surface" cx="145" cy="290" r="2.5"></circle>
+</g>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="178" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="210" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="242" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="274" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="306" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="339" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="371" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="404" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="436" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="468" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="501" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="533" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="566" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="598" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="630" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="663" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="695" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="728" cy="290" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="760" cy="290" r="4.5"></circle>
+<!-- Row 4: X/R = 0.5 (Y=390) -->
+<circle class="fill-error cursor-pointer hover:r-6 transition-all" cx="80" cy="390" r="4.5"></circle>
+<circle class="fill-tertiary-container cursor-pointer hover:r-6 transition-all" cx="112" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="145" cy="390" r="4.5"></circle>
+<circle class="fill-tertiary-container cursor-pointer hover:r-6 transition-all" cx="178" cy="390" r="5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="210" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="242" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="274" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="306" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="339" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="371" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="404" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="436" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="468" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="501" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="533" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="566" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="598" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="630" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="663" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="695" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="728" cy="390" r="4.5"></circle>
+<circle class="fill-primary-container cursor-pointer hover:r-6 transition-all" cx="760" cy="390" r="4.5"></circle>
+<!-- Overlay Callout Tag for Point #42 -->
+<g transform="translate(155, 220)">
+<rect class="fill-surface-container-high/95" height="60" rx="4" width="210"></rect>
+<path class="fill-surface-container-high/95" d="M 0,45 L -10,70 L 10,50 Z"></path>
+<text class="font-label-sm text-[11px] fill-primary-container font-mono font-semibold" x="10" y="18">POINT #42: SCR=1.2, X/R=1.0</text>
+<text class="font-label-sm text-[10px] fill-on-surface font-mono" x="10" y="34">λ = -0.42 ± j37.2 rad/s</text>
+<text class="font-label-sm text-[10px] fill-on-surface-variant font-mono" x="10" y="48">Damp σ=0.718 · CHIL Valid (+14.2%)</text>
+</g>
+</svg>
+</div>
+<!-- Bottom Micro Visual Info Bar -->
+<div class="mt-space-sm pt-space-xs flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm flex-wrap gap-space-xs">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary-container">info</span>
+              88 Pts Grid Resolution: 22 SCR Steps (Δ=0.2) × 4 Line Ratios (X/R ∈ {0.5, 1.0, 2.0, 5.0})
+            </span>
+<span class="text-outline">Coordinate Engine: RSCAD/RTDS Automated Batch Runner v4.2</span>
+</div>
+</div>
+<!-- Analytical Theory & Equation Container -->
+<div class="bg-surface-container p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between mb-space-sm">
+<span class="font-headline-sm text-headline-sm text-primary flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px]">functions</span>
+              Small-Signal 22nd-Order Jacobian &amp; Non-Monotonic Curvature Form
+            </span>
+<span class="font-label-sm text-label-sm text-outline font-mono">IEEE Trans. Power Delivery §IV-B</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md font-mono text-on-surface-variant text-label-sm">
+<div class="bg-surface-container-lowest p-space-sm rounded border-l-2 border-primary-container">
+<span class="text-primary font-semibold block mb-1">State Equation &amp; Eigenvalue Spectrum:</span>
+<p class="text-on-surface leading-relaxed">
+                $$\Delta \dot{x}_{22} = A_{sys}(\text{SCR}, X/R, P_{pv}) \cdot \Delta x_{22} + B \Delta u$$
+                $$\det(\lambda I - A_{sys}) = 0 \implies \min_i \left\{ -\text{Re}(\lambda_i)/\lvert \lambda_i \rvert \right\} \ge \zeta_{crit} = 0.05$$
+              </p>
+</div>
+<div class="bg-surface-container-lowest p-space-sm rounded border-l-2 border-tertiary-container">
+<span class="text-tertiary-container font-semibold block mb-1">Non-Monotonicity Boundary Gradient (H3):</span>
+<p class="text-on-surface leading-relaxed">
+                $$\left.\frac{\partial \text{SCR}^*}{\partial (X/R)}\right|_{X/R \le 1.0} = -1.48 \gg \left.\frac{\partial \text{SCR}^*}{\partial (X/R)}\right|_{X/R &gt; 1.0} = -0.32$$
+                $$\text{Proof of virtual coupling loss at low inductive impedance ratios.}$$
+              </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Side Technical Control & Analytics Panel (5 Columns on XL) -->
+<div class="xl:col-span-5 flex flex-col gap-space-md">
+<!-- Panel 1: Parameter Control & Sweep Filters -->
+<div class="bg-surface-container-low rounded-xl p-space-md shadow-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary-container text-[20px]">tune</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Sweeping Parameters &amp; Config</span>
+</div>
+<span class="px-space-sm py-0.5 rounded font-label-sm text-label-sm bg-surface-container text-primary">
+              L3 RTDS CHIL ACTIVE
+            </span>
+</div>
+<!-- Discrete Numeric Parameter Grid -->
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-space-xs pt-space-xs">
+<div class="bg-surface-container-lowest p-space-xs rounded">
+<span class="font-label-sm text-label-sm text-outline block">Active Power P_pv</span>
+<span class="font-label-md text-label-md text-on-surface font-mono font-semibold">1.000 pu</span>
+</div>
+<div class="bg-surface-container-lowest p-space-xs rounded">
+<span class="font-label-sm text-label-sm text-outline block">ESS State</span>
+<span class="font-label-md text-label-md text-primary-container font-mono font-semibold">Online (Float)</span>
+</div>
+<div class="bg-surface-container-lowest p-space-xs rounded">
+<span class="font-label-sm text-label-sm text-outline block">MPPT DC Voltage</span>
+<span class="font-label-md text-label-md text-on-surface font-mono font-semibold">480.0 V</span>
+</div>
+<div class="bg-surface-container-lowest p-space-xs rounded">
+<span class="font-label-sm text-label-sm text-outline block">Virtual Inertia J</span>
+<span class="font-label-md text-label-md text-secondary font-mono font-semibold">0.17724 s²</span>
+</div>
+<div class="bg-surface-container-lowest p-space-xs rounded">
+<span class="font-label-sm text-label-sm text-outline block">Damping Coeff D_p</span>
+<span class="font-label-md text-label-md text-secondary font-mono font-semibold">0.33586 pu</span>
+</div>
+<div class="bg-surface-container-lowest p-space-xs rounded">
+<span class="font-label-sm text-label-sm text-outline block">Sampling Ts (DSP)</span>
+<span class="font-label-md text-label-md text-primary font-mono font-semibold">100.0 μs</span>
+</div>
+</div>
+<!-- Multi-tier Validation Level Toggles -->
+<div class="flex items-center justify-between gap-space-xs pt-space-xs">
+<div class="flex items-center gap-1 w-full">
+<button class="flex-1 py-1.5 px-space-xs rounded font-label-sm text-label-sm text-center bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+                L1 Jacobian
+              </button>
+<button class="flex-1 py-1.5 px-space-xs rounded font-label-sm text-label-sm text-center bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+                L2 EMT PSCAD
+              </button>
+<button class="flex-1 py-1.5 px-space-xs rounded font-label-sm text-label-sm text-center bg-primary-container text-on-primary font-semibold" type="button">
+                L3 RTDS CHIL ✓
+              </button>
+</div>
+</div>
+<!-- Action Buttons Bar -->
+<div class="flex items-center gap-space-xs pt-space-xs">
+<button class="flex-1 bg-surface-container hover:bg-surface-bright text-primary font-label-sm text-label-sm py-2 px-space-sm rounded transition-colors flex items-center justify-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+<span>Re-sweep Matrix</span>
+</button>
+<button class="flex-1 bg-surface-container hover:bg-surface-bright text-on-surface font-label-sm text-label-sm py-2 px-space-sm rounded transition-colors flex items-center justify-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+<span>Export CSV (88 Pts)</span>
+</button>
+<button class="bg-surface-container hover:bg-surface-bright text-on-surface-variant font-label-sm text-label-sm py-2 px-space-sm rounded transition-colors flex items-center justify-center" title="Dump Jacobian Eigenvalues" type="button">
+<span class="material-symbols-outlined text-[16px]">terminal</span>
+</button>
+</div>
+</div>
+<!-- Panel 2: Boundary Sensitivity Critical Diagnostics & Alerts -->
+<div class="bg-surface-container-low rounded-xl p-space-md shadow-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-tertiary-container text-[20px]">notifications_active</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Boundary Sensitivity Alerts</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">3 Active Diagnostics</span>
+</div>
+<!-- Diagnostic Card 1 (Critical Warning) -->
+<div class="bg-surface-container-lowest p-space-sm rounded border-l-2 border-tertiary-container flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-tertiary-container font-semibold uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+                Critical Warning: Low X/R (0.5) Phase Jump
+              </span>
+<span class="font-label-sm text-label-sm text-outline font-mono">Ref: §2.3</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Fictitious power delay sensitivity detected near SCR=1.4. Inverter angle δ undergoes ±12.4° transient shift under grid step disturbance.
+            </p>
+</div>
+<!-- Diagnostic Card 2 (Optimization Delta) -->
+<div class="bg-surface-container-lowest p-space-sm rounded border-l-2 border-primary-container flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary-container font-semibold uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                Optimization Delta: Multi-OP PSO
+              </span>
+<span class="font-label-sm text-label-sm text-outline font-mono">p = 0.015</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Multi-OP PSO achieves +37.5% settling time reduction at weak boundary (SCR=1.2) compared to single-OP tuned baselines (Wilcoxon Z = -2.43).
+            </p>
+</div>
+<!-- Diagnostic Card 3 (Mode Crossing) -->
+<div class="bg-surface-container-lowest p-space-sm rounded border-l-2 border-secondary-container flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary font-semibold uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">swap_horiz</span>
+                Pole Swapping Alert
+              </span>
+<span class="font-label-sm text-label-sm text-outline font-mono">37Hz ↔ 178Hz</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Eigenvalue crossover between power loop damping (37 Hz) and LCL anti-resonance (178 Hz) observed for SCR 1.8~2.0 along line X/R=3.0.
+            </p>
+</div>
+</div>
+<!-- Panel 3: Real-Time Point Inspection Telemetry Readout -->
+<div class="bg-surface-container-low rounded-xl p-space-md shadow-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary-container text-[20px]">monitor_heart</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Inspection Point Telemetry</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary-container font-mono">POINT #42 [TARGET]</span>
+</div>
+<!-- Monospaced Data Grid -->
+<div class="bg-surface-container-lowest p-space-sm rounded font-mono text-label-sm flex flex-col gap-1.5">
+<div class="flex items-center justify-between py-0.5 border-b border-surface-container">
+<span class="text-outline">Target Coordinate:</span>
+<span class="text-on-surface font-semibold">SCR = 1.155 · X/R = 1.000</span>
+</div>
+<div class="flex items-center justify-between py-0.5 border-b border-surface-container">
+<span class="text-outline">Power Angle (δ):</span>
+<span class="text-primary-container font-semibold">68.4° (Margin +21.6° to 90°)</span>
+</div>
+<div class="flex items-center justify-between py-0.5 border-b border-surface-container">
+<span class="text-outline">Dominant Real Pole (σ):</span>
+<span class="text-on-surface font-semibold">-0.742 s¹ (Damping ζ = 0.718)</span>
+</div>
+<div class="flex items-center justify-between py-0.5 border-b border-surface-container">
+<span class="text-outline">HW Loop Delay (τ_total):</span>
+<span class="text-secondary font-semibold">68.4 μs (GTAO+FPGA+GTDI)</span>
+</div>
+<div class="flex items-center justify-between py-0.5">
+<span class="text-outline">Status Verdict:</span>
+<span class="text-primary-container font-bold">STABLE ENVELOPE CONFIRMED</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Metric Strip (4 High-Density Stat Cards) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Card 1 -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col gap-space-xs shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase font-mono">Total Test Points</span>
+<span class="material-symbols-outlined text-primary-container text-[18px]">verified</span>
+</div>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-display-lg text-display-lg text-on-surface font-semibold">88 / 88</span>
+<span class="font-label-md text-label-md text-primary font-mono">(100%)</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Full state space sweep executed without divergence.</span>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col gap-space-xs shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase font-mono">Critical SCR* Boundary</span>
+<span class="material-symbols-outlined text-primary-container text-[18px]">speed</span>
+</div>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-display-lg text-display-lg text-primary-container font-semibold">1.155</span>
+<span class="font-label-md text-label-md text-error font-mono line-through">2.400 GFL</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Operating range expanded by 51.9% into ultra-weak grid.</span>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col gap-space-xs shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase font-mono">Non-Monotonicity (H3)</span>
+<span class="material-symbols-outlined text-tertiary-container text-[18px]">analytics</span>
+</div>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-display-lg text-display-lg text-tertiary-fixed font-semibold">1.48 <span class="text-body-lg font-normal text-outline">vs</span> 0.32</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Boundary slope ratio |low|/|high| indicates severe resistance coupling.</span>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col gap-space-xs shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase font-mono">HW Agreement (CHIL/EMT)</span>
+<span class="material-symbols-outlined text-secondary text-[18px]">compare_arrows</span>
+</div>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-display-lg text-display-lg text-secondary-fixed font-semibold">98.4%</span>
+<span class="font-label-md text-label-md text-on-surface-variant font-mono">(R²=0.968)</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Near-exact waveform replication on TMS320 DSP + NovaCor.</span>
+</div>
+</div>
+</div>
+<!-- Micro-interaction script for point inspection -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const activePoint = document.getElementById('active-point-42');
+      if (activePoint) {
+        activePoint.addEventListener('click', () => {
+          activePoint.classList.toggle('scale-125');
+        });
+      }
+    });
+  </script>
+</div></main></div></body></html>

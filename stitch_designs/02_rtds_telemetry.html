@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-error": "#690005", "primary-fixed": "#9cf0ff", "surface-variant": "#313540", "error-container": "#93000a", "tertiary-fixed-dim": "#ffb68b", "tertiary-fixed": "#ffdbc8", "error": "#ffb4ab", "surface-container-low": "#171b26", "on-tertiary-container": "#914300", "tertiary-container": "#ffc4a2", "surface": "#0f131d", "inverse-surface": "#dfe2f1", "surface-dim": "#0f131d", "secondary-fixed": "#d6e3ff", "background": "#0f131d", "surface-container-highest": "#313540", "on-secondary-fixed": "#001b3e", "outline": "#849396", "on-tertiary": "#522300", "primary-fixed-dim": "#00daf3", "secondary": "#aac7ff", "on-secondary": "#003064", "secondary-container": "#3e90ff", "inverse-on-surface": "#2c303b", "inverse-primary": "#006875", "outline-variant": "#3b494c", "surface-tint": "#00daf3", "on-surface-variant": "#bac9cc", "on-background": "#dfe2f1", "on-secondary-fixed-variant": "#00468d", "on-error-container": "#ffdad6", "surface-container-high": "#262a35", "on-secondary-container": "#002957", "surface-container-lowest": "#0a0e18", "on-primary-container": "#00626e", "on-primary-fixed-variant": "#004f58", "on-surface": "#dfe2f1", "primary": "#c3f5ff", "tertiary": "#ffe8dd", "secondary-fixed-dim": "#aac7ff", "on-primary": "#00363d", "on-tertiary-fixed": "#321200", "surface-bright": "#353944", "on-tertiary-fixed-variant": "#753400", "surface-container": "#1c1f2a", "primary-container": "#00e5ff", "on-primary-fixed": "#001f24" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-md": "1rem", "gutter": "1.25rem", "space-xl": "2.5rem", "space-xs": "0.25rem", "space-sm": "0.5rem", "space-lg": "1.5rem", "margin": "2rem" }, "fontFamily": { "display-lg": [ "Space Grotesk" ], "body-lg": [ "Inter" ], "headline-lg": [ "Space Grotesk" ], "body-md": [ "Inter" ], "body-sm": [ "Inter" ], "label-sm": [ "JetBrains Mono" ], "display-lg-mobile": [ "Space Grotesk" ], "label-lg": [ "JetBrains Mono" ], "headline-md": [ "Space Grotesk" ], "headline-sm": [ "Space Grotesk" ], "label-md": [ "JetBrains Mono" ] }, "fontSize": { "display-lg": [ "40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "body-lg": [ "16px", { "lineHeight": "26px", "fontWeight": "400" } ], "headline-lg": [ "28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "body-md": [ "14px", { "lineHeight": "22px", "fontWeight": "400" } ], "body-sm": [ "12px", { "lineHeight": "18px", "fontWeight": "400" } ], "label-sm": [ "10px", { "lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "500" } ], "display-lg-mobile": [ "32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "label-lg": [ "14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" } ], "headline-md": [ "22px", { "lineHeight": "30px", "fontWeight": "600" } ], "headline-sm": [ "18px", { "lineHeight": "26px", "fontWeight": "600" } ], "label-md": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500" } ] } } } };</script></head><body class="bg-surface font-body-md text-on-surface antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-low z-50 flex flex-col justify-between py-space-lg px-gutter border-r border-outline-variant/40"><div class="flex flex-col gap-space-lg"><div class="flex flex-col gap-space-xs"><div class="flex items-center gap-space-sm"><div class="w-2.5 h-2.5 rounded-full bg-primary-container animate-pulse"></div><span class="font-headline-sm text-headline-sm text-primary tracking-tight">GFM LABS</span></div><p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">PV-GFM Optimization &amp; CHIL</p><div class="mt-space-xs inline-flex items-center gap-space-xs px-space-sm py-0.5 rounded bg-surface-container-high border border-outline-variant"><span class="font-label-sm text-label-sm text-secondary-fixed">Yonsei Smart Grid Lab</span></div><span class="font-label-sm text-label-sm text-outline">지도: 허견 교수</span></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-surface-container-high text-primary border-l-2 border-primary-container"><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-2 rounded transition-colors font-label-md bg-surface-container-high text-primary border-l-2 border-primary-container" data-path="research-overview-and-guidelines" href="#"><span class="material-symbols-outlined text-[18px]">menu_book</span><span>01. 연구 개요 및 지침</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="22-state-small-signal-model-and-jacobian" href="#"><span class="material-symbols-outlined text-[18px]">functions</span><span>02. 22차 모델링 및 Jacobian</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="multi-operating-point-pso-optimization" href="#"><span class="material-symbols-outlined text-[18px]">tune</span><span>03. 다중 운전점 PSO 최적화</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="hil-chil-real-time-hardware-validation" href="#"><span class="material-symbols-outlined text-[18px]">memory</span><span>04. 실시간 CHIL 하드웨어 검증</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="2d-scr-xr-robust-stability-boundary" href="#"><span class="material-symbols-outlined text-[18px]">grid_4x4</span><span>05. 2D SCR-X/R 안정 경계</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="agent-directives-and-obsidian-vault" href="#"><span class="material-symbols-outlined text-[18px]">terminal</span><span>06. Agent 지침 &amp; Vault</span></a></nav></div><div class="flex flex-col gap-space-sm pt-space-md border-t border-outline-variant/40"><div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm"><span>RTDS NovaCor</span><span class="text-primary-container font-mono">LOCKED (50μs)</span></div><div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm"><span>DSP TMS320</span><span class="text-secondary-fixed font-mono">SYNCED (10kHz)</span></div><div class="p-space-sm rounded bg-surface-container border border-outline-variant"><span class="font-label-sm text-label-sm text-outline block">RESEARCH TARGET</span><span class="font-label-md text-label-md text-primary font-semibold block">Tier 3 Target (IEEE TSTE/TPEL)</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/90 backdrop-blur-md z-40 border-b border-outline-variant/40"><div class="w-full h-full px-gutter flex items-center justify-between"><div class="flex items-center gap-space-md"><span class="px-space-sm py-0.5 rounded font-label-sm text-label-sm bg-surface-container-high text-primary border border-outline-variant">v1.0 (2026.09 기준 확정)</span><span class="hidden lg:inline-flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant"><span class="material-symbols-outlined text-[16px] text-primary-container">verified</span>Yonsei Smart Grid Lab · 허견 교수 연구실</span></div><div class="flex items-center gap-space-md"><div class="hidden xl:flex items-center gap-space-sm text-on-surface-variant font-label-sm text-label-sm"><span class="text-outline">Quick Jumps:</span><a class="hover:text-primary transition-colors" href="#model-jacobian">#Jacobian</a><span class="text-outline-variant">|</span><a class="hover:text-primary transition-colors" href="#pso-matrix">#PSO-Matrix</a><span class="text-outline-variant">|</span><a class="hover:text-primary transition-colors" href="#chil-loop">#CHIL-Scope</a></div><div class="flex items-center gap-space-sm pl-space-md border-l border-outline-variant/40"><div class="text-right hidden sm:block"><span class="block font-label-sm text-label-sm text-on-surface font-semibold">Academic Lead</span><span class="block font-label-sm text-label-sm text-outline">Smart Grid Lab</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover border border-primary-container/40" src="https://lh3.googleusercontent.com/aida/AEtjO1U03r-wLTD6W2sScvL-lF_M-4SF-v_rKI09I0cm9YDkXCS0CCGyMbWntMoC6tHR1_2xOpBRMPt-R2m7Vd3-bp6DAGBdbCkW0c3RyqJGyHWgMnMQqlbsSo9plw7cPLN5dnEluQ0JZ1-m-juaf_B8d_fXY6H61DdNQWTLKSfmXe9d-N76wFvcKw9565BII7P8rUuHzzIZTb7SnUHcA_9o0JVcJIv8DEVbA-LLslHSK8H5CTk4MabVxdAZihk-bOek16tB0pmXbnGOCLk"/></div></div></div></header><main class="w-full pt-16 bg-surface"><div class="flex flex-col w-full">
+<!-- Top Command & Status Ribbon -->
+<section class="w-full bg-surface-container-lowest px-gutter py-space-sm flex flex-col xl:flex-row xl:items-center justify-between gap-space-sm">
+<div class="flex flex-wrap items-center gap-space-sm">
+<div class="flex items-center gap-space-xs bg-surface-container-high px-space-sm py-1 rounded">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-container opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary-container"></span>
+</span>
+<span class="font-label-sm text-label-sm text-primary uppercase font-semibold">LOCKED &amp; RUNNING</span>
+</div>
+<div class="h-4 w-px bg-outline-variant/60 hidden sm:block"></div>
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="text-outline">RACK:</span>
+<span class="text-primary font-mono font-medium">CHIL-03 (RTDS NovaCor Gen-3)</span>
+</div>
+<div class="h-4 w-px bg-outline-variant/60 hidden sm:block"></div>
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="text-outline">TARGET MCU:</span>
+<span class="text-secondary font-mono">TI TMS320F28379D dual-core @ 200MHz</span>
+</div>
+<div class="h-4 w-px bg-outline-variant/60 hidden md:block"></div>
+<div class="px-space-xs py-0.5 rounded bg-surface-container-low text-primary-container font-label-sm text-label-sm font-mono">
+        EMT Step: 50.000 μs (Sync PTP locked)
+      </div>
+</div>
+<!-- Quick Action Triggers -->
+<div class="flex items-center flex-wrap gap-space-xs">
+<button class="px-space-sm py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-sm text-label-sm flex items-center gap-space-xs transition-colors" id="btn-freeze" onclick="toggleFreeze()">
+<span class="material-symbols-outlined text-[15px] text-primary-container">pause_circle</span>
+<span>Freeze Stream</span>
+</button>
+<button class="px-space-sm py-1 rounded bg-error-container hover:opacity-90 text-on-error font-label-sm text-label-sm flex items-center gap-space-xs transition-opacity" id="btn-fault" onclick="triggerGridFault()">
+<span class="material-symbols-outlined text-[15px]">flash_on</span>
+<span>Inject 3φ Fault (100ms)</span>
+</button>
+<button class="px-space-sm py-1 rounded bg-surface-container hover:bg-surface-bright text-secondary font-label-sm text-label-sm flex items-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[15px]">sim_card_download</span>
+<span>Dump CSV (100k)</span>
+</button>
+<div class="flex items-center gap-1.5 px-space-sm py-1 rounded bg-surface-container-low text-primary-container font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
+<span>PMU 1kHz: STREAMING</span>
+</div>
+</div>
+</section>
+<!-- Real-Time System Telemetry KPI Bar -->
+<section class="w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-space-xs px-gutter py-space-sm bg-surface-container-low">
+<div class="p-space-sm bg-surface-container rounded flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-outline">CORE DIE TEMP</span>
+<div class="flex items-baseline gap-space-xs mt-1">
+<span class="font-headline-sm text-headline-sm font-mono text-primary">42.1</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">°C</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary-fixed-dim">Nominal (&lt; 65°C)</span>
+</div>
+<div class="p-space-sm bg-surface-container rounded flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-outline">FPGA UTILIZATION</span>
+<div class="flex items-baseline gap-space-xs mt-1">
+<span class="font-headline-sm text-headline-sm font-mono text-secondary">68.4</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded overflow-hidden mt-1">
+<div class="bg-secondary h-full" style="width: 68.4%"></div>
+</div>
+</div>
+<div class="p-space-sm bg-surface-container rounded flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-outline">CLOCK JITTER</span>
+<div class="flex items-baseline gap-space-xs mt-1">
+<span class="font-headline-sm text-headline-sm font-mono text-primary-container">±0.078</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">μs</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">IEEE 1588 Class 1</span>
+</div>
+<div class="p-space-sm bg-surface-container rounded flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-outline">DSP BUDGET UTIL.</span>
+<div class="flex items-baseline gap-space-xs mt-1">
+<span class="font-headline-sm text-headline-sm font-mono text-primary">38.4</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">/ 50 μs</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded overflow-hidden mt-1">
+<div class="bg-primary-container h-full" style="width: 76.8%"></div>
+</div>
+</div>
+<div class="p-space-sm bg-surface-container rounded flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-outline">FRAME OVERRUNS</span>
+<div class="flex items-baseline gap-space-xs mt-1">
+<span class="font-headline-sm text-headline-sm font-mono text-on-surface">0</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">drops</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary">48h 12m Cont. OK</span>
+</div>
+<div class="p-space-sm bg-surface-container rounded flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-outline">OPTICAL GTNET LINK</span>
+<div class="flex items-baseline gap-space-xs mt-1">
+<span class="font-headline-sm text-headline-sm font-mono text-secondary-fixed">1.00</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Gbps</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary">Full Duplex Synced</span>
+</div>
+</section>
+<!-- Central Scientific Visualization Bento -->
+<div class="p-gutter grid grid-cols-1 xl:grid-cols-12 gap-gutter">
+<!-- Left Hero Column: Dual Step Latency & Circular Gauge -->
+<div class="xl:col-span-5 flex flex-col gap-gutter">
+<!-- Master Circular Time-Step Compliance Hub -->
+<div class="bg-surface-container-low p-space-lg rounded flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider block">TIMESTEP HARMONIZATION SOLVER</span>
+<h2 class="font-headline-md text-headline-md text-on-surface mt-0.5">Real-Time Step Verification</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Large EMT grid network coupled with Small Step PWM sub-network</p>
+</div>
+<span class="material-symbols-outlined text-primary-container text-[28px]">timelapse</span>
+</div>
+<!-- Radial Gauge Complex -->
+<div class="my-space-md flex flex-col sm:flex-row items-center justify-around gap-space-md py-space-sm bg-surface-container-lowest/80 rounded p-space-md">
+<div class="relative w-44 h-44 flex items-center justify-center">
+<!-- Inline SVG Dual Gauge -->
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 160 160">
+<!-- Outer Track: 50us Large Step -->
+<circle class="text-surface-variant" cx="80" cy="80" fill="none" r="68" stroke="currentColor" stroke-dasharray="427" stroke-dashoffset="0" stroke-width="8"></circle>
+<circle class="text-primary-container" cx="80" cy="80" fill="none" id="gauge-large-step" r="68" stroke="currentColor" stroke-dasharray="427" stroke-dashoffset="20" stroke-linecap="round" stroke-width="8"></circle>
+<!-- Inner Track: 1.85us Small Step -->
+<circle class="text-surface-container-high" cx="80" cy="80" fill="none" r="50" stroke="currentColor" stroke-dasharray="314" stroke-dashoffset="0" stroke-width="6"></circle>
+<circle class="text-secondary" cx="80" cy="80" fill="none" r="50" stroke="currentColor" stroke-dasharray="314" stroke-dashoffset="40" stroke-linecap="round" stroke-width="6"></circle>
+</svg>
+<!-- Gauge Center Readout -->
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="font-label-sm text-label-sm text-outline">LARGE EMT STEP</span>
+<span class="font-headline-lg text-headline-lg font-mono text-primary font-bold" id="live-step-counter">50.00</span>
+<span class="font-label-sm text-label-sm text-primary-container font-mono">μs (Exact)</span>
+</div>
+</div>
+<!-- Gauge Metrics Breakdown -->
+<div class="flex flex-col gap-space-sm font-mono text-label-sm">
+<div class="bg-surface-container p-space-xs px-space-sm rounded">
+<div class="text-outline font-label-sm text-label-sm">LARGE STEP RESOLUTION</div>
+<div class="text-primary font-medium text-body-md">50.000 μs (20.00 kHz)</div>
+<div class="text-on-surface-variant text-label-sm">Δt Variance: Min 49.92 / Max 50.08 μs</div>
+</div>
+<div class="bg-surface-container p-space-xs px-space-sm rounded">
+<div class="text-outline font-label-sm text-label-sm">SMALL STEP SUB-NETWORK</div>
+<div class="text-secondary font-medium text-body-md">1.852 μs (540 kHz)</div>
+<div class="text-on-surface-variant text-label-sm">FPGA High-Frequency Inverter Model</div>
+</div>
+<div class="bg-surface-container p-space-xs px-space-sm rounded">
+<div class="text-outline font-label-sm text-label-sm">HARDWARE BUFFER HEALTH</div>
+<div class="text-primary-fixed-dim font-medium text-body-md">Ring Buffer: 99.992%</div>
+<div class="text-on-surface-variant text-label-sm">0 Underruns / 0 Overruns</div>
+</div>
+</div>
+</div>
+<!-- 3-Tier Layer Architecture Summary (Referencing Guide Image) -->
+<div class="grid grid-cols-3 gap-space-xs pt-space-xs">
+<div class="p-space-xs bg-surface-container rounded text-center">
+<span class="font-label-sm text-label-sm text-outline block">STEP 1. RSCAD FX</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">Software Host</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block mt-0.5">TCP/IP LAN</span>
+</div>
+<div class="p-space-xs bg-surface-container rounded text-center">
+<span class="font-label-sm text-label-sm text-outline block">STEP 2. NovaCor</span>
+<span class="font-label-sm text-label-sm text-primary-container font-semibold">Real-Time Core</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block mt-0.5">I/O Scaler (GTAO)</span>
+</div>
+<div class="p-space-xs bg-surface-container rounded text-center">
+<span class="font-label-sm text-label-sm text-outline block">STEP 3. DSP C2000</span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Firmware Loop</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block mt-0.5">ADC &amp; PWM Fast</span>
+</div>
+</div>
+</div>
+<!-- DSP Execution Budget Breakdown -->
+<div class="bg-surface-container-low p-space-md rounded flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-secondary">memory</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">TMS320F28379D Interrupt Budget</h3>
+</div>
+<span class="font-label-sm text-label-sm text-primary-container font-mono">10.0 kHz ISR Cycle</span>
+</div>
+<div class="flex flex-col gap-space-xs mt-1">
+<div class="flex justify-between font-label-sm text-label-sm font-mono">
+<span class="text-on-surface-variant">Total Interrupt Time:</span>
+<span class="text-primary font-bold">38.42 μs / 50.00 μs</span>
+</div>
+<div class="w-full bg-surface-container-highest h-3 rounded flex overflow-hidden">
+<div class="bg-primary-container h-full" style="width: 22%" title="ADC Conversion &amp; Calib (11.0 μs)"></div>
+<div class="bg-secondary h-full" style="width: 32%" title="GFM Droop &amp; V-I PI Loops (16.0 μs)"></div>
+<div class="bg-primary h-full" style="width: 14%" title="Virtual Inertia &amp; Swing (7.0 μs)"></div>
+<div class="bg-surface-tint h-full" style="width: 9%" title="PWM Duty Deadtime (4.42 μs)"></div>
+<div class="bg-surface-container h-full" style="width: 23%" title="Idle / Margin Reserve (11.58 μs)"></div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-space-xs pt-space-xs text-center font-mono">
+<div class="p-1 bg-surface-container rounded">
+<span class="text-outline font-label-sm text-label-sm block">ADC &amp; CAL</span>
+<span class="text-primary-container font-label-sm text-label-sm font-semibold">11.0 μs</span>
+</div>
+<div class="p-1 bg-surface-container rounded">
+<span class="text-outline font-label-sm text-label-sm block">GFM LOOPS</span>
+<span class="text-secondary font-label-sm text-label-sm font-semibold">16.0 μs</span>
+</div>
+<div class="p-1 bg-surface-container rounded">
+<span class="text-outline font-label-sm text-label-sm block">SWING SOLV</span>
+<span class="text-primary font-label-sm text-label-sm font-semibold">7.0 μs</span>
+</div>
+<div class="p-1 bg-surface-container rounded">
+<span class="text-outline font-label-sm text-label-sm block">MARGIN</span>
+<span class="text-on-surface font-label-sm text-label-sm font-semibold">11.58 μs</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Telemetry Column: Real-time Oscillograms & Hardware Scaling Chain -->
+<div class="xl:col-span-7 flex flex-col gap-gutter">
+<!-- Oscilloscope Waveform Stream Window -->
+<div class="bg-surface-container-low p-space-md rounded flex flex-col gap-space-sm">
+<div class="flex flex-wrap items-center justify-between gap-space-xs pb-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary-container text-[22px]">show_chart</span>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">PCC Voltage &amp; Inverter Current Waveforms</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">GTAO Direct Output Stream | 50.00 μs Resolution</span>
+</div>
+</div>
+<!-- Scope Channel Toggles -->
+<div class="flex items-center gap-space-xs">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-primary-container px-2 py-0.5 rounded bg-surface-container">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span>v_a(t)</span>
+</span>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-secondary px-2 py-0.5 rounded bg-surface-container">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span>v_b(t)</span>
+</span>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-tertiary-fixed-dim px-2 py-0.5 rounded bg-surface-container">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+<span>v_c(t)</span>
+</span>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-outline px-2 py-0.5 rounded bg-surface-container">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+<span>i_inv(t)</span>
+</span>
+</div>
+</div>
+<!-- Oscilloscope Surface Canvas Display -->
+<div class="w-full h-56 bg-surface-container-lowest rounded p-space-xs relative overflow-hidden flex items-center justify-center">
+<!-- Background Coordinate Grids -->
+<div class="absolute inset-0 grid grid-cols-12 grid-rows-6 opacity-20 pointer-events-none">
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-r border-outline-variant"></div>
+<div class="border-b border-outline-variant"></div>
+</div>
+<!-- Dynamic Vector SVG Waveforms (Simulated Real-time Inverter Waves) -->
+<svg class="w-full h-full relative z-10" preserveaspectratio="none" viewbox="0 0 1000 200">
+<!-- Zero Center Line -->
+<line stroke="#313540" stroke-dasharray="4 4" stroke-width="1.5" x1="0" x2="1000" y1="100" y2="100"></line>
+<!-- Phase A Sine (Cyan) -->
+<path d="M0,100 C70,10 130,10 200,100 C270,190 330,190 400,100 C470,10 530,10 600,100 C670,190 730,190 800,100 C870,10 930,10 1000,100" fill="none" id="wave-phase-a" stroke="#00e5ff" stroke-width="2.5"></path>
+<!-- Phase B Sine (Secondary Blue, 120 deg shifted) -->
+<path d="M0,178 C70,140 130,15 200,35 C270,75 330,175 400,178 C470,140 530,15 600,35 C670,75 730,175 800,178 C870,140 930,15 1000,35" fill="none" id="wave-phase-b" opacity="0.85" stroke="#aac7ff" stroke-width="1.8"></path>
+<!-- Phase C Sine (Tertiary Gold, 240 deg shifted) -->
+<path d="M0,35 C70,75 130,175 200,178 C270,140 330,15 400,35 C470,75 530,175 600,178 C670,140 730,15 800,35 C870,75 930,175 1000,178" fill="none" id="wave-phase-c" opacity="0.85" stroke="#ffb68b" stroke-width="1.8"></path>
+<!-- Modulated Inverter Current Envelope (Spiked High Frequency PWM Component) -->
+<path d="M0,100 Q50,40 100,100 T200,100 T300,100 T400,100 T500,100 T600,100 T700,100 T800,100 T900,100 T1000,100" fill="none" opacity="0.7" stroke="#849396" stroke-dasharray="2 2" stroke-width="1"></path>
+</svg>
+<!-- Real-Time Scope HUD Badges -->
+<div class="absolute bottom-2 left-2 flex items-center gap-space-xs font-mono font-label-sm text-label-sm text-outline z-20">
+<span class="bg-surface-container/90 px-1.5 py-0.5 rounded text-primary">V_rms = 229.8 V</span>
+<span class="bg-surface-container/90 px-1.5 py-0.5 rounded text-secondary">THD_v = 1.18%</span>
+<span class="bg-surface-container/90 px-1.5 py-0.5 rounded text-on-surface">f = 60.002 Hz</span>
+</div>
+<div class="absolute top-2 right-2 flex items-center gap-space-xs font-mono font-label-sm text-label-sm z-20">
+<span class="bg-surface-container-high/90 px-2 py-0.5 rounded text-primary-container">TRIG: AUTO (0.00V)</span>
+</div>
+</div>
+<!-- Waveform Time-Scale & Channel Adjustments -->
+<div class="flex flex-wrap items-center justify-between gap-space-xs font-label-sm text-label-sm text-outline pt-space-xs">
+<div class="flex items-center gap-space-sm">
+<span>Scale: <strong class="text-on-surface font-mono">5 ms / Div</strong></span>
+<span>Voltage: <strong class="text-on-surface font-mono">100 V / Div</strong></span>
+<span>Current: <strong class="text-on-surface font-mono">15 A / Div</strong></span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-2 py-0.5 rounded bg-surface-container hover:bg-surface-bright text-on-surface font-mono">10 ms</button>
+<button class="px-2 py-0.5 rounded bg-surface-container-high text-primary font-mono font-semibold">20 ms (1 Cycle)</button>
+<button class="px-2 py-0.5 rounded bg-surface-container hover:bg-surface-bright text-on-surface font-mono">100 ms</button>
+</div>
+</div>
+</div>
+<!-- Closed-Loop Signal Flow & Physical Conversion Scaling Chain (Core Concept from Attached Guide) -->
+<div class="bg-surface-container-low p-space-md rounded flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-primary">sync_alt</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Hardware Scaling Chain &amp; Conversion Pipeline</h3>
+</div>
+<span class="font-label-sm text-label-sm text-primary-container font-mono">Zero Offset &lt; 2mV Calibrated</span>
+</div>
+<!-- 4-Step Closed-Loop Flow Block -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-xs">
+<!-- Step 1 -->
+<div class="p-space-sm bg-surface-container rounded flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary font-semibold">1단계: 전압/전류 송출</span>
+<span class="material-symbols-outlined text-outline text-[16px]">bolt</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">RTDS 시뮬레이터 내부의 kV, kA 수치를 ±10V 아날로그 신호로 변환</p>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-lowest p-1 rounded font-mono text-label-sm text-primary-container">
+              RTDS ±400V → GTAO ±10V
+            </div>
+</div>
+<!-- Step 2 -->
+<div class="p-space-sm bg-surface-container rounded flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary font-semibold">2단계: DSP 제어 연산</span>
+<span class="material-symbols-outlined text-outline text-[16px]">developer_board</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">신호조절 보드로 0~3V 감쇠 후 DSP ADC 샘플링 및 GFM 알고리즘 수행</p>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-lowest p-1 rounded font-mono text-label-sm text-secondary">
+              ADC 0~3V → DSP -1.0~1.0 pu
+            </div>
+</div>
+<!-- Step 3 -->
+<div class="p-space-sm bg-surface-container rounded flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary-fixed-dim font-semibold">3단계: 제어 신호 환류</span>
+<span class="material-symbols-outlined text-outline text-[16px]">alt_route</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">PWM 6ch 게이트 펄스(GTDI) 또는 변조파(GTAI)를 RTDS로 실시간 반환</p>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-lowest p-1 rounded font-mono text-label-sm text-primary-fixed-dim">
+              GTDI 10kHz PWM Firing
+            </div>
+</div>
+<!-- Step 4 -->
+<div class="p-space-sm bg-surface-container rounded flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-tertiary-fixed-dim font-semibold">4단계: 지연(Latency) 보정</span>
+<span class="material-symbols-outlined text-outline text-[16px]">speed</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">루프 왕복 총 지연(τ_total ≈ 68.4 μs) 소신호 모델 자코비안 반영</p>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-lowest p-1 rounded font-mono text-label-sm text-tertiary-fixed-dim">
+              e^(-s·T_d) 보정 계수 동기화
+            </div>
+</div>
+</div>
+<!-- Scaling Chain Reference Table -->
+<div class="overflow-x-auto mt-space-xs">
+<table class="w-full text-left font-mono text-label-sm border-collapse">
+<thead>
+<tr class="bg-surface-container-high text-on-surface-variant uppercase">
+<th class="py-2 px-space-sm">단계 (Level)</th>
+<th class="py-2 px-space-sm">물리적 의미 및 제어 변수</th>
+<th class="py-2 px-space-sm">전압 / 데이터 정격 범위</th>
+<th class="py-2 px-space-sm">하드웨어 포트 매핑</th>
+<th class="py-2 px-space-sm text-right">실시간 값</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-high text-on-surface">
+<tr class="hover:bg-surface-container transition-colors">
+<td class="py-2 px-space-sm text-primary font-semibold">1. RTDS 내부 연산</td>
+<td class="py-2 px-space-sm">PCC 상전압 피크 (v_pcc,pk)</td>
+<td class="py-2 px-space-sm text-outline">±400.0 V (Peak)</td>
+<td class="py-2 px-space-sm text-on-surface-variant">NovaCor Core 1 EMT</td>
+<td class="py-2 px-space-sm text-right text-primary-container">+325.24 V</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors">
+<td class="py-2 px-space-sm text-secondary font-semibold">2. GTAO 아날로그 출력</td>
+<td class="py-2 px-space-sm">16-bit D/A 변환 전압 신호</td>
+<td class="py-2 px-space-sm text-outline">±10.00 V Full-Scale</td>
+<td class="py-2 px-space-sm text-on-surface-variant">GTAO Card 1 - Ch 1</td>
+<td class="py-2 px-space-sm text-right text-secondary">+8.131 V</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors">
+<td class="py-2 px-space-sm text-primary-fixed-dim font-semibold">3. DSP ADC 전치 신호</td>
+<td class="py-2 px-space-sm">신호조절 보드 감쇠 및 Offset</td>
+<td class="py-2 px-space-sm text-outline">0.00 ~ 3.00 V (Unipolar)</td>
+<td class="py-2 px-space-sm text-on-surface-variant">TI ADCINA0 Pin 29</td>
+<td class="py-2 px-space-sm text-right text-primary-fixed-dim">2.721 V</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors">
+<td class="py-2 px-space-sm text-tertiary-fixed-dim font-semibold">4. DSP 펌웨어 단위</td>
+<td class="py-2 px-space-sm">GFM Droop / Virtual Inertia pu</td>
+<td class="py-2 px-space-sm text-outline">-1.000 ~ +1.000 pu</td>
+<td class="py-2 px-space-sm text-on-surface-variant">IQmath _IQ24 Format</td>
+<td class="py-2 px-space-sm text-right text-tertiary-fixed-dim">+0.813 pu</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<!-- Synchronized DSP Hardware Channels Status & Diagnostic Matrix -->
+<section class="px-gutter pb-gutter grid grid-cols-1 xl:grid-cols-12 gap-gutter">
+<!-- Channel Matrix: GTAO / GTAI / GTDI / GTNET -->
+<div class="xl:col-span-8 bg-surface-container-low p-space-md rounded flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">hub</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">RTDS ↔ DSP Physical Channel Mapping</h3>
+</div>
+<div class="flex items-center gap-space-xs font-mono font-label-sm text-label-sm">
+<span class="px-2 py-0.5 rounded bg-surface-container text-primary">16x GTAO</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-secondary">8x GTAI</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-tertiary-fixed-dim">32x GTDI/DO</span>
+</div>
+</div>
+<!-- Channel Grid Bento -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-xs">
+<!-- GTAO Group -->
+<div class="bg-surface-container p-space-sm rounded flex flex-col gap-space-xs">
+<div class="flex items-center justify-between pb-1 border-b border-outline-variant/30">
+<span class="font-label-sm text-label-sm text-primary font-bold">GTAO (Analog Out)</span>
+<span class="text-primary-container font-mono text-label-sm font-semibold">±10V 16b</span>
+</div>
+<div class="flex flex-col gap-1 font-mono text-label-sm">
+<div class="flex justify-between py-0.5">
+<span class="text-outline">Ch 1: u_od</span>
+<span class="text-on-surface">+325.2 V (8.13V)</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span class="text-outline">Ch 2: u_oq</span>
+<span class="text-on-surface">-1.8 V (-0.04V)</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span class="text-outline">Ch 3: i_id</span>
+<span class="text-on-surface">+18.4 A (3.68V)</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span class="text-outline">Ch 4: i_iq</span>
+<span class="text-on-surface">+2.1 A (0.42V)</span>
+</div>
+</div>
+<div class="mt-auto pt-1 text-[10px] text-primary-fixed-dim font-mono">Offset Calibrated: +0.8 mV</div>
+</div>
+<!-- GTAI Group -->
+<div class="bg-surface-container p-space-sm rounded flex flex-col gap-space-xs">
+<div class="flex items-center justify-between pb-1 border-b border-outline-variant/30">
+<span class="font-label-sm text-label-sm text-secondary font-bold">GTAI (Analog In)</span>
+<span class="text-secondary font-mono text-label-sm font-semibold">12-bit ADC</span>
+</div>
+<div class="flex flex-col gap-1 font-mono text-label-sm">
+<div class="flex justify-between py-0.5">
+<span class="text-outline">Ch 1: m_d</span>
+<span class="text-on-surface">0.865 pu</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span class="text-outline">Ch 2: m_q</span>
+<span class="text-on-surface">-0.012 pu</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span class="text-outline">Ch 3: P_ref</span>
+<span class="text-on-surface">1.000 pu (100kW)</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span class="text-outline">Ch 4: Q_ref</span>
+<span class="text-on-surface">0.000 pu (0 kVAR)</span>
+</div>
+</div>
+<div class="mt-auto pt-1 text-[10px] text-secondary-fixed font-mono">Conversion Time: 1.80 μs</div>
+</div>
+<!-- GTDI / Fast PWM Pulse Group -->
+<div class="bg-surface-container p-space-sm rounded flex flex-col gap-space-xs">
+<div class="flex items-center justify-between pb-1 border-b border-outline-variant/30">
+<span class="font-label-sm text-label-sm text-primary-fixed-dim font-bold">GTDI (Fast Digital)</span>
+<span class="text-primary-container font-mono text-label-sm font-semibold">ePWM 6-ch</span>
+</div>
+<div class="flex flex-col gap-1 font-mono text-label-sm">
+<div class="flex justify-between py-0.5">
+<span class="text-outline">ePWM1 (Leg A)</span>
+<span class="text-primary font-bold">10 kHz / 52.4%</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span class="text-outline">ePWM2 (Leg B)</span>
+<span class="text-primary font-bold">10 kHz / 48.1%</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span class="text-outline">ePWM3 (Leg C)</span>
+<span class="text-primary font-bold">10 kHz / 49.5%</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span class="text-outline">Deadband DT</span>
+<span class="text-on-surface">2.50 μs Synced</span>
+</div>
+</div>
+<div class="mt-auto pt-1 text-[10px] text-primary-container font-mono">Jitter Margin: ±12 ns</div>
+</div>
+<!-- GTDO / Breaker & Interlocks -->
+<div class="bg-surface-container p-space-sm rounded flex flex-col gap-space-xs">
+<div class="flex items-center justify-between pb-1 border-b border-outline-variant/30">
+<span class="font-label-sm text-label-sm text-tertiary-fixed-dim font-bold">GTDO &amp; Interlocks</span>
+<span class="text-tertiary font-mono text-label-sm font-semibold">Fiber Optic</span>
+</div>
+<div class="flex flex-col gap-1 font-mono text-label-sm">
+<div class="flex justify-between py-0.5">
+<span class="text-outline">Main CB 52G</span>
+<span class="text-primary font-semibold">CLOSED (Trip: 0)</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span class="text-outline">Crowbar Relay</span>
+<span class="text-on-surface">DISARMED</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span class="text-outline">DC Bus Precharge</span>
+<span class="text-on-surface">COMPLETE (750V)</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span class="text-outline">Emergency Trip</span>
+<span class="text-primary">NORMAL</span>
+</div>
+</div>
+<div class="mt-auto pt-1 text-[10px] text-tertiary-fixed-dim font-mono">Trip Latency: &lt; 150 ns</div>
+</div>
+</div>
+<!-- Real-Time Packet Loss & Jitter Distribution -->
+<div class="p-space-sm bg-surface-container-lowest rounded flex flex-col sm:flex-row items-center justify-between gap-space-md">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">COMMUNICATION INTEGRITY OVER 1,000,000 CONSECUTIVE STEPS</span>
+<div class="flex items-baseline gap-space-sm mt-0.5">
+<span class="font-headline-sm text-headline-sm font-mono text-primary font-bold">0.000000 %</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">Packet Loss (Zero Drops)</span>
+</div>
+</div>
+<!-- Sparkline Bar representation -->
+<div class="flex items-end gap-1 h-8 w-48">
+<div class="w-2 bg-primary-container rounded-t h-7"></div>
+<div class="w-2 bg-primary rounded-t h-8"></div>
+<div class="w-2 bg-primary-container rounded-t h-7"></div>
+<div class="w-2 bg-primary rounded-t h-6"></div>
+<div class="w-2 bg-primary-container rounded-t h-8"></div>
+<div class="w-2 bg-primary rounded-t h-7"></div>
+<div class="w-2 bg-secondary rounded-t h-8"></div>
+<div class="w-2 bg-primary-container rounded-t h-7"></div>
+<div class="w-2 bg-primary rounded-t h-8"></div>
+<div class="w-2 bg-primary-container rounded-t h-8"></div>
+<div class="w-2 bg-primary rounded-t h-7"></div>
+<div class="w-2 bg-primary-container rounded-t h-8"></div>
+</div>
+<div class="text-right font-mono font-label-sm text-label-sm">
+<span class="text-outline block">GTNET-SKT FIFO</span>
+<span class="text-secondary font-semibold">12 / 4096 Packets</span>
+</div>
+</div>
+</div>
+<!-- Diagnostic Log & Research Alarms Terminal -->
+<div class="xl:col-span-4 bg-surface-container-low p-space-md rounded flex flex-col justify-between">
+<div class="flex items-center justify-between pb-space-xs border-b border-outline-variant/40">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-primary-container">terminal</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">CHIL Hardware Event Log</h3>
+</div>
+<span class="font-label-sm text-label-sm font-mono text-outline">Real-Time Ring Buffer</span>
+</div>
+<!-- Real-Time Console Feed -->
+<div class="my-space-sm h-64 overflow-y-auto bg-surface-container-lowest p-space-xs rounded font-mono text-label-sm flex flex-col gap-1.5 border border-outline-variant/30" id="terminal-feed">
+<div class="text-outline">
+<span class="text-on-surface-variant">[14:22:00.892]</span> RTDS NovaCor Gen-3 initialized. Clock 50.00μs active.
+        </div>
+<div class="text-primary">
+<span class="text-on-surface-variant">[14:22:00.912]</span> IEEE 1588 PTP Grandmaster locked: jitter ±0.078μs.
+        </div>
+<div class="text-on-surface">
+<span class="text-on-surface-variant">[14:22:01.004]</span> DSP TMS320F28379D synced via GTAO/GTDI hardware handshake.
+        </div>
+<div class="text-secondary">
+<span class="text-on-surface-variant">[14:22:01.054]</span> Fictitious Power Droop loop deployed: m_p=0.03, D_p=12.4.
+        </div>
+<div class="text-primary-container">
+<span class="text-on-surface-variant">[14:22:01.104]</span> ADC Calibration factor verified: 0.99984 (Zero error &lt; 2mV).
+        </div>
+<div class="text-on-surface">
+<span class="text-on-surface-variant">[14:22:01.210]</span> Small-step subnetwork (1.85μs) coupled with NovaCor EMT network.
+        </div>
+<div class="text-tertiary-fixed-dim">
+<span class="text-on-surface-variant">[14:22:01.450]</span> SCR operating boundary: SCR=1.15, X/R=1.50 stable.
+        </div>
+</div>
+<!-- Safety Threshold Guard Checklist -->
+<div class="grid grid-cols-3 gap-space-xs pt-space-xs font-mono font-label-sm text-label-sm">
+<div class="p-space-xs bg-surface-container rounded text-center">
+<span class="text-outline block text-[10px]">OVERRUN GUARD</span>
+<span class="text-primary font-semibold">ARMED (50μs)</span>
+</div>
+<div class="p-space-xs bg-surface-container rounded text-center">
+<span class="text-outline block text-[10px]">ADC 0-3V CLAMP</span>
+<span class="text-secondary font-semibold">PROTECTED</span>
+</div>
+<div class="p-space-xs bg-surface-container rounded text-center">
+<span class="text-outline block text-[10px]">PHASE JUMP GUARD</span>
+<span class="text-primary-container font-semibold">ACTIVE (Δθ&lt;30°)</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Inline Micro-Interactions Script (No External Dependencies) -->
+<script>
+  let isFrozen = false;
+  let timerId = null;
+
+  function toggleFreeze() {
+    isFrozen = !isFrozen;
+    const btn = document.getElementById('btn-freeze');
+    const counter = document.getElementById('live-step-counter');
+    const term = document.getElementById('terminal-feed');
+    
+    if (isFrozen) {
+      btn.innerHTML = '<span class="material-symbols-outlined text-[15px] text-secondary">play_circle</span><span>Resume Stream</span>';
+      counter.classList.add('text-secondary');
+      appendLog('[PAUSED] Real-time hardware telemetry display frozen for inspection.');
+    } else {
+      btn.innerHTML = '<span class="material-symbols-outlined text-[15px] text-primary-container">pause_circle</span><span>Freeze Stream</span>';
+      counter.classList.remove('text-secondary');
+      appendLog('[RESUMED] Streaming live RTDS-DSP sync telemetry (50.00μs locked).');
+    }
+  }
+
+  function triggerGridFault() {
+    appendLog('<span class="text-error font-bold">[FAULT TRIGGER] 3-Phase bolted ground fault injected at PCC bus for 100ms!</span>');
+    const waveA = document.getElementById('wave-phase-a');
+    
+    // Waveform sag visual simulation
+    if (waveA) {
+      const originalPath = waveA.getAttribute('d');
+      waveA.setAttribute('stroke', '#ff3366');
+      waveA.setAttribute('d', 'M0,100 C70,75 130,75 200,100 C270,125 330,125 400,100 C470,75 530,75 600,100 C670,125 730,125 800,100 C870,75 930,75 1000,100');
+      
+      setTimeout(() => {
+        waveA.setAttribute('stroke', '#00e5ff');
+        waveA.setAttribute('d', originalPath);
+        appendLog('<span class="text-primary font-bold">[FAULT CLEARED] Grid voltage recovered. GFM virtual inertia damping active.</span>');
+      }, 1200);
+    }
+  }
+
+  function appendLog(text) {
+    const term = document.getElementById('terminal-feed');
+    if (!term) return;
+    const now = new Date();
+    const ts = `[${now.toTimeString().split(' ')[0]}.${String(now.getMilliseconds()).padStart(3, '0')}]`;
+    const line = document.createElement('div');
+    line.className = 'text-on-surface';
+    line.innerHTML = `<span class="text-on-surface-variant">${ts}</span> ${text}`;
+    term.appendChild(line);
+    term.scrollTop = term.scrollHeight;
+  }
+
+  // Jitter jitter tick to reinforce real-time instrumentation feel
+  setInterval(() => {
+    if (isFrozen) return;
+    const counter = document.getElementById('live-step-counter');
+    if (counter) {
+      const jitter = (Math.random() * 0.04 - 0.02);
+      const val = (50.00 + jitter).toFixed(2);
+      counter.textContent = val;
+    }
+  }, 450);
+</script></main></div></body></html>

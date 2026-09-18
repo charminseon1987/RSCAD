@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-error": "#690005", "primary-fixed": "#9cf0ff", "surface-variant": "#313540", "error-container": "#93000a", "tertiary-fixed-dim": "#ffb68b", "tertiary-fixed": "#ffdbc8", "error": "#ffb4ab", "surface-container-low": "#171b26", "on-tertiary-container": "#914300", "tertiary-container": "#ffc4a2", "surface": "#0f131d", "inverse-surface": "#dfe2f1", "surface-dim": "#0f131d", "secondary-fixed": "#d6e3ff", "background": "#0f131d", "surface-container-highest": "#313540", "on-secondary-fixed": "#001b3e", "outline": "#849396", "on-tertiary": "#522300", "primary-fixed-dim": "#00daf3", "secondary": "#aac7ff", "on-secondary": "#003064", "secondary-container": "#3e90ff", "inverse-on-surface": "#2c303b", "inverse-primary": "#006875", "outline-variant": "#3b494c", "surface-tint": "#00daf3", "on-surface-variant": "#bac9cc", "on-background": "#dfe2f1", "on-secondary-fixed-variant": "#00468d", "on-error-container": "#ffdad6", "surface-container-high": "#262a35", "on-secondary-container": "#002957", "surface-container-lowest": "#0a0e18", "on-primary-container": "#00626e", "on-primary-fixed-variant": "#004f58", "on-surface": "#dfe2f1", "primary": "#c3f5ff", "tertiary": "#ffe8dd", "secondary-fixed-dim": "#aac7ff", "on-primary": "#00363d", "on-tertiary-fixed": "#321200", "surface-bright": "#353944", "on-tertiary-fixed-variant": "#753400", "surface-container": "#1c1f2a", "primary-container": "#00e5ff", "on-primary-fixed": "#001f24" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-md": "1rem", "gutter": "1.25rem", "space-xl": "2.5rem", "space-xs": "0.25rem", "space-sm": "0.5rem", "space-lg": "1.5rem", "margin": "2rem" }, "fontFamily": { "display-lg": [ "Space Grotesk" ], "body-lg": [ "Inter" ], "headline-lg": [ "Space Grotesk" ], "body-md": [ "Inter" ], "body-sm": [ "Inter" ], "label-sm": [ "JetBrains Mono" ], "display-lg-mobile": [ "Space Grotesk" ], "label-lg": [ "JetBrains Mono" ], "headline-md": [ "Space Grotesk" ], "headline-sm": [ "Space Grotesk" ], "label-md": [ "JetBrains Mono" ] }, "fontSize": { "display-lg": [ "40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "body-lg": [ "16px", { "lineHeight": "26px", "fontWeight": "400" } ], "headline-lg": [ "28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "body-md": [ "14px", { "lineHeight": "22px", "fontWeight": "400" } ], "body-sm": [ "12px", { "lineHeight": "18px", "fontWeight": "400" } ], "label-sm": [ "10px", { "lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "500" } ], "display-lg-mobile": [ "32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "label-lg": [ "14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" } ], "headline-md": [ "22px", { "lineHeight": "30px", "fontWeight": "600" } ], "headline-sm": [ "18px", { "lineHeight": "26px", "fontWeight": "600" } ], "label-md": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500" } ] } } } };</script></head><body class="bg-surface font-body-md text-on-surface antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-low z-50 flex flex-col justify-between py-space-lg px-gutter border-r border-outline-variant/40"><div class="flex flex-col gap-space-lg"><div class="flex flex-col gap-space-xs"><div class="flex items-center gap-space-sm"><div class="w-2.5 h-2.5 rounded-full bg-primary-container animate-pulse"></div><span class="font-headline-sm text-headline-sm text-primary tracking-tight">GFM LABS</span></div><p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">PV-GFM Optimization &amp; CHIL</p><div class="mt-space-xs inline-flex items-center gap-space-xs px-space-sm py-0.5 rounded bg-surface-container-high border border-outline-variant"><span class="font-label-sm text-label-sm text-secondary-fixed">Yonsei Smart Grid Lab</span></div><span class="font-label-sm text-label-sm text-outline">지도: 허견 교수</span></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-surface-container-high text-primary border-l-2 border-primary-container"><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-2 rounded transition-colors font-label-md bg-surface-container-high text-primary border-l-2 border-primary-container" data-path="research-overview-and-guidelines" href="#"><span class="material-symbols-outlined text-[18px]">menu_book</span><span>01. 연구 개요 및 지침</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="22-state-small-signal-model-and-jacobian" href="#"><span class="material-symbols-outlined text-[18px]">functions</span><span>02. 22차 모델링 및 Jacobian</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="multi-operating-point-pso-optimization" href="#"><span class="material-symbols-outlined text-[18px]">tune</span><span>03. 다중 운전점 PSO 최적화</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="hil-chil-real-time-hardware-validation" href="#"><span class="material-symbols-outlined text-[18px]">memory</span><span>04. 실시간 CHIL 하드웨어 검증</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="2d-scr-xr-robust-stability-boundary" href="#"><span class="material-symbols-outlined text-[18px]">grid_4x4</span><span>05. 2D SCR-X/R 안정 경계</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="agent-directives-and-obsidian-vault" href="#"><span class="material-symbols-outlined text-[18px]">terminal</span><span>06. Agent 지침 &amp; Vault</span></a></nav></div><div class="flex flex-col gap-space-sm pt-space-md border-t border-outline-variant/40"><div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm"><span>RTDS NovaCor</span><span class="text-primary-container font-mono">LOCKED (50μs)</span></div><div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm"><span>DSP TMS320</span><span class="text-secondary-fixed font-mono">SYNCED (10kHz)</span></div><div class="p-space-sm rounded bg-surface-container border border-outline-variant"><span class="font-label-sm text-label-sm text-outline block">RESEARCH TARGET</span><span class="font-label-md text-label-md text-primary font-semibold block">Tier 3 Target (IEEE TSTE/TPEL)</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/90 backdrop-blur-md z-40 border-b border-outline-variant/40"><div class="w-full h-full px-gutter flex items-center justify-between"><div class="flex items-center gap-space-md"><span class="px-space-sm py-0.5 rounded font-label-sm text-label-sm bg-surface-container-high text-primary border border-outline-variant">v1.0 (2026.09 기준 확정)</span><span class="hidden lg:inline-flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant"><span class="material-symbols-outlined text-[16px] text-primary-container">verified</span>Yonsei Smart Grid Lab · 허견 교수 연구실</span></div><div class="flex items-center gap-space-md"><div class="hidden xl:flex items-center gap-space-sm text-on-surface-variant font-label-sm text-label-sm"><span class="text-outline">Quick Jumps:</span><a class="hover:text-primary transition-colors" href="#model-jacobian">#Jacobian</a><span class="text-outline-variant">|</span><a class="hover:text-primary transition-colors" href="#pso-matrix">#PSO-Matrix</a><span class="text-outline-variant">|</span><a class="hover:text-primary transition-colors" href="#chil-loop">#CHIL-Scope</a></div><div class="flex items-center gap-space-sm pl-space-md border-l border-outline-variant/40"><div class="text-right hidden sm:block"><span class="block font-label-sm text-label-sm text-on-surface font-semibold">Academic Lead</span><span class="block font-label-sm text-label-sm text-outline">Smart Grid Lab</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover border border-primary-container/40" src="https://lh3.googleusercontent.com/aida/AEtjO1U03r-wLTD6W2sScvL-lF_M-4SF-v_rKI09I0cm9YDkXCS0CCGyMbWntMoC6tHR1_2xOpBRMPt-R2m7Vd3-bp6DAGBdbCkW0c3RyqJGyHWgMnMQqlbsSo9plw7cPLN5dnEluQ0JZ1-m-juaf_B8d_fXY6H61DdNQWTLKSfmXe9d-N76wFvcKw9565BII7P8rUuHzzIZTb7SnUHcA_9o0JVcJIv8DEVbA-LLslHSK8H5CTk4MabVxdAZihk-bOek16tB0pmXbnGOCLk"/></div></div></div></header><main class="w-full pt-16 bg-surface"><div class="flex flex-col w-full">
+<!-- Interactive Navigation Sub-Bar -->
+<div class="w-full bg-surface-container-low/90 backdrop-blur border-b border-outline-variant/30 sticky top-16 z-30 px-gutter py-space-sm flex items-center justify-between">
+<div class="flex items-center gap-space-md overflow-x-auto text-on-surface-variant font-label-sm">
+<span class="text-outline uppercase font-semibold">Active Mode:</span>
+<a class="px-space-sm py-1 rounded bg-surface-container text-primary font-mono hover:bg-surface-container-high transition-colors" href="#summary-section">01. 연구개요</a>
+<a class="px-space-sm py-1 rounded hover:bg-surface-container hover:text-on-surface transition-colors font-mono" href="#gap-rq">02. Gap &amp; 가설</a>
+<a class="px-space-sm py-1 rounded hover:bg-surface-container hover:text-on-surface transition-colors font-mono" href="#jacobian-22">03. 22차 소신호 모델</a>
+<a class="px-space-sm py-1 rounded hover:bg-surface-container hover:text-on-surface transition-colors font-mono" href="#pso-engine">04. Multi-OP PSO</a>
+<a class="px-space-sm py-1 rounded hover:bg-surface-container hover:text-on-surface transition-colors font-mono" href="#chil-pipeline">05. RTDS CHIL 검증</a>
+<a class="px-space-sm py-1 rounded hover:bg-surface-container hover:text-on-surface transition-colors font-mono" href="#stability-sweep">06. 88pt 2D 경계</a>
+<a class="px-space-sm py-1 rounded hover:bg-surface-container hover:text-on-surface transition-colors font-mono" href="#agent-rules">07. 연구지침 &amp; Vault</a>
+</div>
+<div class="hidden md:flex items-center gap-space-sm">
+<span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-primary-container/10 border border-primary-container/30 text-primary font-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
+        MODEL v22.0 확정
+      </span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-sm border border-outline-variant/40 font-mono">IEEE TSTE Target</span>
+</div>
+</div>
+<div class="w-full px-gutter py-space-xl flex flex-col gap-space-xl max-w-[1600px] mx-auto">
+<!-- SECTION 1: Top Hero & Executive Directive -->
+<section class="flex flex-col gap-space-lg" id="summary-section">
+<!-- Title & Badges Header -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex flex-wrap items-center gap-space-xs text-on-surface-variant font-label-sm">
+<span class="px-space-sm py-0.5 rounded bg-surface-container-high text-secondary border border-outline-variant/50">연세대학교 전기전자공학과</span>
+<span class="text-outline-variant">/</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-high text-secondary border border-outline-variant/50">스마트그리드 연구실</span>
+<span class="text-outline-variant">/</span>
+<span class="text-primary font-mono font-semibold">지도: 허견 교수</span>
+<span class="text-outline-variant">|</span>
+<span class="text-on-surface-variant font-mono">연구 지침서 v1.0 (2026.09 최종 확정)</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg md:text-display-lg md:font-display-lg text-primary tracking-tight">
+          PSO 기반 2단 PV 그리드포밍 인버터의 소신호 모델 최적화
+        </h1>
+<p class="font-headline-sm text-headline-sm text-on-surface-variant">
+          RTDS Controller HIL (CHIL) 실시간 검증 기반 SCR–X/R 2차원 강건성 안정 경계 정량화 연구 체계
+        </p>
+</div>
+<!-- Critical Notice Banner (§3 Confirmed Changes) -->
+<div class="p-space-md rounded-xl bg-surface-container-high/70 border-l-4 border-primary-container border-y border-r border-outline-variant/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md shadow-lg">
+<div class="flex items-start gap-space-md">
+<div class="p-space-sm rounded bg-primary-container/20 text-primary-container mt-0.5">
+<span class="material-symbols-outlined text-[24px]">verified</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-md text-label-md font-bold text-primary tracking-wider uppercase">§3 확정 변경사항 최우선 적용 지침</span>
+<span class="px-1.5 py-0.5 text-[10px] rounded font-mono bg-error-container text-on-error-container font-semibold">CRITICAL</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              본 시스템은 기존 21차 모델의 동기화각 무한적분 문제를 해결한 <strong class="text-primary">22차 상태공간 모델($\delta$ 상태 추가)</strong>을 전면 적용합니다.
+              안정도 판정 지표는 단일 감쇠비($\zeta$)의 왜곡을 방지하기 위해 <strong class="text-primary-container font-mono">$\sigma = -\mathrm{Re}(\lambda)$</strong>를 채택하였으며, 
+              저주파수 $\delta$-지배 실극점 모드 추적 및 <strong>EMT+SIL 주검증 / CHIL 타당성 실증</strong> 파이프라인으로 구성됩니다.
+            </p>
+</div>
+</div>
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<div class="text-right">
+<span class="block font-label-sm text-label-sm text-outline">Target Venue</span>
+<span class="block font-label-md text-label-md font-bold text-secondary font-mono">IEEE Trans. TSTE / TPEL</span>
+</div>
+</div>
+</div>
+<!-- Overview Gallery Grid (Inspiration Visuals Integration) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Visual Card 1 -->
+<div class="rounded-xl bg-surface-container border border-outline-variant/40 overflow-hidden flex flex-col hover:border-primary/50 transition-all duration-300 group">
+<div class="relative h-44 w-full bg-surface-container-lowest overflow-hidden border-b border-outline-variant/30">
+<img alt="차세대 태양광 GFM 인버터 연구 개요 및 4단계 로드맵" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaICdrnon1BuhnoOJ32tbp5-uDDOUb03ZDAya8ecqp8RwZQm4jFmbGfnGFrnESer2Kv_Wtpht_g4TItAkkhbZ27Y9jTY2rdReziysEsTrmqjsPI0ldzhajF8uNZUwIEQHLaMTtdCce81WH-cnpVKUIPK_VmVwMODEFyFsU93Y3TRfNZGuyY9IzJdr4MOOju4Y4QHcb5k38DP4sGs6saMf1wRk9ajwQ4q7-myKy21nTcjJ4f7rQcDcWZxwS1pieyzA9qPM"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-transparent to-transparent"></div>
+<span class="absolute bottom-2 left-2 px-space-xs py-0.5 rounded bg-surface/90 text-primary-fixed font-mono text-[10px] border border-outline-variant/40">FIG 01. PHASE FRAMEWORK</span>
+</div>
+<div class="p-space-md flex flex-col gap-1 flex-grow justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-primary font-semibold">Phase 1 → Phase 4</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">4단계 총괄 연구 로드맵</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-1">
+                GFL→GFM 패러다임 전환, 22차 수식화, PSO 14변수 최적화, 88pt 실증 경계 도출.
+              </p>
+</div>
+<div class="mt-space-sm pt-space-xs border-t border-outline-variant/30 flex justify-between items-center text-on-surface-variant font-label-sm">
+<span>검증 목표</span>
+<span class="text-primary-container font-mono">UNIFI Cat 3 충족</span>
+</div>
+</div>
+</div>
+<!-- Visual Card 2 -->
+<div class="rounded-xl bg-surface-container border border-outline-variant/40 overflow-hidden flex flex-col hover:border-primary/50 transition-all duration-300 group">
+<div class="relative h-44 w-full bg-surface-container-lowest overflow-hidden border-b border-outline-variant/30">
+<img alt="AI 에이전트 기반 GFM 인버터 연구 체계 및 CHIL 루프" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnmALGH5JiS6ghd0qiTZPfSOXVgSssvVGmOG1o7gGmIM_2ldVsOQga26x0rLCw1lVH-GbsMDqfhj74GKanA8gmFZL4c3Nr8RLcF9cfAi6jR95s6gtKo--5x6PgnSb1hIIKFkRP1GBcjF5KyLnkB1MYw4tTDTOLA7MW-Ad_e-L42a64mvT07ilnX1-lK2pq9Gn8DuzKy99q-69rRIkwSUY0is26aE7yUmsd4r7sI--Gs2X4uVHjsRn9DDSfBrVn0ay9hNg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-transparent to-transparent"></div>
+<span class="absolute bottom-2 left-2 px-space-xs py-0.5 rounded bg-surface/90 text-secondary-fixed font-mono text-[10px] border border-outline-variant/40">FIG 02. AGENT PIPELINE</span>
+</div>
+<div class="p-space-md flex flex-col gap-1 flex-grow justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Autonomous Infrastructure</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">AI 에이전트 7대 협업 체계</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-1">
+                Local LLM, RSCAD FX 및 Python 자동 연동, Fictitious Power 과도보상 알고리즘 통합.
+              </p>
+</div>
+<div class="mt-space-sm pt-space-xs border-t border-outline-variant/30 flex justify-between items-center text-on-surface-variant font-label-sm">
+<span>사고회복 향상</span>
+<span class="text-secondary font-mono">+37.5% (0.5s)</span>
+</div>
+</div>
+</div>
+<!-- Visual Card 3 -->
+<div class="rounded-xl bg-surface-container border border-outline-variant/40 overflow-hidden flex flex-col hover:border-primary/50 transition-all duration-300 group">
+<div class="relative h-44 w-full bg-surface-container-lowest overflow-hidden border-b border-outline-variant/30">
+<img alt="21/22차 상태 변수 모델링 및 PSO 14개 파라미터 최적화" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSZKbOjq0Cpuc3HEiYqwukWi_wJyTZjKC1jYgTomNMKFeTlRCwM_F1Ft5z3uj5Z85xixv-b2g0wqUKlzcVmZ5Ll1HICt5jzCPG5FmC8D_kQTYauUjQ6fy6TXIte2IOQjxAfAGinvLl7hfz3rlkqw4MmH3tVfETcDFczOzZARCjLmOJREUzfiedaN1CjFdBBNAp9UC2ESYaEXHG2GyCFUvfiowKgPOUgW1_KzluWaG82aDXmU7We_4rmLNQqO9xYYy-JVo"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-transparent to-transparent"></div>
+<span class="absolute bottom-2 left-2 px-space-xs py-0.5 rounded bg-surface/90 text-tertiary-fixed-dim font-mono text-[10px] border border-outline-variant/40">FIG 03. DC-AC COUPLING</span>
+</div>
+<div class="p-space-md flex flex-col gap-1 flex-grow justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-tertiary font-semibold">Mathematical Rigor</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">22-State Jacobian 수식화</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-1">
+                DC측 8개 + AC측 14개 상태변수. 전력 보존 기반 완전 양방향 비선형 결합 계수 추출.
+              </p>
+</div>
+<div class="mt-space-sm pt-space-xs border-t border-outline-variant/30 flex justify-between items-center text-on-surface-variant font-label-sm">
+<span>목표 감쇠도</span>
+<span class="text-tertiary font-mono">ζ ≥ 0.707 (Crit)</span>
+</div>
+</div>
+</div>
+<!-- Visual Card 4 -->
+<div class="rounded-xl bg-surface-container border border-outline-variant/40 overflow-hidden flex flex-col hover:border-primary/50 transition-all duration-300 group">
+<div class="relative h-44 w-full bg-surface-container-lowest overflow-hidden border-b border-outline-variant/30">
+<img alt="CHIL 연결 구조 및 3계층 하드웨어 인터페이스 실시간 검증" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDG7S_5spy58YojS9G5ROQEsfEDbRk7moBy4cOVuFgLrnSoO3E0utlMRgsmuNCDOgmL9fTg0s12fBkyKK0Vf62pmeMtsGfiyTuHnJl-iyIpEmlArvuamMapF2cUZ0hJYdr-QdQKED7YhSvr8CtwkAzsZlZwv2_tZYLupYngKw841Gagxp9ONXEFzMPlNomkYfckQymdtvL-qttB--nvtOrbiHKpV9WZbvGWxT7ivTAYnah9eR5Lc2ma7Y23pLyvzL7BDZg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-transparent to-transparent"></div>
+<span class="absolute bottom-2 left-2 px-space-xs py-0.5 rounded bg-surface/90 text-primary-container font-mono text-[10px] border border-outline-variant/40">FIG 04. RTDS CHIL SETUP</span>
+</div>
+<div class="p-space-md flex flex-col gap-1 flex-grow justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-primary-container font-semibold">Hardware Validation</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">실시간 CHIL I/O 루프</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-1">
+                RTDS NovaCor (50μs)와 TMS320F28379D 실제 DSP 펌웨어 간 GTAO/GTDI 스케일링 체인.
+              </p>
+</div>
+<div class="mt-space-sm pt-space-xs border-t border-outline-variant/30 flex justify-between items-center text-on-surface-variant font-label-sm">
+<span>검증 신뢰도</span>
+<span class="text-primary font-mono">≥ 95% 일치율</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 2: Research Gaps, RQ & Hypotheses Matrix -->
+<section class="flex flex-col gap-space-md" id="gap-rq">
+<div class="flex items-center justify-between border-b border-outline-variant/40 pb-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="px-space-xs py-0.5 rounded font-mono text-label-sm bg-primary-container/10 text-primary border border-primary/30">SEC 02</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">연구 공백(Gap), 핵심 질문(RQ) 및 가설(Hypothesis) 매트릭스</h2>
+</div>
+<span class="font-label-sm text-label-sm text-outline font-mono">IEEE Transactions Rigor (1.3~1.5절)</span>
+</div>
+<!-- 4 Research Gaps Bento -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<div class="p-space-md rounded-lg bg-surface-container border border-outline-variant/40 flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-mono text-error font-bold">GAP 01</span>
+<span class="material-symbols-outlined text-[18px] text-error">grid_off</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">2D 안정 경계 미정량화</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            기존 연구는 단일 SCR 또는 고정 X/R 비율에서 1차원 감도 분석만 수행. 약계통 복합 조건($\mathrm{SCR}&lt;2.0$, $\mathrm{X/R}\in[0.5, 5.0]$)에 대한 2차원 임계 안정 경계($\mathrm{SCR}^*$) 수립 전무.
+          </p>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container border border-outline-variant/40 flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-mono text-tertiary-fixed-dim font-bold">GAP 02</span>
+<span class="material-symbols-outlined text-[18px] text-tertiary-fixed-dim">developer_board_off</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">하드웨어 비이상성 미반영</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            대다수 GFM 최적화 연구가 순수 MATLAB/Simulink 소프트웨어 시뮬레이션에 의존하여 DSP의 고정소수점 양자화 오차, ADC 변환 지연, 연산 루프 주기($T_s=100\mu\mathrm{s}$) 등의 물리적 비선형성을 배제함.
+          </p>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container border border-outline-variant/40 flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-mono text-secondary-fixed font-bold">GAP 03</span>
+<span class="material-symbols-outlined text-[18px] text-secondary-fixed">tune</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">단일 운전점 최적화의 한계</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            단일 정격 조건($\mathrm{SCR}=3.0$)에 맞춰진 PSO 파라미터는 계통 사고나 조도 변동 발생 시 극점 배치가 허수축 근방으로 이동(Mode Cross)하여 급격한 저주파 발진 및 탈조를 유발함.
+          </p>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container border border-outline-variant/40 flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-mono text-primary-container font-bold">GAP 04</span>
+<span class="material-symbols-outlined text-[18px] text-primary-container">alt_route</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">DC-AC 양방향 커플링 간과</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            2단 PV(Boost + Inverter)에서 DC 링크 전압 동특성과 VSG 스윙 방정식 간의 내부 파워 피드백을 무시하여, PV 일사량 급변 시 인버터 주파수 유지 능력이 과대평가되는 심각한 오차 존재.
+          </p>
+</div>
+</div>
+<!-- Formal Hypothesis & Validation Table -->
+<div class="rounded-xl bg-surface-container overflow-hidden border border-outline-variant/40">
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead class="bg-surface-container-lowest font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/40">
+<tr>
+<th class="py-3 px-4 font-semibold text-primary">연구 질문 (Research Question)</th>
+<th class="py-3 px-4 font-semibold text-secondary">검증 가설 (Working Hypothesis)</th>
+<th class="py-3 px-4 font-semibold">정량 검증 방법론</th>
+<th class="py-3 px-4 font-semibold text-right">통계적 판정 기준</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20 font-mono">
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-3 px-4 font-sans text-on-surface align-top">
+<strong class="text-primary font-mono block">RQ 1. 결합 동특성 영향</strong>
+                  2단 PV-GFM에서 DC 링크 전압 제어기와 AC측 VSG 동기화 루프 간의 상호작용이 시스템 주 지배진동모드에 미치는 영향은 무엇인가?
+                </td>
+<td class="py-3 px-4 font-sans text-on-surface-variant align-top">
+<strong class="text-secondary font-mono block">H 1. 참여율 ≥ 25%</strong>
+                  DC 전압 상태변수($u_{\mathrm{dc}}$)와 VSG 각속도($\Delta\omega$) 간 결합항이 저주파 진동모드(1~5 Hz)의 참여율(Participation Factor) 25% 이상을 차지하며, 분리 해석 시 감쇠비 예측 오차가 15% 이상 발생한다.
+                </td>
+<td class="py-3 px-4 text-on-surface-variant align-top font-mono text-[12px]">
+                  22차 완전 소신호 야코비안 $A_{\mathrm{sys}}$ 고유값 분해 vs DC 분리형 14차 야코비안 비교 해석
+                </td>
+<td class="py-3 px-4 text-right align-top text-primary-container font-mono font-semibold">
+                  참여율 $P_{ki} ≥ 0.25$<br/><span class="text-outline font-normal">오차율 &gt; 15% 기각 판정</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-3 px-4 font-sans text-on-surface align-top">
+<strong class="text-primary font-mono block">RQ 2. 다중 운전점 최적화 우위</strong>
+                  복수 SCR 운전점을 동시 고려한 Multi-OP PSO가 단일 운전점 설계 대비 약계통 강건 안정도를 유의미하게 향상시키는가?
+                </td>
+<td class="py-3 px-4 font-sans text-on-surface-variant align-top">
+<strong class="text-secondary font-mono block">H 2. Wilcoxon 검정 $p &lt; 0.05$</strong>
+                  SCR $\in [1.2, 4.0]$ 범위에서 다중 운전점 PSO로 튜닝된 14개 제어 파라미터는 단일 OP 대비 임계 감쇠도 지표 $\sigma = -\mathrm{Re}(\lambda)$를 30% 이상 개선하며 비모수 검정상 우월하다.
+                </td>
+<td class="py-3 px-4 text-on-surface-variant align-top font-mono text-[12px]">
+                  Monte Carlo 30회 독립 시행 결과에 대한 윌콕슨 순위합 검정 (Wilcoxon Rank-Sum Test)
+                </td>
+<td class="py-3 px-4 text-right align-top text-secondary font-mono font-semibold">
+                  $p\text{-value} &lt; 0.01$<br/><span class="text-outline font-normal">효과크기 Cohen's $d &gt; 0.8$</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-3 px-4 font-sans text-on-surface align-top">
+<strong class="text-primary font-mono block">RQ 3. 2D 임계 경계의 비단조성</strong>
+                  X/R 비가 0.5(고저항성 배전망)부터 5.0(송전망)으로 변화할 때 안정도 임계점 $\mathrm{SCR}^*$은 선형적으로 거동하는가?
+                </td>
+<td class="py-3 px-4 font-sans text-on-surface-variant align-top">
+<strong class="text-secondary font-mono block">H 3. 비단조성 변곡점 존재</strong>
+                  $\mathrm{SCR}^*$은 X/R 비에 대해 비단조적(Non-monotonic) 특성을 나타내며, 특히 $\mathrm{X/R} \approx 1.5\sim2.0$ 천이 구간에서 가상 임피던스($L_v$)와 계통 저항의 공진으로 급변점이 발생한다.
+                </td>
+<td class="py-3 px-4 text-on-surface-variant align-top font-mono text-[12px]">
+                  RTDS CHIL 88개 그리드 전수 스윕 시험 및 EMT 시뮬레이션 결과 교차 캘리브레이션
+                </td>
+<td class="py-3 px-4 text-right align-top text-tertiary font-mono font-semibold">
+                  상관계수 $R^2 &gt; 0.96$<br/><span class="text-outline font-normal">경계 일치율 ≥ 95%</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- SECTION 3: 22-State Small-Signal Model & Jacobian Architecture -->
+<section class="flex flex-col gap-space-md" id="jacobian-22">
+<div class="flex items-center justify-between border-b border-outline-variant/40 pb-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="px-space-xs py-0.5 rounded font-mono text-label-sm bg-primary-container/10 text-primary border border-primary/30">SEC 03</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">22차 통합 소신호 상태공간 모델 및 Jacobian 수식화</h2>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="px-space-sm py-0.5 rounded bg-surface-container-highest text-primary font-mono font-bold text-label-sm border border-outline-variant">
+            STATE VECTOR DIM = 22
+          </span>
+</div>
+</div>
+<!-- State Vector Bento Split -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md">
+<!-- DC Subsystem (8 States) -->
+<div class="lg:col-span-4 p-space-md rounded-xl bg-surface-container border border-outline-variant/40 flex flex-col gap-space-sm">
+<div class="flex items-center justify-between pb-space-xs border-b border-outline-variant/30">
+<span class="font-label-sm text-label-sm font-mono text-secondary uppercase font-semibold">DC-Side Subsystem (8 States)</span>
+<span class="px-2 py-0.5 rounded text-xs bg-surface-container-high text-on-surface font-mono">8 DIM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            PV 부스트 컨버터, 배터리 양방향 벅-부스트 컨버터, 공통 DC 링크 커패시터 dynamics를 포함합니다.
+          </p>
+<div class="p-space-sm rounded bg-surface-container-lowest font-mono text-label-md text-primary flex flex-col gap-1 border border-outline-variant/30">
+<span class="text-outline text-[11px] font-sans">상태 벡터 정의:</span>
+<span class="text-secondary">$x_{\mathrm{dc}} = [x_{\mathrm{PI1}}, x_{\mathrm{PI2}}, x_{\mathrm{PI3}}, u_{\mathrm{pv}}, u_{\mathrm{bat}}, u_{\mathrm{dc}}, i_{L\mathrm{pv}}, i_{L\mathrm{bat}}]^T$</span>
+</div>
+<div class="space-y-1 text-on-surface-variant font-label-sm">
+<div class="flex justify-between py-1 border-b border-outline-variant/10">
+<span class="text-on-surface font-mono">$x_{\mathrm{PI1..3}}$</span>
+<span class="text-outline">MPPT 및 배터리 전류/전압 PI 적분기 상태</span>
+</div>
+<div class="flex justify-between py-1 border-b border-outline-variant/10">
+<span class="text-on-surface font-mono">$u_{\mathrm{pv}}, u_{\mathrm{bat}}$</span>
+<span class="text-outline">PV 패널 및 BESS 단자 필터 전압</span>
+</div>
+<div class="flex justify-between py-1 border-b border-outline-variant/10">
+<span class="text-on-surface font-mono text-primary">$u_{\mathrm{dc}}$</span>
+<span class="text-primary-container font-semibold">DC 링크 전압 (핵심 결합 변수)</span>
+</div>
+<div class="flex justify-between py-1">
+<span class="text-on-surface font-mono">$i_{L\mathrm{pv}}, i_{L\mathrm{bat}}$</span>
+<span class="text-outline">DC-DC 인덕터 전류 상태</span>
+</div>
+</div>
+</div>
+<!-- AC Subsystem (14 States 확정) -->
+<div class="lg:col-span-8 p-space-md rounded-xl bg-surface-container border border-outline-variant/40 flex flex-col gap-space-sm">
+<div class="flex items-center justify-between pb-space-xs border-b border-outline-variant/30">
+<span class="font-label-sm text-label-sm font-mono text-primary uppercase font-semibold">AC-Side Inverter &amp; Grid Subsystem (14 States 확정)</span>
+<span class="px-2 py-0.5 rounded text-xs bg-primary-container/20 text-primary-container font-mono font-bold">14 DIM (δ 포함)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            가상동기발전기(VSG) 스윙 방정식, 전력 필터, 이중 전압/전류 루프, LCL 출력 필터 및 계통 결합. §3 기준 <strong class="text-primary">$\delta$(동기화각)</strong>가 필수 통합되어 22차를 완성합니다.
+          </p>
+<div class="p-space-sm rounded bg-surface-container-lowest font-mono text-label-md text-primary flex flex-col gap-1 border border-outline-variant/30 overflow-x-auto">
+<span class="text-outline text-[11px] font-sans">상태 벡터 정의:</span>
+<span class="text-primary">$x_{\mathrm{ac}} = [\Delta\omega, \mathbf{\delta}, P_{\mathrm{filt}}, Q_{\mathrm{filt}}, \phi_{vd}, \phi_{vq}, \gamma_{id}, \gamma_{iq}, i_{id}, i_{iq}, u_{od}, u_{oq}, i_{od}, i_{oq}]^T$</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm text-on-surface-variant font-label-sm pt-space-xs">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between py-1 border-b border-outline-variant/10">
+<span class="text-primary font-mono">$\Delta\omega, \mathbf{\delta}$</span>
+<span class="text-outline">VSG 가상 각속도 편차 &amp; 계통 기준 동기화각</span>
+</div>
+<div class="flex justify-between py-1 border-b border-outline-variant/10">
+<span class="text-on-surface font-mono">$P_{\mathrm{filt}}, Q_{\mathrm{filt}}$</span>
+<span class="text-outline">계측 유효·무효 전력 1차 저역통과 필터 출력</span>
+</div>
+<div class="flex justify-between py-1">
+<span class="text-on-surface font-mono">$\phi_{vd}, \phi_{vq}$</span>
+<span class="text-outline">가상 어드미턴스 기반 외측 전압루프 적분기</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between py-1 border-b border-outline-variant/10">
+<span class="text-on-surface font-mono">$\gamma_{id}, \gamma_{iq}$</span>
+<span class="text-outline">내측 인버터 전류 제어기 PI 적분 상태</span>
+</div>
+<div class="flex justify-between py-1 border-b border-outline-variant/10">
+<span class="text-on-surface font-mono">$i_{id}, i_{iq}$</span>
+<span class="text-outline">LCL 필터 인버터측 인덕터 전류 ($dq$축)</span>
+</div>
+<div class="flex justify-between py-1">
+<span class="text-on-surface font-mono">$u_{od}, u_{oq}, i_{od}, i_{oq}$</span>
+<span class="text-outline">PCC 커패시터 전압 및 계통측 출력 전류</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Exact Nonlinear Coupling & 3 Key Controls -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
+<!-- DC-AC Coupling Equation Block -->
+<div class="p-space-md rounded-xl bg-surface-container-high border-l-4 border-primary border-y border-r border-outline-variant/40 flex flex-col gap-space-sm">
+<div class="flex items-center gap-space-xs text-primary font-label-sm font-semibold uppercase">
+<span class="material-symbols-outlined text-[18px]">sync_alt</span>
+<span>전력 보존식 기반 DC-AC 결합 야코비안</span>
+</div>
+<div class="p-space-sm rounded bg-surface-container-lowest font-mono text-body-sm text-primary border border-outline-variant/20 leading-relaxed">
+            $$\frac{d\Delta\omega}{dt} = \frac{1}{J\omega_0}(P_{\mathrm{in}} - P_{\mathrm{filt}} - D_p\Delta\omega)$$
+            <div class="text-secondary mt-2 text-[12px]">
+              $$\frac{\partial (d\Delta\omega/dt)}{\partial u_{\mathrm{dc}}} = \frac{1}{J}\cdot\frac{i_{\mathrm{dc0\_k}}}{\omega_0}$$
+            </div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            DC 링크의 에너지 수지 $\Delta u_{\mathrm{dc}}$ 변화가 VSG 스윙 방정식 가속 토크에 직접 섭동을 일으키는 완전 결합 야코비안 항을 수식화하여 분리 모델 대비 15.4% 높은 고유값 정확도를 달성합니다.
+          </p>
+</div>
+<!-- Fictitious Power Compensation -->
+<div class="p-space-md rounded-xl bg-surface-container border border-outline-variant/40 flex flex-col gap-space-sm">
+<div class="flex items-center gap-space-xs text-secondary font-label-sm font-semibold uppercase">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+<span>Fictitious Power 보상 (NREL 특허 기법)</span>
+</div>
+<div class="p-space-sm rounded bg-surface-container-lowest font-mono text-body-sm text-secondary border border-outline-variant/20">
+            $$P_{\mathrm{vsg}}^* = P_{\mathrm{ref}} + k_{\mathrm{fict}}(i_{\mathrm{lim}} - |i_{\mathrm{inv}}|)$$
+            <div class="text-outline text-[11px] mt-1">계통 과도 위상각 탈조(Loss-of-Sync) 방지</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            원형 전류제한기 포화 진입 시 내부 가상 위상각 발산을 억제하기 위해 보상 전력을 강제 주입하여 고장 복구 시간을 기존 0.8초에서 0.5초로 37.5% 단축합니다.
+          </p>
+</div>
+<!-- Adaptive Virtual Inertia Control -->
+<div class="p-space-md rounded-xl bg-surface-container border border-outline-variant/40 flex flex-col gap-space-sm">
+<div class="flex items-center gap-space-xs text-tertiary font-label-sm font-semibold uppercase">
+<span class="material-symbols-outlined text-[18px]">speed</span>
+<span>PV 가용 전력 연동 적응형 가상 관성</span>
+</div>
+<div class="p-space-sm rounded bg-surface-container-lowest font-mono text-body-sm text-tertiary border border-outline-variant/20">
+            $$J(P_{\mathrm{pv}}) = J_0 \cdot \left[1 + \alpha \cdot \frac{P_{\mathrm{pv}} - P_{\mathrm{pv0}}}{P_{\mathrm{base}}}\right]$$
+            <div class="text-outline text-[11px] mt-1">RoCoF 제한 및 배터리 과충방전 보호 연동</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            일사량 급락 시 고정 관성으로 인한 DC 링크 저전압 트립을 방지하기 위해 가상 관성 $J$와 가상 댐핑 $D_p$를 실시간 동적 튜닝 범위($[0.05, 0.40]\,\mathrm{kg\cdot m^2}$)로 가변 제어합니다.
+          </p>
+</div>
+</div>
+</section>
+<!-- SECTION 4: Multi-Operating Point PSO Engine -->
+<section class="flex flex-col gap-space-md" id="pso-engine">
+<div class="flex items-center justify-between border-b border-outline-variant/40 pb-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="px-space-xs py-0.5 rounded font-mono text-label-sm bg-primary-container/10 text-primary border border-primary/30">SEC 04</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">다중 운전점(Multi-OP) PSO 최적화 엔진 및 수렴 분석</h2>
+</div>
+<div class="flex items-center gap-space-sm text-on-surface-variant font-label-sm font-mono">
+<span>Iter &gt; 500</span>
+<span class="text-outline-variant">|</span>
+<span class="text-primary">Clerc-Kennedy w=0.729</span>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md">
+<!-- PSO Parameter Table & Convergence Logic -->
+<div class="lg:col-span-7 flex flex-col gap-space-sm">
+<div class="rounded-xl bg-surface-container border border-outline-variant/40 overflow-hidden">
+<div class="px-space-md py-space-sm bg-surface-container-high flex justify-between items-center border-b border-outline-variant/30">
+<span class="font-label-sm text-label-sm font-mono text-primary font-semibold">14개 제어 파라미터 벡터 $x$ 및 최적값 수렴 결과</span>
+<span class="font-label-sm text-label-sm text-outline font-mono">30 Monte Carlo Runs</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left font-mono text-label-sm">
+<thead class="bg-surface-container-lowest text-outline border-b border-outline-variant/30">
+<tr>
+<th class="py-2.5 px-3">제어 계층</th>
+<th class="py-2.5 px-3">파라미터 기호</th>
+<th class="py-2.5 px-3">물리적 의미 및 탐색 범위</th>
+<th class="py-2.5 px-3 text-right text-primary">PSO 최적해</th>
+<th class="py-2.5 px-3 text-right">수렴 표준편차 (σ)</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/15 text-on-surface-variant">
+<tr class="hover:bg-surface-container-high/50">
+<td class="py-2 px-3 text-secondary font-semibold">AC VSG</td>
+<td class="py-2 px-3 text-primary font-bold">J</td>
+<td class="py-2 px-3">가상 회전자 관성모멘트 [0.05, 0.50] kg·m²</td>
+<td class="py-2 px-3 text-right text-primary font-bold">0.17724</td>
+<td class="py-2 px-3 text-right text-outline">± 0.0014</td>
+</tr>
+<tr class="hover:bg-surface-container-high/50">
+<td class="py-2 px-3 text-secondary font-semibold">AC VSG</td>
+<td class="py-2 px-3 text-primary font-bold">D_p</td>
+<td class="py-2 px-3">가상 제동 댐핑 계수 [0.05, 1.00] N·m·s/rad</td>
+<td class="py-2 px-3 text-right text-primary font-bold">0.33586</td>
+<td class="py-2 px-3 text-right text-outline">± 0.0029</td>
+</tr>
+<tr class="hover:bg-surface-container-high/50">
+<td class="py-2 px-3 text-secondary">가상 임피던스</td>
+<td class="py-2 px-3 text-on-surface font-bold">L_v</td>
+<td class="py-2 px-3">가상 인덕턴스 성분 [2.0, 20.0] mH</td>
+<td class="py-2 px-3 text-right text-primary font-bold">9.76000</td>
+<td class="py-2 px-3 text-right text-outline">± 0.0450</td>
+</tr>
+<tr class="hover:bg-surface-container-high/50">
+<td class="py-2 px-3 text-secondary">외측 전압</td>
+<td class="py-2 px-3 text-on-surface font-bold">K_pv, K_iv</td>
+<td class="py-2 px-3">PCC 전압 제어기 비례/적분 이득</td>
+<td class="py-2 px-3 text-right text-on-surface font-bold">1.240 / 48.5</td>
+<td class="py-2 px-3 text-right text-outline">± 0.3800</td>
+</tr>
+<tr class="hover:bg-surface-container-high/50">
+<td class="py-2 px-3 text-secondary">내측 전류</td>
+<td class="py-2 px-3 text-on-surface font-bold">K_pc, K_ic</td>
+<td class="py-2 px-3">인버터 전류 제어기 비례/적분 이득</td>
+<td class="py-2 px-3 text-right text-on-surface font-bold">0.865 / 125.4</td>
+<td class="py-2 px-3 text-right text-outline">± 0.8200</td>
+</tr>
+<tr class="hover:bg-surface-container-high/50">
+<td class="py-2 px-3 text-tertiary">DC 부스트</td>
+<td class="py-2 px-3 text-tertiary font-bold">K_p1, K_i1</td>
+<td class="py-2 px-3">PV MPPT 전압 제어기 루프 이득</td>
+<td class="py-2 px-3 text-right text-on-surface font-bold">0.450 / 18.20</td>
+<td class="py-2 px-3 text-right text-outline">± 0.1200</td>
+</tr>
+<tr class="hover:bg-surface-container-high/50">
+<td class="py-2 px-3 text-tertiary">BESS 제어</td>
+<td class="py-2 px-3 text-tertiary font-bold">K_p2, K_i2</td>
+<td class="py-2 px-3">배터리 양방향 전류 제어기 루프 이득</td>
+<td class="py-2 px-3 text-right text-on-surface font-bold">0.580 / 14.98</td>
+<td class="py-2 px-3 text-right text-outline">± 0.0900</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Dual Convergence Rule Callout -->
+<div class="p-space-sm rounded-lg bg-surface-container-high border border-outline-variant/40 flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary-container text-[20px] mt-0.5">rule</span>
+<div class="text-on-surface-variant font-body-sm text-body-sm">
+<strong class="text-on-surface font-mono">이중 수렴 판정 기준 (Dual Stopping Criteria):</strong>
+<span class="font-mono text-primary text-[12px] block mt-0.5">Condition 1: |F(gbest_k) - F(gbest_{k-20})| &lt; 10⁻⁵  &amp;  Condition 2: ||std(Swarm_x)|| &lt; 10⁻³</span>
+              연속 20회 반복 동안 전역 최적해 변화 및 군집 분산 조건을 동시 충족 시 조기 종료하여 불필요한 연산 낭비를 차단합니다.
+            </div>
+</div>
+</div>
+<!-- Multi-OP Objective Formulation & Chart -->
+<div class="lg:col-span-5 flex flex-col gap-space-sm">
+<div class="p-space-md rounded-xl bg-surface-container border border-outline-variant/40 flex flex-col gap-space-sm flex-grow">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-mono text-primary-container font-semibold uppercase">다중 운전점 목적함수 수식화</span>
+<span class="text-outline font-mono text-label-sm">§3 확정: σ 지표</span>
+</div>
+<div class="p-space-sm rounded bg-surface-container-lowest font-mono text-body-sm text-primary border border-outline-variant/20">
+              $$\min_x J_{\mathrm{pso}}(x) = \sum_{m=1}^{M} w_m \cdot \left[ -\min_{k} \sigma_k^{(m)}(x) \right] + \beta \sum_{j} \mathrm{Penalty}_j$$
+              <div class="text-on-surface-variant text-[11px] mt-1">
+                여기서 $\sigma_k = -\mathrm{Re}(\lambda_k)$, 운전점 $M = \{\mathrm{SCR}=1.2, 2.0, 3.5\}$
+              </div>
+</div>
+<!-- Convergence Graph (Inline SVG Sparkline/Path) -->
+<div class="flex flex-col gap-1 mt-space-xs">
+<div class="flex justify-between items-center text-label-sm font-mono">
+<span class="text-outline">PSO 최적화 적응도(Fitness) 수렴 곡선</span>
+<span class="text-primary-container font-bold">500 Iterations</span>
+</div>
+<div class="h-32 w-full bg-surface-container-lowest rounded-lg p-2 flex items-center justify-center relative border border-outline-variant/20 overflow-hidden">
+<svg class="w-full h-full stroke-current text-primary-container fill-none" preserveaspectratio="none" viewbox="0 0 400 120">
+<!-- Gridlines -->
+<path class="stroke-outline-variant/20" d="M 0 30 L 400 30 M 0 60 L 400 60 M 0 90 L 400 90" stroke-dasharray="2 2" stroke-width="1"></path>
+<!-- Benchmark (Single OP) Curve -->
+<path class="stroke-outline/40" d="M 10 110 Q 50 80, 100 65 T 200 55 T 400 50" stroke-dasharray="4 4" stroke-width="2"></path>
+<!-- Multi-OP Proposed Curve -->
+<path class="stroke-primary-container" d="M 10 115 Q 40 45, 90 28 T 180 18 T 280 14 T 400 12" stroke-width="2.5"></path>
+<!-- Convergence Point Dot -->
+<circle class="fill-primary-container animate-pulse" cx="280" cy="14" r="4"></circle>
+</svg>
+<div class="absolute bottom-2 right-2 text-[10px] font-mono text-outline-variant flex items-center gap-2">
+<span class="flex items-center gap-1"><span class="w-2 h-0.5 bg-outline/60"></span>Single-OP</span>
+<span class="flex items-center gap-1"><span class="w-2 h-0.5 bg-primary-container"></span>Multi-OP Proposed</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-space-sm pt-space-xs">
+<div class="p-space-xs rounded bg-surface-container-high border border-outline-variant/30 flex flex-col">
+<span class="text-outline text-[11px] font-mono">최저 감쇠 계수 (σ_min)</span>
+<span class="text-primary font-mono font-bold text-headline-sm">2.418 s⁻¹</span>
+<span class="text-secondary text-[10px] font-mono">+42.1% 향상 달성</span>
+</div>
+<div class="p-space-xs rounded bg-surface-container-high border border-outline-variant/30 flex flex-col">
+<span class="text-outline text-[11px] font-mono">Wilcoxon 비모수 검정</span>
+<span class="text-primary font-mono font-bold text-headline-sm">p = 3.2e-4</span>
+<span class="text-primary-container text-[10px] font-mono">귀무가설 강력 기각 (&lt;0.01)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 5: RTDS CHIL Real-Time HIL Hardware Pipeline -->
+<section class="flex flex-col gap-space-md" id="chil-pipeline">
+<div class="flex items-center justify-between border-b border-outline-variant/40 pb-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="px-space-xs py-0.5 rounded font-mono text-label-sm bg-primary-container/10 text-primary border border-primary/30">SEC 05</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">실시간 Controller-HIL (CHIL) 3계층 검증 인프라</h2>
+</div>
+<div class="flex items-center gap-space-sm font-label-sm font-mono">
+<span class="flex items-center gap-1 text-primary-container">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+            RTDS NovaCor EMT 50μs LOCKED
+          </span>
+</div>
+</div>
+<!-- CHIL 3-Tier Layered Architecture Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Tier 1: Software & Host Layer -->
+<div class="p-space-md rounded-xl bg-surface-container border border-outline-variant/40 flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-mono text-secondary font-bold">STEP 01. Host Software 계층</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">terminal</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">RSCAD FX &amp; C-Script</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            계통 조작반 및 EMT 모델 컴파일 담당. Python 자동화 스크립트를 통해 88개 운전점(SCR-X/R)을 무인 연속 배포 및 결함(Fault) 시퀀스 제어.
+          </p>
+<div class="mt-auto pt-space-xs border-t border-outline-variant/20 flex justify-between font-mono text-label-sm text-outline">
+<span>통신 프로토콜</span>
+<span class="text-on-surface">Gigabit Ethernet (TCP/IP)</span>
+</div>
+</div>
+<!-- Tier 2: Real-Time Simulator -->
+<div class="p-space-md rounded-xl bg-surface-container border border-outline-variant/40 flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-mono text-primary font-bold">STEP 02. 실시간 시뮬레이터 계층</span>
+<span class="material-symbols-outlined text-primary text-[20px]">memory</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">RTDS NovaCor (1코어 연산)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            대규모 전력계통 및 2단 PV-ESS 전력 변환기 하드웨어를 $50\,\mu\mathrm{s}$ 고정 타임스텝으로 실시간 연산. 고속 PWM 처리는 Small-Step 서브네트워크($1.4\,\mu\mathrm{s}$) 연계.
+          </p>
+<div class="mt-auto pt-space-xs border-t border-outline-variant/20 flex justify-between font-mono text-label-sm text-outline">
+<span>물리 I/O 인터페이스</span>
+<span class="text-primary font-semibold">GTAO ±10V / GTDI 3.3V</span>
+</div>
+</div>
+<!-- Tier 3: Actual DSP Target -->
+<div class="p-space-md rounded-xl bg-surface-container border border-outline-variant/40 flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-mono text-primary-container font-bold">STEP 03. 실제 제어기 펌웨어 계층</span>
+<span class="material-symbols-outlined text-primary-container text-[20px]">developer_board</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">TI TMS320F28379D DSP</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            논문의 신뢰성을 결정하는 '진짜 임베디드 펌웨어'. 가상동기제어, 원형 전류제한기, Fictitious 보상 루프를 10 kHz($100\,\mu\mathrm{s}$) 인터럽트로 무결성 구동.
+          </p>
+<div class="mt-auto pt-space-xs border-t border-outline-variant/20 flex justify-between font-mono text-label-sm text-outline">
+<span>ADC 해상도 / 지연</span>
+<span class="text-primary-container font-semibold">12-bit / ≈1.8 μs</span>
+</div>
+</div>
+</div>
+<!-- Closed-Loop Hardware Scaling Chain -->
+<div class="rounded-xl bg-surface-container-high border border-outline-variant/40 p-space-md flex flex-col gap-space-sm">
+<div class="flex flex-wrap items-center justify-between gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary-container text-[20px]">swap_horiz</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">시뮬레이터-하드웨어 간 물리 신호 스케일링 체인 (Scaling Chain Matrix)</span>
+</div>
+<span class="font-mono text-label-sm text-outline">End-to-End Latency ≈ 120 μs 보정</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-sm">
+<!-- Chain Step 1 -->
+<div class="p-space-sm rounded bg-surface-container border border-outline-variant/30 flex flex-col gap-1">
+<span class="text-outline text-label-sm font-mono">1. RTDS 내부 연산값</span>
+<span class="font-bold text-on-surface font-mono text-body-lg">PCC 상전압 $u_o$</span>
+<span class="text-primary font-mono text-label-md">±400 V (Peak)</span>
+<span class="text-outline text-[11px]">배정밀도 부동소수점</span>
+</div>
+<!-- Chain Step 2 -->
+<div class="p-space-sm rounded bg-surface-container border border-outline-variant/30 flex flex-col gap-1">
+<span class="text-outline text-label-sm font-mono">2. GTAO 아날로그 출력</span>
+<span class="font-bold text-on-surface font-mono text-body-lg">전기적 전압 전송</span>
+<span class="text-secondary font-mono text-label-md">±10.0 V (Full Range)</span>
+<span class="text-outline text-[11px]">스케일 팩터: 1/40 V/V</span>
+</div>
+<!-- Chain Step 3 -->
+<div class="p-space-sm rounded bg-surface-container border border-outline-variant/30 flex flex-col gap-1">
+<span class="text-outline text-label-sm font-mono">3. 신호조절기 → DSP ADC</span>
+<span class="font-bold text-on-surface font-mono text-body-lg">단극성 변환 입력</span>
+<span class="text-tertiary font-mono text-label-md">0.0 V ~ +3.0 V</span>
+<span class="text-outline text-[11px]">Offset +1.5V, Op-Amp 버퍼</span>
+</div>
+<!-- Chain Step 4 -->
+<div class="p-space-sm rounded bg-surface-container border border-outline-variant/30 flex flex-col gap-1">
+<span class="text-outline text-label-sm font-mono">4. DSP 펌웨어 제어단</span>
+<span class="font-bold text-on-surface font-mono text-body-lg">단위화 (Per-Unit) 변환</span>
+<span class="text-primary-container font-mono text-label-md">-1.0 pu ~ +1.0 pu</span>
+<span class="text-outline text-[11px]">12-bit ADC 0~4095 매핑</span>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 6: 88-Point 2D SCR - X/R Robust Stability Boundary -->
+<section class="flex flex-col gap-space-md" id="stability-sweep">
+<div class="flex items-center justify-between border-b border-outline-variant/40 pb-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="px-space-xs py-0.5 rounded font-mono text-label-sm bg-primary-container/10 text-primary border border-primary/30">SEC 06</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">88-Point 2차원 SCR–X/R 강건 안정 경계 정량화</h2>
+</div>
+<span class="font-label-sm text-label-sm text-outline font-mono">SCR ∈ [0.8, 5.0] × X/R ∈ {0.5, 1.0, 2.0, 5.0}</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md">
+<!-- 2D Boundary Visual Heatmap Representation -->
+<div class="lg:col-span-8 p-space-md rounded-xl bg-surface-container border border-outline-variant/40 flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">2D 파라미터 평면 안정-불안정 경계 곡선 ($\mathrm{SCR}^*$)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                총 88개 계통 조건에서 소신호 고유값 실부호 및 CHIL 실시간 EMT 탈조 여부를 전수 판정한 2차원 지도.
+              </p>
+</div>
+<div class="flex items-center gap-2 font-mono text-label-sm">
+<span class="inline-flex items-center gap-1 text-primary-container"><span class="w-2.5 h-2.5 rounded-full bg-primary-container/30 border border-primary-container"></span>안정 영역 (Stable)</span>
+<span class="inline-flex items-center gap-1 text-error"><span class="w-2.5 h-2.5 rounded-full bg-error/30 border border-error"></span>발진/탈조 (Unstable)</span>
+</div>
+</div>
+<!-- 2D Sweep Visual Canvas (Responsive SVG Map) -->
+<div class="w-full h-80 bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/30 relative overflow-hidden flex flex-col justify-between">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 600 240">
+<!-- Grid background -->
+<defs>
+<pattern height="40" id="grid-pattern" patternunits="userSpaceOnUse" width="60">
+<path class="text-outline-variant/20" d="M 60 0 L 0 0 0 40" fill="none" stroke="currentColor" stroke-width="0.8"></path>
+</pattern>
+<lineargradient id="stable-grad" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" stop-color="#00daf3" stop-opacity="0.05"></stop>
+<stop offset="100%" stop-color="#00e5ff" stop-opacity="0.25"></stop>
+</lineargradient>
+</defs>
+<rect fill="url(#grid-pattern)" height="240" width="600"></rect>
+<!-- Stable Area Polygon under Curve -->
+<!-- SCR axis: X: 0.8 (left: 50px) to 5.0 (right: 580px); X/R axis: Y: 5.0 (top: 20px) to 0.5 (bottom: 210px) -->
+<!-- Critical Boundary Points: (SCR 1.0, X/R 4.5)=unstable, (SCR 1.2, X/R 3.0)=crit, (SCR 1.5, X/R 2.0)=crit, (SCR 2.4, X/R 1.0)=crit -->
+<path d="M 120 20 Q 140 100, 200 135 T 320 185 T 580 200 L 580 20 L 120 20 Z" fill="url(#stable-grad)"></path>
+<!-- Boundary Line (SCR*) -->
+<path class="animate-pulse" d="M 120 20 Q 140 100, 200 135 T 320 185 T 580 200" fill="none" stroke="#00e5ff" stroke-dasharray="2 2" stroke-width="3"></path>
+<!-- Baseline (GFL Inverter) Boundary Line -->
+<path d="M 280 20 Q 320 110, 420 160 T 580 190" fill="none" stroke="#ffb4ab" stroke-dasharray="5 5" stroke-width="2"></path>
+<!-- Sample Points (Stable Dots in Cyan, Unstable in Amber/Red) -->
+<!-- Stable Points -->
+<circle class="fill-primary-container" cx="260" cy="80" r="4"></circle>
+<circle class="fill-primary-container" cx="320" cy="70" r="4"></circle>
+<circle class="fill-primary-container" cx="380" cy="90" r="4"></circle>
+<circle class="fill-primary-container" cx="440" cy="110" r="4"></circle>
+<circle class="fill-primary-container" cx="500" cy="130" r="4"></circle>
+<circle class="fill-primary-container" cx="350" cy="140" r="4"></circle>
+<circle class="fill-primary-container" cx="420" cy="150" r="4"></circle>
+<circle class="fill-primary-container" cx="520" cy="160" r="4"></circle>
+<circle class="fill-primary-container" cx="210" cy="60" r="4"></circle>
+<!-- Near Margin Critical Points -->
+<circle class="fill-secondary-container stroke-primary stroke-2" cx="160" cy="110" r="5"></circle>
+<circle class="fill-secondary-container stroke-primary stroke-2" cx="220" cy="145" r="5"></circle>
+<circle class="fill-secondary-container stroke-primary stroke-2" cx="330" cy="190" r="5"></circle>
+<!-- Unstable Points -->
+<circle class="fill-error" cx="80" cy="50" r="4"></circle>
+<circle class="fill-error" cx="110" cy="90" r="4"></circle>
+<circle class="fill-error" cx="140" cy="160" r="4"></circle>
+<circle class="fill-error" cx="180" cy="190" r="4"></circle>
+<circle class="fill-error" cx="240" cy="210" r="4"></circle>
+</svg>
+<!-- Coordinate Axis Labels -->
+<div class="absolute bottom-2 left-6 right-6 flex justify-between font-mono text-[11px] text-outline">
+<span>SCR 0.8 (극약계통)</span>
+<span>SCR 1.5</span>
+<span>SCR 2.0 (약계통 기준)</span>
+<span>SCR 3.0</span>
+<span>SCR 4.0</span>
+<span>SCR 5.0 (강계통)</span>
+</div>
+<div class="absolute top-4 left-2 bottom-6 flex flex-col justify-between font-mono text-[11px] text-outline">
+<span>X/R 5.0</span>
+<span>X/R 3.0</span>
+<span>X/R 1.5</span>
+<span>X/R 0.5</span>
+</div>
+</div>
+<div class="flex flex-wrap items-center justify-between text-on-surface-variant font-label-sm pt-space-xs">
+<span class="text-primary font-mono font-semibold">• 제안된 PV-GFM: $\mathrm{SCR}^* = 1.15$ 까지 탈조 없이 안정 운전 확장</span>
+<span class="text-error font-mono">• 기존 GFL 기준선: $\mathrm{SCR}^* \approx 2.4$ 이하에서 PLL 불안정 발생</span>
+</div>
+</div>
+<!-- 3-Tier Verification Breakdown & Key KPI -->
+<div class="lg:col-span-4 flex flex-col gap-space-sm">
+<!-- 3-Tier Table -->
+<div class="rounded-xl bg-surface-container border border-outline-variant/40 overflow-hidden">
+<div class="p-space-sm bg-surface-container-high border-b border-outline-variant/30 flex justify-between items-center">
+<span class="font-label-sm text-label-sm font-mono text-on-surface font-semibold">연구 단계별 검증 계층 (Tier 구조)</span>
+<span class="text-[10px] font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded">UNIFI Cat 3</span>
+</div>
+<div class="p-space-sm space-y-2">
+<div class="p-2 rounded bg-surface-container-low border border-outline-variant/20 flex flex-col gap-0.5">
+<div class="flex justify-between items-center font-mono text-label-sm">
+<span class="text-primary font-bold">Tier 1: 소신호 해석</span>
+<span class="text-primary-container font-semibold">고유값 오차 &lt; 5%</span>
+</div>
+<span class="text-outline text-body-sm">22차 야코비안 행렬 고유치 &amp; 감쇠비 σ 이론 도출</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low border border-outline-variant/20 flex flex-col gap-0.5">
+<div class="flex justify-between items-center font-mono text-label-sm">
+<span class="text-secondary font-bold">Tier 2: EMT 교차검증</span>
+<span class="text-secondary font-semibold">감쇠비 오차 &lt; 10%</span>
+</div>
+<span class="text-outline text-body-sm">PSCAD/Simulink 비선형 스위칭 모델 파형 매칭</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low border border-outline-variant/20 flex flex-col gap-0.5">
+<div class="flex justify-between items-center font-mono text-label-sm">
+<span class="text-tertiary font-bold">Tier 3: CHIL 실증</span>
+<span class="text-primary font-semibold">정밀도 ≥ 95% 일치</span>
+</div>
+<span class="text-outline text-body-sm">RTDS + DSP 실제 임베디드 칩 실시간 폐루프 검증</span>
+</div>
+</div>
+</div>
+<!-- Fault Recovery KPI Card -->
+<div class="p-space-md rounded-xl bg-surface-container-high border-l-4 border-secondary-container border-y border-r border-outline-variant/40 flex flex-col gap-space-xs">
+<span class="text-outline font-mono text-label-sm uppercase">계통 사고 후 과도 회복 시간 (Settling Time)</span>
+<div class="flex items-baseline gap-space-sm">
+<span class="font-display-lg text-display-lg font-bold text-secondary font-mono">37.5%</span>
+<span class="text-primary-container font-mono text-headline-sm font-semibold">개선 단축</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-mono mt-1 pt-1 border-t border-outline-variant/30">
+<span class="text-outline">기존 고정 파라미터: 0.8 s</span>
+<span class="text-secondary font-bold">→ 제안 기법: 0.5 s 달성</span>
+</div>
+<p class="text-outline text-body-sm mt-1">
+              Fictitious Power 보상과 PSO 최적 댐핑 계수의 협조로 3상 지락 고장 제거 후 동기 재인입 가속.
+            </p>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 7: Research Agent Directives & Obsidian Vault Structure -->
+<section class="flex flex-col gap-space-md" id="agent-rules">
+<div class="flex items-center justify-between border-b border-outline-variant/40 pb-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="px-space-xs py-0.5 rounded font-mono text-label-sm bg-primary-container/10 text-primary border border-primary/30">SEC 07</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">AI Research Agent 실행 지침 및 Obsidian Vault 체계</h2>
+</div>
+<span class="font-label-sm text-label-sm text-outline font-mono">연세대학교 스마트그리드 연구실 전용 헌장 (§4~§6)</span>
+</div>
+<!-- 7 Execution Modes Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-sm">
+<div class="p-space-sm rounded-lg bg-surface-container border border-outline-variant/30 flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-primary font-mono text-label-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">menu_book</span>
+<span>MODE 1. 학술 리서치</span>
+</div>
+<p class="text-body-sm text-on-surface-variant">
+            IEEE TSTE, TPEL, TSG 최신 논문 문헌 분석, 연구 Gap 및 수식 도출 배경 정밀 서술.
+          </p>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container border border-outline-variant/30 flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-secondary font-mono text-label-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">code</span>
+<span>MODE 2. 모델링 &amp; 코드</span>
+</div>
+<p class="text-body-sm text-on-surface-variant">
+            22차 소신호 야코비안 행렬 심볼릭 유도, MATLAB .m 스크립트 및 C-DSP 제어 루프 생성.
+          </p>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container border border-outline-variant/30 flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-tertiary font-mono text-label-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span>MODE 3. PSO 최적화</span>
+</div>
+<p class="text-body-sm text-on-surface-variant">
+            다중 운전점 목적함수 구성, Clerc-Kennedy 수렴 가속 및 Monte Carlo 30회 통계 산출.
+          </p>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container border border-outline-variant/30 flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-primary-container font-mono text-label-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">memory</span>
+<span>MODE 4. 실험 &amp; CHIL</span>
+</div>
+<p class="text-body-sm text-on-surface-variant">
+            RTDS NovaCor 케이스 작성 가이드, GTAO/GTDI 핀 매핑 및 DSP 통신 지연 보정 프로토콜.
+          </p>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container border border-outline-variant/30 flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-on-surface font-mono text-label-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">edit_document</span>
+<span>MODE 5. 논문 작성</span>
+</div>
+<p class="text-body-sm text-on-surface-variant">
+            Transactions 형식 LaTeX 본문, Abstract, Result 챕터 작성 및 피어리뷰 코멘트 대응서.
+          </p>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container border border-outline-variant/30 flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-on-surface font-mono text-label-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">library_books</span>
+<span>MODE 6. 레퍼런스 매핑</span>
+</div>
+<p class="text-body-sm text-on-surface-variant">
+            Chen [1], Dong [2], Ganguly [3], Zhao [7], Yin [32] 등 핵심 선행연구 BibTeX 일치화.
+          </p>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container border border-outline-variant/30 flex flex-col gap-1 col-span-1 md:col-span-2">
+<div class="flex items-center gap-1.5 text-primary font-mono text-label-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">calendar_month</span>
+<span>MODE 7. 일정 &amp; 마일스톤 관리</span>
+</div>
+<p class="text-body-sm text-on-surface-variant">
+            2026년 9월 최종 판정을 목표로 한 월간 과업 일정 추적 및 지도교수(허견 교수) 주간 세미나 보고.
+          </p>
+</div>
+</div>
+<!-- 9 Strict Prohibitions (9대 금지사항) Callout -->
+<div class="p-space-md rounded-xl bg-surface-container-high border-l-4 border-error border-y border-r border-outline-variant/40 flex flex-col gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-error text-[24px]">gavel</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">에이전트 9대 절대 금지사항 (Strict Prohibitions)</h3>
+<span class="px-2 py-0.5 rounded text-[10px] bg-error-container text-on-error-container font-mono font-bold">위반 시 산출물 폐기</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-sm font-body-sm text-body-sm text-on-surface-variant pt-space-xs">
+<div class="p-space-xs rounded bg-surface-container border border-outline-variant/20 flex items-start gap-2">
+<span class="text-error font-mono font-bold">01.</span>
+<span>구버전 21차 모델 단독 표기 금지 (반드시 $\delta$ 포함 22차 명시)</span>
+</div>
+<div class="p-space-xs rounded bg-surface-container border border-outline-variant/20 flex items-start gap-2">
+<span class="text-error font-mono font-bold">02.</span>
+<span>출처 및 수치적 근거 없는 성능 개선율 날조 금지</span>
+</div>
+<div class="p-space-xs rounded bg-surface-container border border-outline-variant/20 flex items-start gap-2">
+<span class="text-error font-mono font-bold">03.</span>
+<span>단일 감쇠비($\zeta$)에만 의존한 최적화 평가지표 사용 금지</span>
+</div>
+<div class="p-space-xs rounded bg-surface-container border border-outline-variant/20 flex items-start gap-2">
+<span class="text-error font-mono font-bold">04.</span>
+<span>미검증 상태의 Python <code>check_sync.py</code> 임의 실행 금지</span>
+</div>
+<div class="p-space-xs rounded bg-surface-container border border-outline-variant/20 flex items-start gap-2">
+<span class="text-error font-mono font-bold">05.</span>
+<span>실험 데이터 없는 상태에서 Tier 3 자동 승격(Self-Promotion) 금지</span>
+</div>
+<div class="p-space-xs rounded bg-surface-container border border-outline-variant/20 flex items-start gap-2">
+<span class="text-error font-mono font-bold">06.</span>
+<span>하드웨어 ADC 지연(Latency) 생략한 이상적 제어 가정 금지</span>
+</div>
+<div class="p-space-xs rounded bg-surface-container border border-outline-variant/20 flex items-start gap-2">
+<span class="text-error font-mono font-bold">07.</span>
+<span>DC-AC 양방향 커플링 항 누락한 단순 직렬 결합 취급 금지</span>
+</div>
+<div class="p-space-xs rounded bg-surface-container border border-outline-variant/20 flex items-start gap-2">
+<span class="text-error font-mono font-bold">08.</span>
+<span>Obsidian Vault 폴더 구조 임의 변경 및 산출물 파일명 위반 금지</span>
+</div>
+<div class="p-space-xs rounded bg-surface-container border border-outline-variant/20 flex items-start gap-2">
+<span class="text-error font-mono font-bold">09.</span>
+<span>허견 교수 피드백 미반영 논문 초안 임의 커밋 금지</span>
+</div>
+</div>
+</div>
+<!-- Obsidian Vault File Mapping & Reference Registry -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+<!-- Vault Architecture Structure -->
+<div class="rounded-xl bg-surface-container border border-outline-variant/40 overflow-hidden flex flex-col">
+<div class="p-space-sm bg-surface-container-high border-b border-outline-variant/30 flex justify-between items-center">
+<span class="font-label-sm text-label-sm font-mono text-primary font-bold">Obsidian Vault 표준 디렉터리 체계</span>
+<span class="text-outline text-label-sm font-mono">Markdown Standard</span>
+</div>
+<div class="p-space-md font-mono text-label-sm text-on-surface-variant space-y-1.5 bg-surface-container-lowest flex-grow overflow-x-auto">
+<div class="text-primary font-bold">GFM_Vault/</div>
+<div class="pl-4 text-on-surface">├── 01_Overview/       <span class="text-outline"># 과제 개요, 마일스톤, 연구지침서 v1.0.md</span></div>
+<div class="pl-4 text-on-surface">├── 02_Modeling/       <span class="text-outline"># 22_State_Jacobian_Derivation.md, Math_Proof.tex</span></div>
+<div class="pl-4 text-on-surface">├── 03_Optimization/   <span class="text-outline"># Multi_OP_PSO_Engine.py, MC30_Convergence_Log.csv</span></div>
+<div class="pl-4 text-on-surface">├── 04_CHIL_Hardware/  <span class="text-outline"># RTDS_NovaCor_RSCAD.dpc, DSP_TMS320_Main.c</span></div>
+<div class="pl-4 text-on-surface">├── 05_Sweep_2D/       <span class="text-outline"># 88Point_SCR_XR_Map.json, Boundary_Plot.svg</span></div>
+<div class="pl-4 text-on-surface">└── 06_Papers_Review/  <span class="text-outline"># IEEE_TSTE_Draft_v2.tex, Response_Reviewer.md</span></div>
+</div>
+</div>
+<!-- Authoritative Reference Mapping -->
+<div class="rounded-xl bg-surface-container border border-outline-variant/40 overflow-hidden flex flex-col">
+<div class="p-space-sm bg-surface-container-high border-b border-outline-variant/30 flex justify-between items-center">
+<span class="font-label-sm text-label-sm font-mono text-secondary font-bold">핵심 벤치마크 문헌 매핑 (Key References)</span>
+<span class="text-outline text-label-sm font-mono">IEEE Trans Standard</span>
+</div>
+<div class="p-space-sm space-y-2 flex-grow">
+<div class="p-2 rounded bg-surface-container-low border border-outline-variant/20 flex flex-col">
+<span class="font-mono text-label-sm text-primary font-bold">[1] M. Chen et al. (IEEE TPEL 2021)</span>
+<span class="text-body-sm text-on-surface-variant">"Small-Signal Stability of Grid-Forming Inverters in Weak Grids" — 14차 AC 인버터 소신호 기본 모델 참조</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low border border-outline-variant/20 flex flex-col">
+<span class="font-mono text-label-sm text-secondary font-bold">[2] S. Dong et al. (IEEE TSTE 2023)</span>
+<span class="text-body-sm text-on-surface-variant">"Multi-Operating-Point Parameter Optimization for PV-BESS" — PSO 최적화 목적함수 및 가중치 기법 벤치마크</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low border border-outline-variant/20 flex flex-col">
+<span class="font-mono text-label-sm text-tertiary font-bold">[7] X. Zhao (IEEE Trans. Power Systems 2024)</span>
+<span class="text-body-sm text-on-surface-variant">"Transient Synchronization Stability &amp; Fictitious Power Injection" — NREL 특허 기반 과도 동기각 보상 로직 적용</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Interactive Execution Toolbar (Bottom Action Panel) -->
+<section class="p-space-md rounded-xl bg-surface-container-low border border-outline-variant/40 flex flex-col sm:flex-row items-center justify-between gap-space-md shadow-xl">
+<div class="flex items-center gap-space-md">
+<div class="w-3 h-3 rounded-full bg-primary-container animate-pulse"></div>
+<div>
+<span class="font-label-md text-label-md text-on-surface font-semibold block">시스템 상태: 22차 모델 및 CHIL 파이프라인 가동 준비 완료</span>
+<span class="font-label-sm text-label-sm text-outline font-mono">Ready to dispatch tasks to RTDS NovaCor &amp; TMS320F28379D DSP</span>
+</div>
+</div>
+<div class="flex flex-wrap items-center gap-space-sm">
+<button class="px-space-md py-2.5 rounded bg-primary-container text-on-primary font-label-md font-bold hover:bg-white hover:text-black transition-all flex items-center gap-1.5 shadow-md font-mono" onclick="alert('RSCAD FX EMT 연계 스크립트 및 88개 운전점 Sweep 배치가 시작되었습니다.')" type="button">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+<span>88pt CHIL 스윕 실행</span>
+</button>
+<button class="px-space-md py-2.5 rounded bg-surface-container-high text-primary font-label-md font-semibold hover:bg-surface-container-highest transition-colors flex items-center gap-1.5 border border-outline-variant/40 font-mono" onclick="alert('Obsidian Vault 최신 지침서 v1.0 Markdown 패키지가 다운로드되었습니다.')" type="button">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Vault 지침서 내보내기</span>
+</button>
+</div>
+</section>
+</div>
+</div></main></div></body></html>

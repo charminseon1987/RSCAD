@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html class="dark" lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GFM Labs Workspace</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={darkMode:"class",theme:{extend:{colors:{"on-error":"#690005","primary-fixed":"#9cf0ff","surface-variant":"#313540","error-container":"#93000a","tertiary-fixed-dim":"#ffb68b","tertiary-fixed":"#ffdbc8","error":"#ffb4ab","surface-container-low":"#171b26","on-tertiary-container":"#914300","tertiary-container":"#ffc4a2","surface":"#0f131d","inverse-surface":"#dfe2f1","surface-dim":"#0f131d","secondary-fixed":"#d6e3ff","background":"#0f131d","surface-container-highest":"#313540","outline":"#849396","primary-fixed-dim":"#00daf3","secondary":"#aac7ff","on-secondary":"#003064","secondary-container":"#3e90ff","outline-variant":"#3b494c","surface-tint":"#00daf3","on-surface-variant":"#bac9cc","on-background":"#dfe2f1","surface-container-high":"#262a35","surface-container-lowest":"#0a0e18","on-surface":"#dfe2f1","primary":"#c3f5ff","tertiary":"#ffe8dd","on-primary":"#00363d","surface-bright":"#353944","surface-container":"#1c1f2a","primary-container":"#00e5ff","on-primary-fixed":"#001f24"},fontFamily:{"display-lg":["Space Grotesk"],"body-lg":["Inter"],"headline-lg":["Space Grotesk"],"body-md":["Inter"],"body-sm":["Inter"],"label-sm":["JetBrains Mono"],"label-lg":["JetBrains Mono"],"headline-md":["Space Grotesk"],"headline-sm":["Space Grotesk"],"label-md":["JetBrains Mono"]},fontSize:{"display-lg":["40px",{lineHeight:"48px",letterSpacing:"-0.02em",fontWeight:"700"}],"body-lg":["16px",{lineHeight:"26px",fontWeight:"400"}],"headline-lg":["28px",{lineHeight:"36px",letterSpacing:"-0.01em",fontWeight:"600"}],"body-md":["14px",{lineHeight:"22px",fontWeight:"400"}],"body-sm":["12px",{lineHeight:"18px",fontWeight:"400"}],"label-sm":["10px",{lineHeight:"14px",letterSpacing:"0.05em",fontWeight:"500"}],"label-lg":["14px",{lineHeight:"20px",letterSpacing:"0.02em",fontWeight:"500"}],"headline-md":["22px",{lineHeight:"30px",fontWeight:"600"}],"headline-sm":["18px",{lineHeight:"26px",fontWeight:"600"}],"label-md":["12px",{lineHeight:"16px",letterSpacing:"0.04em",fontWeight:"500"}]}}}};
+</script>
+<script src="vault_data.js"></script>
+<style>
+@layer base{html,body{margin:0;padding:0}body{overscroll-behavior:none}}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#0a0e18}
+::-webkit-scrollbar-thumb{background:#3b494c;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#00e5ff40}
+
+.workspace{display:grid;grid-template-rows:48px 1fr auto;grid-template-columns:300px 1fr 320px;height:100vh;overflow:hidden}
+.top-nav{grid-column:1/-1}
+.file-tree{grid-row:2/-1;min-height:0}
+.main-content{grid-row:2/-1;min-height:0}
+.right-panel{grid-row:2/-1;min-height:0}
+
+/* Nav tabs */
+.nav-tab{position:relative;transition:all .15s}
+.nav-tab.active{color:#00e5ff}
+.nav-tab.active::after{content:'';position:absolute;bottom:0;left:8px;right:8px;height:2px;background:#00e5ff;border-radius:1px}
+.nav-tab:hover{color:#c3f5ff;background:#1c1f2a}
+
+/* File tree */
+.tree-item{cursor:pointer;transition:background .1s,color .1s}
+.tree-item:hover{background:#1c1f2a}
+.tree-item.active{background:#262a35;color:#00e5ff;border-left:2px solid #00e5ff}
+.tree-folder{cursor:pointer;user-select:none}
+.tree-folder:hover{background:#1c1f2a}
+
+/* Markdown content (Obsidian-like) */
+.md-body{font-family:'Inter',sans-serif;font-size:15px;line-height:1.75;color:#dfe2f1}
+.md-body h1{font-family:'Space Grotesk';font-size:28px;font-weight:700;color:#c3f5ff;margin:1.5em 0 0.5em;padding-bottom:8px;border-bottom:1px solid #3b494c}
+.md-body h2{font-family:'Space Grotesk';font-size:22px;font-weight:600;color:#c3f5ff;margin:1.2em 0 0.4em}
+.md-body h3{font-family:'Space Grotesk';font-size:18px;font-weight:600;color:#dfe2f1;margin:1em 0 0.3em}
+.md-body h4{font-family:'Space Grotesk';font-size:15px;font-weight:600;color:#bac9cc;margin:0.8em 0 0.2em}
+.md-body p{margin:0.5em 0}
+.md-body blockquote{border-left:3px solid #00e5ff;margin:1em 0;padding:0.5em 1em;background:#171b2680;border-radius:0 4px 4px 0;color:#bac9cc}
+.md-body code{font-family:'JetBrains Mono';font-size:13px;background:#0a0e18;color:#00daf3;padding:2px 6px;border-radius:3px;border:1px solid #3b494c40}
+.md-body pre{background:#0a0e18;border:1px solid #3b494c;border-radius:6px;padding:16px;overflow-x:auto;margin:1em 0}
+.md-body pre code{background:none;border:none;padding:0;color:#dfe2f1}
+.md-body table{width:100%;border-collapse:collapse;margin:1em 0;font-size:13px}
+.md-body th{background:#262a35;padding:8px 12px;text-align:left;font-family:'JetBrains Mono';font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:#bac9cc;border-bottom:2px solid #3b494c}
+.md-body td{padding:6px 12px;border-bottom:1px solid #3b494c40;color:#dfe2f1}
+.md-body tr:hover td{background:#1c1f2a40}
+.md-body a{color:#00e5ff;text-decoration:none;border-bottom:1px solid #00e5ff30}
+.md-body a:hover{border-bottom-color:#00e5ff}
+.md-body strong{color:#c3f5ff;font-weight:600}
+.md-body hr{border:none;border-top:1px solid #3b494c;margin:1.5em 0}
+.md-body ul,.md-body ol{padding-left:1.5em;margin:0.5em 0}
+.md-body li{margin:0.25em 0}
+.md-body img{max-width:100%;border-radius:6px;border:1px solid #3b494c}
+
+/* Wikilink */
+.wikilink{color:#aac7ff;background:#3e90ff15;padding:1px 4px;border-radius:3px;cursor:pointer;border-bottom:1px dashed #aac7ff60;transition:all .15s}
+.wikilink:hover{background:#3e90ff30;color:#d6e3ff}
+
+/* Tag */
+.obs-tag{color:#ffb68b;background:#ffc4a215;padding:1px 6px;border-radius:3px;font-size:12px;font-family:'JetBrains Mono'}
+
+/* Frontmatter */
+.frontmatter-box{background:#0a0e18;border:1px solid #3b494c;border-radius:6px;padding:12px 16px;margin-bottom:20px;font-family:'JetBrains Mono';font-size:12px;line-height:1.6}
+.fm-key{color:#849396}
+.fm-val{color:#00daf3}
+.fm-val.status-verified{color:#4ade80}
+.fm-val.status-in_progress{color:#fbbf24}
+.fm-val.status-supported{color:#60a5fa}
+
+/* KaTeX overrides */
+.katex{font-size:1em!important}
+.katex-display{margin:1em 0!important;overflow-x:auto}
+
+/* Chat */
+.chat-msg-user{background:#262a35;border-radius:12px 12px 4px 12px}
+.chat-msg-ai{background:#171b26;border-left:2px solid #00e5ff40;border-radius:12px 12px 12px 4px}
+.chat-input:focus{border-color:#00e5ff;box-shadow:0 0 0 1px rgba(0,229,255,0.3)}
+
+/* Code panel */
+.code-editor{font-family:'JetBrains Mono',monospace;font-size:13px;line-height:20px;background:#0a0e18;color:#dfe2f1;border:none;outline:none;resize:none;width:100%;height:100%;padding:12px 16px}
+.code-editor::placeholder{color:#849396}
+
+/* Search */
+.search-result{cursor:pointer;transition:background .1s}
+.search-result:hover{background:#1c1f2a}
+</style>
+</head>
+<body class="bg-surface text-on-surface antialiased overflow-hidden">
+<div class="workspace" id="workspace">
+
+<!-- ══════════ TOP NAV ══════════ -->
+<nav class="top-nav bg-surface-container-lowest border-b border-outline-variant/40 flex items-center px-4 gap-0 z-50">
+  <div class="flex items-center gap-2 pr-5 border-r border-outline-variant/30 mr-1 flex-shrink-0">
+    <div class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></div>
+    <span class="font-headline-sm text-[15px] font-bold text-primary tracking-tight">GFM LABS</span>
+  </div>
+
+  <div class="flex items-center h-full" id="tabBar">
+    <button class="nav-tab active h-full px-4 flex items-center gap-1.5 font-label-lg text-label-lg" data-tab="journal" onclick="switchTab(this)">
+      <span class="material-symbols-outlined text-[18px]">science</span>연구일지
+    </button>
+    <button class="nav-tab h-full px-4 flex items-center gap-1.5 font-label-lg text-label-lg text-on-surface-variant" data-tab="literature" onclick="switchTab(this)">
+      <span class="material-symbols-outlined text-[18px]">menu_book</span>논문분석
+    </button>
+    <button class="nav-tab h-full px-4 flex items-center gap-1.5 font-label-lg text-label-lg text-on-surface-variant" data-tab="writing" onclick="switchTab(this)">
+      <span class="material-symbols-outlined text-[18px]">edit_note</span>작성
+    </button>
+    <button class="nav-tab h-full px-4 flex items-center gap-1.5 font-label-lg text-label-lg text-on-surface-variant" data-tab="agent" onclick="switchTab(this)">
+      <span class="material-symbols-outlined text-[18px]">smart_toy</span>Agent
+    </button>
+    <button class="nav-tab h-full px-4 flex items-center gap-1.5 font-label-lg text-label-lg text-on-surface-variant" data-tab="plaza" onclick="switchTab(this)">
+      <span class="material-symbols-outlined text-[18px]">hub</span>광장
+    </button>
+  </div>
+
+  <div class="ml-auto flex items-center gap-3 flex-shrink-0">
+    <!-- Search -->
+    <div class="relative">
+      <input type="text" id="globalSearch" placeholder="검색 (Ctrl+K)" class="w-48 bg-surface-container border border-outline-variant/40 rounded px-3 py-1 font-body-sm text-body-sm text-on-surface placeholder-outline focus:border-primary-container focus:outline-none transition-colors" oninput="onSearch(this.value)" onfocus="showSearchResults()" onblur="setTimeout(()=>hideSearchResults(),200)"/>
+      <div class="absolute top-full left-0 right-0 mt-1 bg-surface-container-high border border-outline-variant/40 rounded-lg shadow-xl max-h-72 overflow-y-auto z-50 hidden" id="searchResults"></div>
+    </div>
+    <span class="px-2 py-0.5 rounded bg-primary-container/10 border border-primary-container/30 text-primary font-label-sm text-label-sm font-mono" id="fileCount">87 notes</span>
+  </div>
+</nav>
+
+<!-- ══════════ LEFT: FILE TREE ══════════ -->
+<div class="file-tree bg-surface-container-low border-r border-outline-variant/30 flex flex-col" id="fileTreePanel">
+  <div class="flex items-center justify-between px-3 py-2 border-b border-outline-variant/30 flex-shrink-0">
+    <span class="font-label-md text-label-md font-semibold text-on-surface-variant uppercase tracking-wider">Explorer</span>
+    <div class="flex items-center gap-1">
+      <button class="p-1 rounded hover:bg-surface-container text-on-surface-variant" onclick="collapseAll()" title="Collapse All">
+        <span class="material-symbols-outlined text-[14px]">unfold_less</span>
+      </button>
+      <button class="p-1 rounded hover:bg-surface-container text-on-surface-variant" onclick="expandAll()" title="Expand All">
+        <span class="material-symbols-outlined text-[14px]">unfold_more</span>
+      </button>
+    </div>
+  </div>
+  <div class="flex-1 overflow-y-auto px-1 py-1" id="fileTree"></div>
+</div>
+
+<!-- ══════════ CENTER: MD VIEWER ══════════ -->
+<div class="main-content flex flex-col min-h-0" id="mainContent">
+  <!-- Breadcrumb -->
+  <div class="flex items-center justify-between px-4 py-2 border-b border-outline-variant/30 bg-surface-container-lowest/50 flex-shrink-0">
+    <div class="flex items-center gap-2 font-label-sm text-label-sm text-on-surface-variant overflow-hidden" id="breadcrumb">
+      <span class="material-symbols-outlined text-[14px]">home</span>
+      <span class="text-outline">/</span>
+      <span class="text-primary">연구일지</span>
+    </div>
+    <div class="flex items-center gap-1">
+      <button class="p-1 rounded hover:bg-surface-container text-on-surface-variant" onclick="toggleRight()" title="Toggle panel">
+        <span class="material-symbols-outlined text-[16px]">vertical_split</span>
+      </button>
+      <button class="p-1 rounded hover:bg-surface-container text-on-surface-variant" onclick="toggleCodePanel()" title="Code panel">
+        <span class="material-symbols-outlined text-[16px]">terminal</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Open tabs -->
+  <div class="flex items-center border-b border-outline-variant/30 bg-surface-container-lowest overflow-x-auto flex-shrink-0" id="openTabs"></div>
+
+  <!-- Content -->
+  <div class="flex-1 overflow-y-auto" id="mdViewer">
+    <div class="max-w-4xl mx-auto px-8 py-6" id="mdContent">
+      <!-- Welcome screen -->
+      <div class="flex flex-col items-center justify-center h-full gap-6 text-center py-20">
+        <div class="w-16 h-16 rounded-2xl bg-primary-container/10 border border-primary-container/30 flex items-center justify-center">
+          <span class="material-symbols-outlined text-[32px] text-primary-container">auto_stories</span>
+        </div>
+        <div>
+          <h2 class="font-headline-lg text-headline-lg text-primary mb-2">GFM Research Vault</h2>
+          <p class="font-body-md text-body-md text-on-surface-variant">왼쪽 파일 트리에서 노트를 선택하세요</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3 mt-4 text-left max-w-md w-full" id="quickStats"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ RIGHT: BACKLINKS + CHAT ══════════ -->
+<div class="right-panel bg-surface-container-low border-l border-outline-variant/30 flex flex-col" id="rightPanel">
+  <!-- Right panel tabs -->
+  <div class="flex items-center border-b border-outline-variant/30 flex-shrink-0">
+    <button class="flex-1 px-3 py-2 font-label-md text-label-md text-primary border-b-2 border-primary-container" id="rpTabBacklinks" onclick="switchRightTab('backlinks')">
+      <span class="material-symbols-outlined text-[14px] align-middle mr-1">link</span>Backlinks
+    </button>
+    <button class="flex-1 px-3 py-2 font-label-md text-label-md text-on-surface-variant" id="rpTabChat" onclick="switchRightTab('chat')">
+      <span class="material-symbols-outlined text-[14px] align-middle mr-1">forum</span>Chat
+    </button>
+    <button class="flex-1 px-3 py-2 font-label-md text-label-md text-on-surface-variant" id="rpTabOutline" onclick="switchRightTab('outline')">
+      <span class="material-symbols-outlined text-[14px] align-middle mr-1">toc</span>Outline
+    </button>
+  </div>
+
+  <!-- Backlinks content -->
+  <div class="flex-1 overflow-y-auto px-3 py-3" id="rpBacklinks">
+    <p class="font-body-sm text-body-sm text-outline text-center py-8">노트를 선택하면 백링크가 표시됩니다</p>
+  </div>
+
+  <!-- Chat content -->
+  <div class="flex-1 overflow-y-auto flex-col hidden" id="rpChat">
+    <div class="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3" id="chatMessages">
+      <div class="flex justify-center">
+        <span class="px-3 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm border border-outline-variant/30">GFM Research Assistant</span>
+      </div>
+      <div class="chat-msg-ai px-3 py-2.5">
+        <div class="flex items-center gap-1.5 mb-1.5">
+          <span class="material-symbols-outlined text-[14px] text-primary-container">smart_toy</span>
+          <span class="font-label-sm text-label-sm text-primary-container font-semibold">GFM Agent</span>
+        </div>
+        <p class="font-body-sm text-body-sm text-on-surface leading-relaxed">연구 질문을 입력하세요. Vault 노트 기반으로 답변합니다.</p>
+      </div>
+    </div>
+    <div class="px-3 py-2 border-t border-outline-variant/30 flex-shrink-0">
+      <div class="flex items-end gap-2">
+        <textarea class="chat-input flex-1 bg-surface-container border border-outline-variant/40 rounded-lg px-3 py-2 font-body-sm text-body-sm text-on-surface placeholder-outline resize-none transition-colors" placeholder="질문..." rows="2" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
+        <button class="p-1.5 rounded bg-primary-container text-on-primary-container hover:bg-primary transition-colors" onclick="sendChat()">
+          <span class="material-symbols-outlined text-[18px]">send</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Outline content -->
+  <div class="flex-1 overflow-y-auto px-3 py-3 hidden" id="rpOutline">
+    <p class="font-body-sm text-body-sm text-outline text-center py-8">노트를 선택하면 목차가 표시됩니다</p>
+  </div>
+</div>
+
+</div>
+
+<!-- ══════════ BOTTOM CODE PANEL (hidden by default) ══════════ -->
+<div class="fixed bottom-0 left-0 right-0 border-t border-outline-variant/30 bg-surface-container-lowest z-40 hidden" id="codePanel" style="height:220px">
+  <div class="resize-v flex-shrink-0 h-1 cursor-row-resize bg-outline-variant/20 hover:bg-primary-container/40 transition-colors" onmousedown="startResizeV(event)"></div>
+  <div class="flex items-center justify-between px-4 py-1.5 border-b border-outline-variant/30">
+    <div class="flex items-center gap-3">
+      <span class="material-symbols-outlined text-[16px] text-primary-container">terminal</span>
+      <span class="font-label-md text-label-md font-semibold text-on-surface">Code</span>
+      <button class="px-2 py-0.5 rounded font-label-sm text-label-sm bg-surface-container-high text-primary border border-outline-variant/40">Python</button>
+      <button class="px-2 py-0.5 rounded font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container">MATLAB</button>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="px-2 py-0.5 rounded bg-primary-container text-on-primary-container font-label-sm text-label-sm hover:bg-primary transition-colors flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">play_arrow</span>Run
+      </button>
+      <button class="p-1 rounded hover:bg-surface-container text-on-surface-variant" onclick="toggleCodePanel()">
+        <span class="material-symbols-outlined text-[14px]">close</span>
+      </button>
+    </div>
+  </div>
+  <div class="flex" style="height:calc(100% - 40px)">
+    <textarea class="code-editor" spellcheck="false" placeholder="# Python code..."></textarea>
+    <div class="w-64 border-l border-outline-variant/30 bg-surface-container-lowest overflow-y-auto px-3 py-2 font-label-md text-label-md text-on-surface-variant" style="font-family:'JetBrains Mono';font-size:12px">
+      <span class="text-outline">Output</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+// DATA & STATE
+// ════════════════════════════════════════════
+const vault = VAULT_DATA;
+let currentTab = 'journal';
+let currentFile = null;
+let openFiles = []; // [{path, filename}]
+
+// Tab → folder filter mapping
+const TAB_FILTERS = {
+  journal:    f => f.dir.includes('Phase') || f.dir.includes('04_실험결과') || f.path.includes('Phase') || f.path.includes('schedule') || f.path.includes('구축현황'),
+  literature: f => f.dir.includes('literature') || f.dir.includes('06_문헌') || (f.frontmatter && f.frontmatter.type === 'literature'),
+  writing:    f => f.dir.includes('00_MOC') || f.dir.includes('05_템플릿') || f.dir.includes('02_방법론'),
+  agent:      f => f.dir.includes('_company') || f.dir.includes('_agents') || f.path.includes('Agent') || f.path.includes('agent'),
+  plaza:      f => f.dir.includes('claims') || f.dir.includes('01_개념') || (f.frontmatter && (f.frontmatter.type === 'claim' || f.frontmatter.type === 'concept'))
+};
+
+// ════════════════════════════════════════════
+// TAB SWITCHING
+// ════════════════════════════════════════════
+function switchTab(btn) {
+  document.querySelectorAll('.nav-tab').forEach(t => { t.classList.remove('active'); t.classList.add('text-on-surface-variant'); });
+  btn.classList.add('active'); btn.classList.remove('text-on-surface-variant');
+  currentTab = btn.dataset.tab;
+  buildFileTree();
+}
+
+// ════════════════════════════════════════════
+// FILE TREE
+// ════════════════════════════════════════════
+function buildFileTree() {
+  const container = document.getElementById('fileTree');
+  const filter = TAB_FILTERS[currentTab];
+  const files = filter ? vault.filter(filter) : vault;
+
+  // Group by directory
+  const groups = {};
+  files.forEach(f => {
+    const dir = f.dir || '(root)';
+    if (!groups[dir]) groups[dir] = [];
+    groups[dir].push(f);
+  });
+
+  let html = '';
+  const sortedDirs = Object.keys(groups).sort();
+  sortedDirs.forEach(dir => {
+    const dirName = dir.split('/').pop() || dir;
+    const iconMap = { 'Phase01':'looks_one','Phase02':'looks_two','Phase03':'looks_3','Phase04':'looks_4',
+      'claims':'lightbulb','literature':'import_contacts','01_개념':'category','02_방법론':'build',
+      '00_MOC':'map','05_템플릿':'description','06_문헌':'library_books','_agents':'smart_toy',
+      '04_실험결과':'analytics','results':'data_object' };
+    let icon = 'folder';
+    for (const [k,v] of Object.entries(iconMap)) { if (dir.includes(k)) { icon = v; break; } }
+
+    html += `<div class="mb-1">
+      <div class="tree-folder flex items-center gap-1.5 px-2 py-1.5 rounded text-on-surface-variant font-label-md text-label-md" onclick="toggleFolder(this)">
+        <span class="material-symbols-outlined text-[14px] transition-transform folder-chevron">expand_more</span>
+        <span class="material-symbols-outlined text-[14px] text-primary-container/70">${icon}</span>
+        <span class="truncate">${dirName}</span>
+        <span class="ml-auto font-label-sm text-label-sm text-outline">${groups[dir].length}</span>
+      </div>
+      <div class="folder-children pl-3">`;
+    groups[dir].sort((a,b) => a.filename.localeCompare(b.filename)).forEach(f => {
+      const statusColors = { verified:'text-green-400', in_progress:'text-yellow-400', supported:'text-blue-400', completed:'text-green-400' };
+      const status = f.frontmatter?.status;
+      const statusDot = status ? `<span class="w-1.5 h-1.5 rounded-full ${statusColors[status]||'text-outline'} bg-current flex-shrink-0"></span>` : '';
+      const typeIcons = { literature:'import_contacts', claim:'lightbulb', concept:'category', 'phase-log':'timeline', method:'build' };
+      const tIcon = typeIcons[f.frontmatter?.type] || 'description';
+      html += `<div class="tree-item flex items-center gap-1.5 px-2 py-1 rounded font-body-sm text-body-sm text-on-surface-variant ${currentFile?.path===f.path?'active':''}" data-path="${f.path}" onclick="openNote('${f.path.replace(/'/g,"\\'")}')">
+        ${statusDot}
+        <span class="material-symbols-outlined text-[13px] text-outline">${tIcon}</span>
+        <span class="truncate">${f.filename}</span>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  if (files.length === 0) {
+    html = '<p class="text-center text-outline font-body-sm py-8">이 탭에 해당하는 노트가 없습니다</p>';
+  }
+  container.innerHTML = html;
+}
+
+function toggleFolder(el) {
+  const children = el.nextElementSibling;
+  const chevron = el.querySelector('.folder-chevron');
+  if (children.style.display === 'none') {
+    children.style.display = 'block'; chevron.style.transform = 'rotate(0deg)';
+  } else {
+    children.style.display = 'none'; chevron.style.transform = 'rotate(-90deg)';
+  }
+}
+function collapseAll() { document.querySelectorAll('.folder-children').forEach(c => c.style.display = 'none'); document.querySelectorAll('.folder-chevron').forEach(c => c.style.transform = 'rotate(-90deg)'); }
+function expandAll() { document.querySelectorAll('.folder-children').forEach(c => c.style.display = 'block'); document.querySelectorAll('.folder-chevron').forEach(c => c.style.transform = 'rotate(0deg)'); }
+
+// ════════════════════════════════════════════
+// OPEN NOTE
+// ════════════════════════════════════════════
+function openNote(path) {
+  const file = vault.find(f => f.path === path);
+  if (!file) return;
+  currentFile = file;
+
+  // Add to open tabs
+  if (!openFiles.find(f => f.path === path)) {
+    openFiles.push({ path: file.path, filename: file.filename });
+  }
+  renderOpenTabs();
+  renderNote(file);
+  renderBacklinks(file);
+  renderOutline(file);
+  updateBreadcrumb(file);
+
+  // Highlight in tree
+  document.querySelectorAll('.tree-item').forEach(t => {
+    t.classList.toggle('active', t.dataset.path === path);
+  });
+}
+
+function renderOpenTabs() {
+  const container = document.getElementById('openTabs');
+  container.innerHTML = openFiles.map(f => `
+    <div class="flex items-center gap-1 px-3 py-1.5 border-r border-outline-variant/20 cursor-pointer font-label-sm text-label-sm ${currentFile?.path===f.path?'text-primary bg-surface-container':'text-on-surface-variant hover:bg-surface-container/50'} transition-colors" onclick="openNote('${f.path.replace(/'/g,"\\'")}')">
+      <span class="truncate max-w-[120px]">${f.filename}</span>
+      <span class="material-symbols-outlined text-[12px] hover:text-error ml-1" onclick="event.stopPropagation();closeTab('${f.path.replace(/'/g,"\\'")}')">close</span>
+    </div>`).join('');
+}
+
+function closeTab(path) {
+  openFiles = openFiles.filter(f => f.path !== path);
+  if (currentFile?.path === path) {
+    if (openFiles.length > 0) openNote(openFiles[openFiles.length-1].path);
+    else { currentFile = null; document.getElementById('mdContent').innerHTML = '<p class="text-center text-outline py-20">노트를 선택하세요</p>'; }
+  }
+  renderOpenTabs();
+}
+
+function updateBreadcrumb(file) {
+  const parts = file.path.split('/');
+  const bc = document.getElementById('breadcrumb');
+  bc.innerHTML = '<span class="material-symbols-outlined text-[14px]">home</span>' +
+    parts.map((p,i) => `<span class="text-outline">/</span><span class="${i===parts.length-1?'text-primary':'text-on-surface-variant'}">${p}</span>`).join('');
+}
+
+// ════════════════════════════════════════════
+// RENDER MARKDOWN (Obsidian-style)
+// ════════════════════════════════════════════
+function renderNote(file) {
+  const content = document.getElementById('mdContent');
+  let html = '';
+
+  // Frontmatter display
+  if (file.frontmatter && Object.keys(file.frontmatter).length > 0) {
+    html += '<div class="frontmatter-box"><div class="flex items-center gap-2 mb-2"><span class="material-symbols-outlined text-[14px] text-outline">data_object</span><span class="text-outline uppercase tracking-wider" style="font-size:10px">Properties</span></div>';
+    for (const [k,v] of Object.entries(file.frontmatter)) {
+      let valClass = 'fm-val';
+      if (k === 'status') valClass += ` status-${v}`;
+      let displayVal = v;
+      if (Array.isArray(v)) {
+        displayVal = v.map(t => `<span class="obs-tag">#${t}</span>`).join(' ');
+      }
+      html += `<div class="flex gap-3"><span class="fm-key w-32 flex-shrink-0">${k}</span><span class="${valClass}">${displayVal}</span></div>`;
+    }
+    html += '</div>';
+  }
+
+  // Render markdown
+  let md = file.body || '';
+
+  // Convert wikilinks [[target|alias]] → clickable spans
+  md = md.replace(/\[\[([^\]]+)\]\]/g, (match, inner) => {
+    const parts = inner.split('|');
+    const target = parts[0].trim();
+    const alias = parts.length > 1 ? parts[1].trim() : target.split('/').pop();
+    return `<span class="wikilink" onclick="navigateWikilink('${target.replace(/'/g,"\\'")}')">${alias}</span>`;
+  });
+
+  // Use marked for markdown rendering
+  const rendered = marked.parse(md, { breaks: true, gfm: true });
+  html += `<div class="md-body">${rendered}</div>`;
+
+  content.innerHTML = html;
+
+  // Render LaTeX
+  content.querySelectorAll('code').forEach(el => {
+    if (el.parentElement.tagName === 'PRE') return;
+  });
+
+  // Block math $$...$$
+  content.innerHTML = content.innerHTML.replace(/\$\$([\s\S]*?)\$\$/g, (_, tex) => {
+    try { return `<div class="katex-display">${katex.renderToString(tex.trim(), {displayMode:true,throwOnError:false})}</div>`; }
+    catch(e) { return `<code>${tex}</code>`; }
+  });
+
+  // Inline math $...$
+  content.innerHTML = content.innerHTML.replace(/\$([^$\n]+?)\$/g, (_, tex) => {
+    try { return katex.renderToString(tex.trim(), {displayMode:false,throwOnError:false}); }
+    catch(e) { return `<code>${tex}</code>`; }
+  });
+}
+
+function navigateWikilink(target) {
+  // Find matching file
+  const clean = target.replace(/\\/g,'/').split('/').pop();
+  const match = vault.find(f => f.filename === clean || f.path.includes(target));
+  if (match) openNote(match.path);
+}
+
+// ════════════════════════════════════════════
+// BACKLINKS & OUTLINE
+// ════════════════════════════════════════════
+function renderBacklinks(file) {
+  const container = document.getElementById('rpBacklinks');
+  const backlinks = vault.filter(f => f.wikilinks && f.wikilinks.some(w => {
+    const wClean = w.split('/').pop().split('|')[0].trim();
+    return wClean === file.filename || file.path.includes(wClean);
+  }));
+
+  if (backlinks.length === 0) {
+    container.innerHTML = '<p class="text-center text-outline font-body-sm py-4">백링크 없음</p>';
+    return;
+  }
+
+  container.innerHTML = `<div class="font-label-sm text-label-sm text-on-surface-variant mb-2">${backlinks.length}개 백링크</div>` +
+    backlinks.map(f => {
+      const preview = (f.body || '').substring(0, 100).replace(/[#\-\*\[\]]/g, '').trim();
+      return `<div class="search-result p-2 rounded mb-1 border border-outline-variant/20" onclick="openNote('${f.path.replace(/'/g,"\\'")}')">
+        <div class="font-label-md text-label-md text-primary truncate">${f.filename}</div>
+        <div class="font-label-sm text-label-sm text-outline truncate mt-0.5">${f.dir}</div>
+        <div class="font-body-sm text-body-sm text-on-surface-variant truncate mt-0.5">${preview}...</div>
+      </div>`;
+    }).join('');
+}
+
+function renderOutline(file) {
+  const container = document.getElementById('rpOutline');
+  const headings = [];
+  const lines = (file.body || '').split('\n');
+  lines.forEach(line => {
+    const m = line.match(/^(#{1,4})\s+(.+)/);
+    if (m) headings.push({ level: m[1].length, text: m[2].replace(/[*`]/g,'') });
+  });
+
+  if (headings.length === 0) {
+    container.innerHTML = '<p class="text-center text-outline font-body-sm py-4">목차 없음</p>';
+    return;
+  }
+
+  container.innerHTML = headings.map(h => {
+    const indent = (h.level - 1) * 12;
+    const size = h.level === 1 ? 'text-primary font-semibold' : h.level === 2 ? 'text-on-surface' : 'text-on-surface-variant';
+    return `<div class="py-1 cursor-pointer hover:text-primary transition-colors font-body-sm ${size}" style="padding-left:${indent}px">${h.text}</div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════
+// RIGHT PANEL TABS
+// ════════════════════════════════════════════
+function switchRightTab(tab) {
+  ['backlinks','chat','outline'].forEach(t => {
+    const el = document.getElementById('rp' + t.charAt(0).toUpperCase() + t.slice(1));
+    const btn = document.getElementById('rpTab' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (t === tab) {
+      el.classList.remove('hidden'); el.classList.add('flex');
+      btn.classList.add('text-primary','border-b-2','border-primary-container');
+      btn.classList.remove('text-on-surface-variant');
+    } else {
+      el.classList.add('hidden'); el.classList.remove('flex');
+      btn.classList.remove('text-primary','border-b-2','border-primary-container');
+      btn.classList.add('text-on-surface-variant');
+    }
+  });
+}
+
+// ════════════════════════════════════════════
+// SEARCH
+// ════════════════════════════════════════════
+function onSearch(query) {
+  const container = document.getElementById('searchResults');
+  if (!query || query.length < 2) { container.classList.add('hidden'); return; }
+  const q = query.toLowerCase();
+  const results = vault.filter(f =>
+    f.filename.toLowerCase().includes(q) ||
+    (f.body && f.body.toLowerCase().includes(q)) ||
+    (f.frontmatter?.tags && f.frontmatter.tags.some(t => t.toLowerCase().includes(q)))
+  ).slice(0, 12);
+
+  if (results.length === 0) { container.innerHTML = '<p class="p-3 text-outline font-body-sm">결과 없음</p>'; container.classList.remove('hidden'); return; }
+
+  container.innerHTML = results.map(f => {
+    const bodySnippet = f.body ? f.body.substring(0,80).replace(/[#\-\*\[\]]/g,'').trim() : '';
+    return `<div class="search-result px-3 py-2 border-b border-outline-variant/20" onclick="openNote('${f.path.replace(/'/g,"\\'")}');hideSearchResults();">
+      <div class="font-label-md text-label-md text-primary truncate">${f.filename}</div>
+      <div class="font-label-sm text-label-sm text-outline">${f.dir}</div>
+      <div class="font-body-sm text-body-sm text-on-surface-variant truncate">${bodySnippet}</div>
+    </div>`;
+  }).join('');
+  container.classList.remove('hidden');
+}
+function showSearchResults() { if (document.getElementById('globalSearch').value.length >= 2) document.getElementById('searchResults').classList.remove('hidden'); }
+function hideSearchResults() { document.getElementById('searchResults').classList.add('hidden'); }
+
+// ════════════════════════════════════════════
+// PANELS
+// ════════════════════════════════════════════
+function toggleRight() {
+  const rp = document.getElementById('rightPanel');
+  const ws = document.getElementById('workspace');
+  if (rp.style.display === 'none') {
+    rp.style.display = 'flex'; ws.style.gridTemplateColumns = '300px 1fr 320px';
+  } else {
+    rp.style.display = 'none'; ws.style.gridTemplateColumns = '300px 1fr';
+  }
+}
+
+function toggleCodePanel() {
+  const cp = document.getElementById('codePanel');
+  cp.classList.toggle('hidden');
+  // Adjust main content bottom padding
+  const mc = document.getElementById('mainContent');
+  mc.style.paddingBottom = cp.classList.contains('hidden') ? '0' : '220px';
+}
+
+function startResizeV(e) {
+  e.preventDefault();
+  const panel = document.getElementById('codePanel');
+  const startY = e.clientY;
+  const startH = panel.offsetHeight;
+  function onMove(ev) { panel.style.height = Math.max(100, Math.min(500, startH + (startY - ev.clientY))) + 'px'; }
+  function onUp() { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); }
+  document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
+}
+
+// ════════════════════════════════════════════
+// CHAT
+// ════════════════════════════════════════════
+function sendChat() {
+  const textarea = document.querySelector('.chat-input');
+  const text = textarea.value.trim(); if (!text) return;
+  const container = document.getElementById('chatMessages');
+
+  const userDiv = document.createElement('div');
+  userDiv.className = 'chat-msg-user px-3 py-2.5 max-w-[85%] self-end';
+  userDiv.innerHTML = `<p class="font-body-sm text-body-sm text-on-surface">${text.replace(/</g,'&lt;')}</p>`;
+  container.appendChild(userDiv);
+  textarea.value = '';
+  container.scrollTop = container.scrollHeight;
+
+  setTimeout(() => {
+    const aiDiv = document.createElement('div');
+    aiDiv.className = 'chat-msg-ai px-3 py-2.5 max-w-[95%]';
+    aiDiv.innerHTML = `<div class="flex items-center gap-1.5 mb-1.5"><span class="material-symbols-outlined text-[14px] text-primary-container">smart_toy</span><span class="font-label-sm text-label-sm text-primary-container font-semibold">GFM Agent</span></div><p class="font-body-sm text-body-sm text-on-surface leading-relaxed">Vault에서 관련 노트를 검색 중입니다...</p>`;
+    container.appendChild(aiDiv);
+    container.scrollTop = container.scrollHeight;
+  }, 500);
+}
+
+// ════════════════════════════════════════════
+// QUICK STATS
+// ════════════════════════════════════════════
+function renderQuickStats() {
+  const stats = [
+    { icon: 'science', label: '실험 기록', count: vault.filter(f => f.dir.includes('Phase') || f.dir.includes('실험')).length, color: 'text-primary-container' },
+    { icon: 'import_contacts', label: '문헌 노트', count: vault.filter(f => f.frontmatter?.type === 'literature').length, color: 'text-secondary' },
+    { icon: 'lightbulb', label: '주장(Claim)', count: vault.filter(f => f.frontmatter?.type === 'claim').length, color: 'text-tertiary-fixed-dim' },
+    { icon: 'category', label: '개념 노트', count: vault.filter(f => f.frontmatter?.type === 'concept' || f.dir.includes('01_개념')).length, color: 'text-primary' }
+  ];
+
+  document.getElementById('quickStats').innerHTML = stats.map(s => `
+    <div class="p-3 rounded-lg bg-surface-container border border-outline-variant/40 flex items-center gap-3">
+      <span class="material-symbols-outlined text-[20px] ${s.color}">${s.icon}</span>
+      <div><div class="font-headline-sm text-[16px] font-semibold text-on-surface">${s.count}</div><div class="font-label-sm text-label-sm text-on-surface-variant">${s.label}</div></div>
+    </div>`).join('');
+}
+
+// ════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    document.getElementById('globalSearch').focus();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === '`') {
+    e.preventDefault(); toggleCodePanel();
+  }
+});
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+document.getElementById('fileCount').textContent = vault.length + ' notes';
+buildFileTree();
+renderQuickStats();
+</script>
+</body>
+</html>
