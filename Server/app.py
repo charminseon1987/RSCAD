@@ -28,6 +28,8 @@ from pathlib import Path
 
 import numpy as np
 import yaml
+import firebase_admin
+from firebase_admin import credentials, db as fb_db
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -43,6 +45,14 @@ WEB_DIR      = ROOT / 'Web'
 
 app = Flask(__name__, static_folder=str(WEB_DIR), static_url_path='')
 CORS(app)
+
+# ── Firebase Admin SDK (reloader 자식에서만 초기화) ──
+_fb_key = ROOT / 'Server' / 'firebase-key.json'
+if _fb_key.exists() and os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+    _cred = credentials.Certificate(str(_fb_key))
+    firebase_admin.initialize_app(_cred, {
+        'databaseURL': 'https://gfm-labs-default-rtdb.firebaseio.com'
+    })
 
 
 # ═══════════════════════════════════════════════

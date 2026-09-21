@@ -4,3 +4,4 @@ __pycache__/
 .env
 agent/chroma/
 *.bak.*
+firebase-key.json

@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: gfm-labs-api
+    runtime: python
+    buildCommand: pip install -r Server/requirements.txt
+    startCommand: gunicorn Server.app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: WERKZEUG_RUN_MAIN
+        value: "true"
+      - key: PYTHON_VERSION
+        value: "3.11.9"
