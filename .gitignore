@@ -5,3 +5,6 @@ __pycache__/
 agent/chroma/
 *.bak.*
 firebase-key.json
+node_modules/
+dist/
+debug.log
