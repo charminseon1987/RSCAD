@@ -22,7 +22,8 @@ v2 app.py 에서 제거한 것:
   python Server/app.py
 """
 
-import sys, json
+import os, sys, json
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -343,12 +344,14 @@ def operating_points():
 # ═══════════════════════════════════════════════
 @app.route('/api/compute', methods=['POST'])
 def compute():
-    """슬라이더 값으로 runner.run() 을 실제 호출한다.
+    """전체 파이프라인 실행: op → jacobian → eigenvalue → metrics → persist → reload.
 
-    v2 는 저장된 행렬의 특정 성분을 수식으로 덮어써서 '동적 반영'을 흉내냈다.
-    그건 다른 파라미터의 야코비안이 아니라 훼손된 야코비안이다. 여기서는
-    동작점부터 다시 푼다. 느리지만 값이 맞다. persist=False 라 디스크에
-    아무것도 쓰지 않는다.
+    persist 모드 (기본):
+      runner.run(persist=True) → results/ 에 저장 + results.md (Obsidian) 생성
+      → 서버 상태 자동 reload → 차트가 새 데이터로 갱신.
+
+    preview 모드 (persist=false):
+      runner.run(persist=False) → 디스크 저장 없이 결과만 반환.
     """
     d = request.json or {}
 
@@ -369,26 +372,105 @@ def compute():
 
     SCR_list = d.get('SCR') or STATE['meta'].get('SCR_list') or [3.0, 2.0, 1.5, 1.0]
     XR       = float(d.get('XR', STATE['meta'].get('XR', 1.0)))
+    do_persist = d.get('persist', True)
+    tag        = d.get('tag', '')
 
     if len(SCR_list) > 12:
         return jsonify({'status': 'error',
                         'error': 'SCR 12개 초과 — 배치 실행은 runner.py 로'}), 400
 
     try:
-        results, meta, _ = runner.run(ctrl, SCR_list, XR,
-                                      persist=False, quiet=True)
+        results, meta, out_dir = runner.run(
+            ctrl, SCR_list, XR, tag=tag,
+            persist=do_persist, quiet=True)
     except Exception as e:                  # noqa: BLE001
         return jsonify({'status': 'error', 'error': str(e),
                         'type': type(e).__name__}), 500
 
+    # persist 모드: 서버 상태를 새 결과로 reload
+    if do_persist and out_dir:
+        try:
+            load_run(out_dir)
+        except Exception:                   # noqa: BLE001
+            pass  # reload 실패해도 결과 반환은 한다
+
     return jsonify({
-        'status':  'ok',
-        'computed': True,
-        'persisted': False,
-        'ctrl':    ctrl,
-        'XR':      XR,
-        'meta':    meta,
-        'results': {f'{k:.2f}': v for k, v in results.items()},
+        'status':    'ok',
+        'computed':  True,
+        'persisted': bool(do_persist),
+        'run_name':  meta.get('run_name', ''),
+        'run_dir':   str(out_dir) if out_dir else None,
+        'ctrl':      ctrl,
+        'XR':        XR,
+        'meta':      meta,
+        'results':   {f'{k:.2f}': v for k, v in results.items()},
+        'artifacts': {
+            'eigenvalue_results': bool(out_dir and (out_dir / 'eigenvalue_results.json').exists()),
+            'meta_json':          bool(out_dir and (out_dir / 'meta.json').exists()),
+            'results_md':         bool(out_dir and (out_dir / 'results.md').exists()),
+            'npy_count':          len(list(out_dir.glob('A_num_SCR*.npy'))) if out_dir else 0,
+        } if do_persist else None,
+    })
+
+
+@app.route('/api/run_xval', methods=['POST'])
+def run_xval():
+    """선형화 유효범위 검증 실행 (xval.py).
+
+    현재 로드된 결과 폴더에 대해 xval 을 실행한다. 시간이 걸릴 수 있다.
+    """
+    err = _require_loaded()
+    if err:
+        return err
+
+    d = request.json or {}
+    input_name = d.get('input', 'Pref')
+    traj_at    = d.get('traj_at', 0.1)
+    tol        = d.get('tol', 0.05)
+    steps      = d.get('steps', [0.001, 0.005, 0.01, 0.02, 0.05, 0.10, 0.20, 0.30])
+
+    run_dir = STATE['run_dir']
+    run_name = run_dir.name
+
+    # xval.py 를 subprocess 로 실행 (argparse 모듈이라 직접 import 하면 충돌)
+    import subprocess
+    cmd = [
+        sys.executable, str(ROOT / 'Simulation' / 'xval.py'),
+        '--run', run_name,
+        '--input', input_name,
+        '--tol', str(tol),
+    ]
+    if traj_at is not None:
+        cmd += ['--traj-at', str(traj_at)]
+    if steps:
+        cmd += ['--steps'] + [str(s) for s in steps]
+
+    try:
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=300,
+            cwd=str(ROOT), env={**dict(os.environ), 'PYTHONIOENCODING': 'utf-8'})
+    except subprocess.TimeoutExpired:
+        return jsonify({'status': 'error', 'error': 'xval 타임아웃 (5분 초과)'}), 504
+
+    if proc.returncode != 0:
+        return jsonify({
+            'status': 'error',
+            'error': f'xval 실행 실패 (exit {proc.returncode})',
+            'stderr': proc.stderr[-2000:] if proc.stderr else '',
+        }), 500
+
+    # 결과 파일 확인
+    xval_file = run_dir / f'linearization_validity_{input_name}.json'
+    traj_files = list(run_dir.glob(f'trajectory_{input_name}_r*.npz'))
+
+    return jsonify({
+        'status': 'ok',
+        'run': run_name,
+        'input': input_name,
+        'xval_exists': xval_file.exists(),
+        'traj_count': len(traj_files),
+        'stdout': proc.stdout[-2000:] if proc.stdout else '',
+        'artifacts': [f.name for f in [xval_file] + traj_files if f.exists()],
     })
 
 
@@ -512,7 +594,7 @@ def schedule_status():
 def plaza():
     """Firebase RTDB plaza URL 을 반환한다."""
     # TODO: connect-ai 설정에서 읽어오도록 교체
-    plaza_url = 'https://rscad-plaza-default-rtdb.firebaseio.com'
+    plaza_url = 'https://gfm-labs-default-rtdb.firebaseio.com'
     return jsonify({
         'status': 'ok',
         'plaza_url': plaza_url,
@@ -569,6 +651,125 @@ def get_note():
     return jsonify({'status': 'ok', 'path': path, 'content': text})
 
 
+@app.route('/api/save_note', methods=['POST'])
+def save_note():
+    """실험 결과를 마크다운 연구일지로 저장."""
+    d = request.json or {}
+    title = d.get('title', '').strip()
+    if not title:
+        return jsonify({'status': 'error', 'error': 'title 필요'}), 400
+
+    ctrl = d.get('ctrl', {})
+    xr = d.get('XR', 1.0)
+    results = d.get('results', {})
+    memo = d.get('memo', '')
+
+    now = datetime.now()
+    slug = title.replace(' ', '_')[:60]
+    filename = f'{now.strftime("%Y%m%d_%H%M")}_{slug}.md'
+
+    vault = ROOT / 'GFM_Research'
+    note_dir = vault / 'RSCAD' / 'Phase02' / 'lab_notes'
+    note_dir.mkdir(parents=True, exist_ok=True)
+    fp = note_dir / filename
+
+    lines = [
+        '---',
+        f'title: "{title}"',
+        f'date: {now.strftime("%Y-%m-%d %H:%M")}',
+        f'type: lab_note',
+        f'source: dashboard',
+        '---',
+        '',
+        f'# {title}',
+        '',
+        '## Parameters',
+        f'- X/R = {xr}',
+    ]
+    for k, v in sorted(ctrl.items()):
+        lines.append(f'- {k} = {v}')
+
+    lines += ['', '## Results', '']
+    lines.append('| SCR | Stable | zeta_min | Band | f_dom [Hz] | delta [deg] |')
+    lines.append('|-----|--------|----------|------|------------|-------------|')
+    for scr_k in sorted(results.keys(), key=float, reverse=True):
+        r = results[scr_k]
+        if not r.get('converged', True):
+            lines.append(f'| {scr_k} | — | — | — | — | — |')
+            continue
+        lines.append(
+            f'| {scr_k} '
+            f'| {"O" if r.get("stable") else "X"} '
+            f'| {r.get("zeta_min", 0):.4f} '
+            f'| {r.get("zeta_band", "—")} '
+            f'| {r.get("f_dom_hz", 0):.1f} '
+            f'| {r.get("delta_deg", 0):.1f} |'
+        )
+
+    if memo:
+        lines += ['', '## Memo', '', memo]
+
+    lines += [
+        '',
+        '---',
+        f'*Generated from GFM Labs dashboard at {now.strftime("%Y-%m-%d %H:%M:%S")}*',
+    ]
+
+    fp.write_text('\n'.join(lines), encoding='utf-8')
+    rel_path = str(fp.relative_to(vault))
+    return jsonify({'status': 'ok', 'path': rel_path, 'filename': filename})
+
+
+@app.route('/api/export_paper', methods=['POST'])
+def export_paper():
+    """실험 결과를 논문용 LaTeX 테이블 및 figure caption 으로 내보내기."""
+    d = request.json or {}
+    results = d.get('results', {})
+    ctrl = d.get('ctrl', {})
+    xr = d.get('XR', 1.0)
+    caption = d.get('caption', 'Eigenvalue analysis results')
+
+    # LaTeX table
+    rows = []
+    for scr_k in sorted(results.keys(), key=float, reverse=True):
+        r = results[scr_k]
+        if not r.get('converged', True):
+            continue
+        rows.append(
+            f'  {scr_k} & '
+            f'{"Stable" if r.get("stable") else "Unstable"} & '
+            f'{r.get("zeta_min", 0):.4f} & '
+            f'{r.get("zeta_band", "—")} & '
+            f'{r.get("f_dom_hz", 0):.1f} & '
+            f'{r.get("delta_deg", 0):.1f} \\\\'
+        )
+
+    key_params = ', '.join(f'{k}={v}' for k, v in sorted(ctrl.items())
+                           if k in ('J', 'Dp', 'Kpv', 'wc', 'nq'))
+
+    latex = '\n'.join([
+        '\\begin{table}[htbp]',
+        '\\centering',
+        f'\\caption{{{caption}}}',
+        '\\label{tab:eigenvalue_results}',
+        '\\begin{tabular}{cccccc}',
+        '\\toprule',
+        'SCR & Status & $\\zeta_{\\min}$ & Band & $f_{\\mathrm{dom}}$ [Hz] & $\\delta$ [deg] \\\\',
+        '\\midrule',
+        *rows,
+        '\\bottomrule',
+        '\\end{tabular}',
+        f'\\\\[2pt]\\footnotesize X/R={xr}, {key_params}',
+        '\\end{table}',
+    ])
+
+    return jsonify({
+        'status': 'ok',
+        'latex': latex,
+        'key_params': key_params,
+    })
+
+
 @app.route('/api/command', methods=['POST'])
 def run_command():
     """비서/광장에서 자연어 명령을 받아 에이전트에 분배한다.
@@ -600,6 +801,169 @@ def run_command():
         'note_path': result.get('note_path'),
         'elapsed': result.get('elapsed'),
         'error': result.get('error') if not result['ok'] else None,
+    })
+
+
+@app.route('/api/eigenvalue_locus')
+def eigenvalue_locus():
+    """모든 SCR 의 고유값을 복소평면 좌표로 반환."""
+    err = _require_loaded()
+    if err:
+        return err
+
+    data = []
+    for scr in sorted(STATE['results'], reverse=True):
+        r = STATE['results'][scr]
+        if not r.get('converged') or 'modes' not in r:
+            continue
+        for m in r['modes']:
+            data.append({
+                'SCR': scr,
+                're': m['re'],
+                'im': m['im'],
+                'zeta': m['zeta'],
+                'f_hz': m['f_hz'],
+                'band': m['band'],
+            })
+            # 공액 쌍 (im ≠ 0)
+            if abs(m['im']) > 1e-6:
+                data.append({
+                    'SCR': scr,
+                    're': m['re'],
+                    'im': -m['im'],
+                    'zeta': m['zeta'],
+                    'f_hz': m['f_hz'],
+                    'band': m['band'],
+                })
+
+    return jsonify({'status': 'ok', 'points': data, 'n_states': M.N})
+
+
+@app.route('/api/linearization_validity')
+def linearization_validity():
+    """저장된 선형화 유효범위 결과를 반환."""
+    err = _require_loaded()
+    if err:
+        return err
+
+    run_dir = STATE['run_dir']
+    results = {}
+    for inp in ('Pref', 'Vg'):
+        fp = run_dir / f'linearization_validity_{inp}.json'
+        if fp.exists():
+            results[inp] = json.loads(fp.read_text(encoding='utf-8'))
+
+    if not results:
+        return jsonify({'status': 'error',
+                        'error': '선형화 유효범위 데이터 없음',
+                        'hint': 'python Simulation/xval.py 실행 필요'}), 404
+
+    return jsonify({'status': 'ok', 'inputs': results})
+
+
+@app.route('/api/trajectory')
+def trajectory():
+    """저장된 시간영역 궤적 데이터를 JSON 으로 반환."""
+    err = _require_loaded()
+    if err:
+        return err
+
+    run_dir = STATE['run_dir']
+    npz_files = sorted(run_dir.glob('trajectory_*.npz'))
+    if not npz_files:
+        return jsonify({'status': 'error',
+                        'error': '시간영역 궤적 데이터 없음'}), 404
+
+    # 첫 번째 궤적 파일을 기본으로, 또는 쿼리로 선택
+    q_input = request.args.get('input', 'Pref')
+    q_ratio = request.args.get('ratio', '0.1')
+    target = run_dir / f'trajectory_{q_input}_r{q_ratio}.npz'
+    if not target.exists():
+        target = npz_files[0]
+
+    d = np.load(str(target), allow_pickle=True)
+
+    state_names = d['states'].tolist() if 'states' in d else []
+    scr_strs = d['scrs'].tolist() if 'scrs' in d else []
+    inp = str(d['input']) if 'input' in d else q_input
+    ratio = float(d['ratio']) if 'ratio' in d else float(q_ratio)
+
+    # 주요 상태 7개: delta, dw, Pf, Qf, i_od, v_od, v_dc
+    KEY_STATES = ['delta', 'dw', 'Pf', 'Qf', 'i_od', 'v_od', 'v_dc']
+    key_indices = []
+    for ks in KEY_STATES:
+        if ks in state_names:
+            key_indices.append((state_names.index(ks), ks))
+
+    # 다운샘플: 최대 200포인트
+    traces = []
+    first_t = None
+    for scr_s in scr_strs:
+        t_key = f't_{scr_s}'
+        nl_key = f'nl_{scr_s}'
+        lin_key = f'lin_{scr_s}'
+        if t_key not in d or nl_key not in d:
+            continue
+        t_arr = d[t_key]
+        nl_arr = d[nl_key]   # (22, N)
+        lin_arr = d[lin_key] if lin_key in d else None
+
+        step = max(1, len(t_arr) // 200)
+        t_ds = t_arr[::step].tolist()
+        if first_t is None:
+            first_t = t_ds
+
+        for vi, vname in key_indices:
+            nl_vals = nl_arr[vi, ::step].tolist()
+            lin_vals = lin_arr[vi, ::step].tolist() if lin_arr is not None else []
+            traces.append({
+                'SCR': float(scr_s),
+                'state': vname,
+                'state_idx': vi,
+                'nl': nl_vals,
+                'lin': lin_vals,
+            })
+
+    return jsonify({
+        'status': 'ok',
+        'file': target.name,
+        'input': inp,
+        'ratio': ratio,
+        't': first_t or [],
+        'SCR_list': [float(s) for s in scr_strs],
+        'state_names': [vn for _, vn in key_indices],
+        'traces': traces,
+        'available': [f.name for f in npz_files],
+    })
+
+
+@app.route('/api/rag', methods=['POST'])
+def rag_action():
+    """RAG 파이프라인 관리 (청킹, 색인, 평가, 검색, 재구축)."""
+    d = request.json or {}
+    command = d.get('command', '').strip()
+    action = d.get('action')
+    strategy = d.get('strategy', 'section')
+    rerank = d.get('rerank', False)
+
+    if not command and not action:
+        return jsonify({'status': 'error', 'error': 'command 또는 action 필요'}), 400
+
+    sys.path.insert(0, str(ROOT / 'agent'))
+    import rag_manager
+    result = rag_manager.execute(
+        command or action, action=action,
+        strategy=strategy, rerank=rerank)
+
+    return jsonify({
+        'status': 'ok' if result['ok'] else 'error',
+        'action': result.get('action'),
+        'agent_name': result.get('agent_name'),
+        'agent_emoji': result.get('agent_emoji'),
+        'conclusion': result.get('conclusion', ''),
+        'note_path': result.get('note_path'),
+        'elapsed': result.get('elapsed'),
+        'error': None if result['ok'] else result.get('conclusion'),
     })
 
 

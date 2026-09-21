@@ -2,7 +2,7 @@
 type: result
 phase: 2
 run: J0.50_Dp20.0_Kpv0.050_wc62.8_XR1.0_9be44c
-date: 2026-09-08 10:52
+date: 2026-09-21 10:45
 threshold_input: Pref
 T_mode: auto
 threshold_common: 0.2

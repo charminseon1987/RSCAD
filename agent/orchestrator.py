@@ -52,6 +52,16 @@ AGENT_MAP = {
         'emoji': '📚',
         'name': '문헌추적자',
     },
+    'rag_manager': {
+        'script': 'agent/rag_manager.py',
+        'keywords': ['색인', 'index', '청크', 'chunk', '임베딩', 'embed',
+                     'RAG', 'rag', '벡터', 'vector', '리랭커', 'rerank',
+                     '평가셋', 'eval', 'recall', 'MRR', 'nDCG',
+                     '재구축', 'rebuild', '파이프라인', 'pipeline',
+                     '청킹', '색인 만들', '검색 품질'],
+        'emoji': '🔎',
+        'name': 'RAG관리자',
+    },
 }
 
 

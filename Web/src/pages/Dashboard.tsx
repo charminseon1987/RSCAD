@@ -15,6 +15,7 @@ const AGENTS = [
   { id: 'researcher', name: '문헌추적자', emoji: '📚', role: 'Literature', color: 'text-blue-400' },
   { id: 'writer', name: '논문작가', emoji: '✍️', role: 'Writer', color: 'text-amber-400' },
   { id: 'designer', name: '그림담당', emoji: '📊', role: 'Figures', color: 'text-purple-400' },
+  { id: 'rag_manager', name: 'RAG관리자', emoji: '🔎', role: 'RAG Pipeline', color: 'text-orange-400' },
 ];
 
 const RQS = [
