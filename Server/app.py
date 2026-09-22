@@ -990,12 +990,72 @@ def pso_not_implemented():
     }), 501
 
 
+# ═══════════════════════════════════════════════
+# API — Lab Dashboard 용 (구 serve_dashboard.py 통합)
+# ═══════════════════════════════════════════════
+@app.route('/api/grid2d')
+def grid2d():
+    """results/ 전체를 {XR: {SCR: sigma_min}} 격자로 집계."""
+    grid = {}
+    all_xr, all_scr = set(), set()
+    for d in sorted(RESULTS_ROOT.iterdir()):
+        if not d.is_dir() or d.name.startswith('_'):
+            continue
+        mp = d / 'meta.json'
+        ep = d / 'eigenvalue_results.json'
+        if not mp.exists() or not ep.exists():
+            continue
+        try:
+            m = json.loads(mp.read_text(encoding='utf-8'))
+            e = json.loads(ep.read_text(encoding='utf-8'))
+        except (json.JSONDecodeError, OSError):
+            continue
+        xr_val = m.get('XR')
+        if xr_val is None:
+            continue
+        xr_key = f'{float(xr_val):.1f}'
+        all_xr.add(float(xr_val))
+        if xr_key not in grid:
+            grid[xr_key] = {}
+        for scr_key, v in e.items():
+            if not isinstance(v, dict):
+                continue
+            sigma = v.get('sigma_min') or v.get('min_abs_real')
+            if sigma is None:
+                continue
+            scr_num = float(scr_key)
+            all_scr.add(scr_num)
+            if scr_num not in grid[xr_key] or sigma > grid[xr_key][scr_num]:
+                grid[xr_key][scr_num] = round(sigma, 5)
+    return jsonify({
+        'grid': grid,
+        'gridXR': sorted(all_xr),
+        'gridSCR': sorted(all_scr, reverse=True),
+    })
+
+
+@app.route('/api/latest')
+def latest():
+    """LATEST.json 내용 반환."""
+    p = RESULTS_ROOT / 'LATEST.json'
+    if not p.exists():
+        return jsonify({'error': 'LATEST.json not found'}), 404
+    return jsonify(json.loads(p.read_text(encoding='utf-8')))
+
+
+@app.route('/results/<path:filepath>')
+def serve_results(filepath):
+    """results/ 하위 파일을 정적 서빙."""
+    from flask import send_from_directory
+    return send_from_directory(str(RESULTS_ROOT), filepath)
+
+
 if __name__ == '__main__':
     print("=" * 62)
     print("  GFM Research Flask Server (v3)")
-    print(f"  모델: {M.N}-state")
-    print(f"  실행: {STATE['run_dir'].name if STATE['run_dir'] else '없음'}")
-    print(f"  SCR : {sorted(STATE['A'], reverse=True)}")
+    print(f"  model: {M.N}-state")
+    print(f"  run:   {STATE['run_dir'].name if STATE['run_dir'] else 'none'}")
+    print(f"  SCR:   {sorted(STATE['A'], reverse=True)}")
     print("  http://localhost:5000")
     print("=" * 62)
     app.run(host='0.0.0.0', port=5000, debug=True)

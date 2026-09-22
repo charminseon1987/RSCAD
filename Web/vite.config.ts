@@ -8,8 +8,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': 'http://localhost:5000',
-      '/results': 'http://localhost:8765',
-      '/api/grid2d': 'http://localhost:8765',
+      '/results': 'http://localhost:5000',
     },
   },
 });

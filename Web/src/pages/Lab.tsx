@@ -314,7 +314,7 @@ export default function Lab() {
       // 1) LATEST.json
       let runName: string | null = null;
       try {
-        const latest = await fetch('/results/LATEST.json').then(r => { if (!r.ok) throw r; return r.json(); });
+        const latest = await fetch('/api/latest').then(r => { if (!r.ok) throw r; return r.json(); });
         runName = latest.run_name;
       } catch {
         setToast('LATEST.json 을 읽지 못했습니다. serve_dashboard.py 를 실행하세요.');

@@ -3,6 +3,10 @@ const API = `${BASE}/api`;
 
 export async function fetchJSON<T = any>(path: string, init?: RequestInit): Promise<T> {
   const r = await fetch(API + path, init);
+  if (!r.ok) {
+    const text = await r.text().catch(() => '');
+    throw new Error(`HTTP ${r.status}: ${text.slice(0, 200) || r.statusText}`);
+  }
   return r.json();
 }
 
