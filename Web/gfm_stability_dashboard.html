@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GFM 소신호 안정도</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Open+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* 브랜드: 주 #2A9D8F · 보조 #E9C46A · 강조 #F4A261 · 본문 #264653
+   글래스: 배경 장면 위에 떠 있는 창 하나, 그 안에 겹친 유리 타일.
+   유리에는 어두운 틴트를 깔아 어떤 배경에서도 흰 글씨 대비를 확보한다. */
+:root{
+  --teal:#3CC3B2; --teal-deep:#2A9D8F; --yellow:#E9C46A; --orange:#F4A261; --ink:#264653;
+  --text:#FFFFFF; --text-soft:rgba(255,255,255,.72); --text-faint:rgba(255,255,255,.5);
+  --win:rgba(38,52,60,.20); --tile:rgba(28,38,46,.34); --tile-hi:rgba(255,255,255,.14);
+  --edge:rgba(255,255,255,.30); --hair:rgba(255,255,255,.14); --off:rgba(255,255,255,.18);
+  --scene-a:#C9CCCC; --scene-b:#9EA3A5; --scene-c:#6F7577; --scene-d:#E4E2DC;
+  --sheen:.55;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --win:rgba(20,28,34,.30); --tile:rgba(14,20,26,.46);
+    --scene-a:#4A5256; --scene-b:#343B3F; --scene-c:#23292C; --scene-d:#5C6264;
+    --sheen:.28; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --win:rgba(20,28,34,.30); --tile:rgba(14,20,26,.46);
+  --scene-a:#4A5256; --scene-b:#343B3F; --scene-c:#23292C; --scene-d:#5C6264;
+  --sheen:.28; color-scheme: dark;
+}
+:root{ box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+html{ scroll-padding-top:env(safe-area-inset-top,0px); min-height:100%; background:var(--scene-c); }
+*,*::before,*::after{ box-sizing:inherit; }
+body{ margin:0; min-height:100vh; color:var(--text);
+  font-family:"Open Sans","Noto Sans KR","Malgun Gothic",sans-serif;
+  font-size:14.5px; line-height:1.55; font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased; }
+
+/* ── 배경 장면: 기본은 실내 빛을 흉내 낸 그라디언트, 사진으로 바꿀 수 있다 ── */
+.scene{ position:fixed; inset:0; z-index:-1; overflow:hidden;
+  background:
+    radial-gradient(60% 70% at 8% 30%, var(--scene-d), transparent 70%),
+    radial-gradient(40% 50% at 92% 10%, rgba(255,255,255,.35), transparent 70%),
+    linear-gradient(100deg, var(--scene-a) 0%, var(--scene-b) 45%, var(--scene-c) 100%);
+  background-size:cover; background-position:center; }
+.scene::before{ content:""; position:absolute; left:-4%; top:8%; width:22%; height:92%;
+  background:repeating-linear-gradient(90deg, rgba(255,255,255,.22) 0 14px, rgba(255,255,255,.06) 14px 30px);
+  filter:blur(6px); opacity:.7; }                         /* 창가 커튼 */
+.scene::after{ content:""; position:absolute; right:-6%; bottom:-12%; width:58%; height:46%;
+  border-radius:48% 52% 40% 44%; background:radial-gradient(ellipse at 40% 30%, rgba(90,96,100,.9), rgba(50,55,58,.9));
+  filter:blur(10px); opacity:.55; }                        /* 바닥의 소파 형상 */
+.scene.photo::before,.scene.photo::after{ display:none; }
+
+.wrap{ max-width:1240px; margin:0 auto; padding:clamp(12px,3vw,44px); }
+
+/* ── 유리 ── */
+.glass{ position:relative; border:1px solid var(--edge);
+  -webkit-backdrop-filter:blur(28px) saturate(140%); backdrop-filter:blur(28px) saturate(140%); }
+.glass::before{ content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0) 30%); opacity:var(--sheen); }
+.glass > *{ position:relative; }
+.window{ background:var(--win); border-radius:34px; padding:clamp(14px,2vw,24px);
+  box-shadow:0 40px 90px -40px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.4); }
+.tile{ background:var(--tile); border-radius:24px; padding:clamp(14px,1.6vw,20px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22); }
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .window{ background:rgba(40,52,58,.82); } .tile{ background:rgba(30,40,46,.7); } }
+
+/* ── 상단 바 ── */
+.top{ display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; margin-bottom:14px; }
+.logo{ width:40px; height:40px; border-radius:12px; display:grid; place-items:center;
+  background:linear-gradient(145deg,var(--teal),var(--teal-deep)); box-shadow:inset 0 1px 0 rgba(255,255,255,.5); }
+.nav{ display:flex; flex-wrap:wrap; gap:4px; padding:4px; border-radius:999px; background:rgba(255,255,255,.08);
+  border:1px solid var(--hair); }
+.nav button,.pill-btn{ font:inherit; font-size:13px; font-weight:600; color:var(--text-soft);
+  background:transparent; border:1px solid transparent; padding:7px 14px; border-radius:999px; cursor:pointer; }
+.nav button[aria-pressed="true"]{ color:var(--text); background:rgba(255,255,255,.16); border-color:var(--edge);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35); }
+.spacer{ flex:1; }
+.pill-btn{ display:inline-flex; align-items:center; gap:7px; color:var(--text); background:rgba(255,255,255,.1);
+  border-color:var(--hair); }
+.pill-btn:hover,.nav button:hover{ color:var(--text); }
+.pill-btn input{ position:absolute; opacity:0; width:1px; height:1px; }
+button:focus-visible,.pill-btn:focus-within,input:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+
+.title-row{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:8px 16px; margin:4px 4px 14px; }
+h1{ margin:0; font-family:Montserrat,"Noto Sans KR",sans-serif; font-weight:700; font-size:clamp(20px,2.2vw,26px); letter-spacing:-.01em; }
+.run{ color:var(--text-soft); font-size:12.5px; }
+
+/* ── 리퀴드 그리드: 4열 → 2열 → 1열 ── */
+.grid{ display:grid; gap:clamp(10px,1.2vw,14px);
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-areas:
+    "hero hero hero side"
+    "k1   k2   k3   map"
+    "chart chart ai ai"; }
+.a-hero{grid-area:hero} .a-side{grid-area:side} .a-k1{grid-area:k1} .a-k2{grid-area:k2}
+.a-k3{grid-area:k3} .a-map{grid-area:map} .a-chart{grid-area:chart} .a-ai{grid-area:ai}
+@media (max-width:1040px){
+  .grid{ grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-areas:"hero hero" "side map" "k1 k2" "k3 map" "chart chart" "ai ai"; } }
+@media (max-width:640px){
+  .grid{ grid-template-columns:1fr;
+    grid-template-areas:"hero" "side" "k1" "k2" "k3" "map" "chart" "ai"; } }
+
+.t-head{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px 10px; margin-bottom:10px; }
+.t-head h2{ margin:0; font-family:Montserrat,"Noto Sans KR",sans-serif; font-weight:600; font-size:15px; letter-spacing:-.005em; }
+.t-head .hint{ font-size:12px; color:var(--text-faint); }
+.big{ font-family:Montserrat,sans-serif; font-weight:700; font-size:clamp(26px,2.8vw,34px); letter-spacing:-.02em; line-height:1.1; }
+.big small{ font-family:"Open Sans",sans-serif; font-size:13px; font-weight:500; color:var(--text-soft); margin-left:4px; }
+.muted{ color:var(--text-soft); font-size:12.5px; }
+.chip{ display:inline-block; font-size:11.5px; font-weight:600; padding:2px 8px; border-radius:999px; margin-left:6px; vertical-align:4px; }
+.chip.ok{ background:rgba(60,195,178,.24); color:#BFF3EC; }
+.chip.ng{ background:rgba(244,162,97,.26); color:#FFD9BB; }
+
+/* hero */
+.hero-body{ display:grid; grid-template-columns:minmax(150px,210px) 1fr; gap:14px 28px; align-items:center; }
+@media (max-width:640px){ .hero-body{ grid-template-columns:1fr; } }
+.gauges{ display:grid; gap:10px; }
+.g-row{ display:grid; grid-template-columns:62px 1fr 56px; align-items:center; gap:10px; font-size:12.5px; }
+.g-row .lab{ color:var(--text-soft); }
+.g-row .num{ text-align:right; font-weight:600; }
+.g-bar{ position:relative; height:14px; border-radius:8px; background:rgba(255,255,255,.1); overflow:visible; }
+.g-bar i{ position:absolute; left:0; top:0; bottom:0; border-radius:8px; }
+.g-bar i.ok{ background:linear-gradient(90deg,var(--teal-deep),var(--teal)); }
+.g-bar i.ng{ background:linear-gradient(90deg,#D9853F,var(--orange)); }
+.g-bar b{ position:absolute; top:-5px; bottom:-5px; width:2px; background:#fff; border-radius:2px;
+  box-shadow:0 0 0 3px rgba(255,255,255,.18); }
+.g-scale{ display:grid; grid-template-columns:62px 1fr 56px; gap:10px; font-size:11px; color:var(--text-faint); }
+.g-scale span:nth-child(2){ position:relative; height:14px; }
+.g-scale em{ position:absolute; transform:translateX(-50%); font-style:normal; }
+
+/* side */
+.side-body{ display:flex; justify-content:space-between; align-items:flex-end; gap:12px; }
+.meter{ width:54px; height:86px; border-radius:16px; background:rgba(255,255,255,.1); position:relative; overflow:hidden;
+  border:1px solid var(--hair); }
+.meter i{ position:absolute; left:0; right:0; bottom:0; background:linear-gradient(0deg,var(--orange),#F8C79C); }
+.meter b{ position:absolute; left:-2px; right:-2px; height:2px; background:#fff; }
+
+/* rings */
+.a-k1,.a-k2,.a-k3{ display:flex; flex-direction:column; }
+.ring-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex:1; }
+.ring{ width:86px; height:86px; flex:none; }
+.ring text{ font-family:Montserrat,sans-serif; font-weight:700; font-size:15px; fill:#fff; }
+
+/* map */
+.map{ display:grid; gap:5px; }
+.map-row{ display:grid; grid-template-columns:34px repeat(5,1fr); gap:5px; align-items:center; }
+.map-row .lab{ font-size:11px; color:var(--text-faint); }
+.cell{ aspect-ratio:1/1; border-radius:6px; border:1px solid var(--hair); background:rgba(255,255,255,.05); }
+.cell.ok{ background:var(--teal); border-color:transparent; box-shadow:inset 0 1px 0 rgba(255,255,255,.4); }
+.cell.ng{ background:rgba(244,162,97,.78); border-color:transparent; box-shadow:inset 0 1px 0 rgba(255,255,255,.35); }
+.cell:focus-visible{ outline:2px solid #fff; outline-offset:1px; }
+.map-cols{ display:grid; grid-template-columns:34px repeat(5,1fr); gap:5px; font-size:10.5px; color:var(--text-faint); text-align:center; }
+.map-legend{ display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; font-size:11.5px; color:var(--text-soft); }
+.map-legend i{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+
+/* chart */
+.seg{ display:inline-flex; padding:3px; border-radius:12px; background:rgba(255,255,255,.08); border:1px solid var(--hair); }
+.seg button{ font:inherit; font-size:12.5px; font-weight:600; color:var(--text-soft); background:transparent;
+  border:0; padding:5px 11px; border-radius:9px; cursor:pointer; white-space:nowrap; }
+.seg button[aria-pressed="true"]{ background:rgba(255,255,255,.9); color:var(--ink); }
+.stats{ display:flex; flex-wrap:wrap; gap:clamp(16px,3vw,36px); margin:4px 0 4px; }
+.stat .k{ font-size:12px; color:var(--text-soft); display:flex; align-items:center; gap:6px; }
+.stat .v{ font-family:Montserrat,sans-serif; font-weight:700; font-size:clamp(18px,2vw,22px); }
+.plot{ position:relative; width:100%; }
+.plot svg{ display:block; width:100%; height:auto; overflow:visible; }
+.plot .bar{ cursor:pointer; }
+.plot .bar:focus-visible rect{ outline:none; stroke:#fff; stroke-width:2; }
+.axis text{ font-size:11px; fill:rgba(255,255,255,.62); }
+.axis line{ stroke:rgba(255,255,255,.12); }
+.tip{ position:absolute; pointer-events:none; background:rgba(255,255,255,.94); color:var(--ink);
+  font-size:12px; padding:7px 10px; border-radius:10px; white-space:nowrap;
+  transform:translate(-50%,calc(-100% - 12px)); opacity:0; transition:opacity .12s; }
+.tip.on{ opacity:1; }
+.note{ font-size:12px; color:var(--text-soft); margin:6px 0 0; }
+
+/* assistant */
+.ai-body{ display:flex; flex-direction:column; gap:10px; height:100%; }
+.orb-wrap{ display:grid; place-items:center; padding:6px 0; }
+.orb{ width:92px; height:92px; border-radius:28px; transform:rotate(12deg);
+  background:
+    radial-gradient(60% 60% at 30% 25%, rgba(255,255,255,.95), rgba(255,255,255,0) 60%),
+    conic-gradient(from 200deg, #3CC3B2, #7FB4F0, #B39CF0, #F4A261, #E9C46A, #3CC3B2);
+  box-shadow:0 0 50px 8px rgba(140,160,240,.45), inset 0 0 18px rgba(255,255,255,.6);
+  filter:saturate(115%); }
+@media (prefers-reduced-motion:no-preference){
+  .orb{ animation:float 6s ease-in-out infinite; }
+  @keyframes float{ 50%{ transform:rotate(18deg) translateY(-4px); } } }
+.log{ min-height:92px; max-height:210px; overflow:auto; display:flex; flex-direction:column; gap:8px; font-size:13px; }
+.msg{ padding:9px 12px; border-radius:14px; max-width:92%; white-space:pre-line; }
+.msg.me{ align-self:flex-end; background:rgba(255,255,255,.88); color:var(--ink); }
+.msg.bot{ align-self:flex-start; background:rgba(255,255,255,.1); border:1px solid var(--hair); }
+.chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.chips button{ font:inherit; font-size:12px; color:var(--text); background:rgba(255,255,255,.08);
+  border:1px solid var(--edge); padding:6px 11px; border-radius:999px; cursor:pointer; }
+.ask{ display:flex; gap:8px; align-items:center; padding:4px 4px 4px 14px; border-radius:999px;
+  background:rgba(255,255,255,.1); border:1px solid var(--edge); }
+.ask input{ flex:1; min-width:0; font:inherit; font-size:13.5px; color:var(--text); background:transparent; border:0; outline:none; }
+.ask input::placeholder{ color:var(--text-faint); }
+.ask button{ width:38px; height:38px; border-radius:50%; border:0; cursor:pointer;
+  background:linear-gradient(145deg,var(--teal),var(--teal-deep)); color:#fff; display:grid; place-items:center; }
+.toast{ font-size:12px; color:var(--text-soft); min-height:1.2em; margin:10px 4px 0; }
+
+@media (prefers-reduced-motion:reduce){ *{ transition:none!important; animation:none!important; } }
+</style>
+</head>
+<body>
+<div class="scene" id="scene" aria-hidden="true"></div>
+
+<div class="wrap">
+  <main class="window glass">
+    <div class="top">
+      <div class="logo" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" fill="#fff"/></svg>
+      </div>
+      <nav class="nav" aria-label="보기 전환">
+        <button type="button" data-v="stab" aria-pressed="true">안정도</button>
+        <button type="button" data-v="lin" aria-pressed="false">선형화</button>
+        <button type="button" data-v="pair" aria-pressed="false">스윙쌍</button>
+      </nav>
+      <span class="spacer"></span>
+      <label class="pill-btn">결과 불러오기
+        <input type="file" id="files" multiple accept=".json" aria-label="results 폴더의 JSON 파일 선택"></label>
+      <label class="pill-btn">배경 바꾸기
+        <input type="file" id="bg" accept="image/*" aria-label="배경 사진 선택"></label>
+    </div>
+
+    <div class="title-row">
+      <h1>GFM 소신호 안정도</h1>
+      <span class="run" id="run"></span>
+    </div>
+
+    <div class="grid">
+      <section class="tile glass a-hero" aria-labelledby="h-hero">
+        <div class="t-head"><h2 id="h-hero">운전점별 여유</h2><span class="hint">흰 눈금이 목표 1.0</span></div>
+        <div class="hero-body">
+          <div>
+            <div class="muted">요구 충족</div>
+            <div class="big" id="hero-big"></div>
+            <div class="muted" id="hero-sub" style="margin-top:6px"></div>
+          </div>
+          <div>
+            <div class="gauges" id="gauges"></div>
+            <div class="g-scale" style="margin-top:6px" aria-hidden="true">
+              <span></span><span id="scale"></span><span></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tile glass a-side" aria-labelledby="h-side">
+        <div class="t-head"><h2 id="h-side">최약 운전점</h2></div>
+        <div class="side-body">
+          <div>
+            <div class="big" id="side-big"></div>
+            <div class="muted" id="side-sub"></div>
+          </div>
+          <div class="meter" id="meter" role="img"></div>
+        </div>
+      </section>
+
+      <section class="tile glass a-k1" id="k1"></section>
+      <section class="tile glass a-k2" id="k2"></section>
+      <section class="tile glass a-k3" id="k3"></section>
+
+      <section class="tile glass a-map" aria-labelledby="h-map">
+        <div class="t-head"><h2 id="h-map">2D 스윕 진행</h2><span class="hint" id="map-count"></span></div>
+        <div class="map" id="map"></div>
+        <div class="map-cols" id="map-cols" aria-hidden="true"></div>
+        <div class="map-legend">
+          <span><i style="background:var(--teal)"></i>충족</span>
+          <span><i style="background:rgba(244,162,97,.78)"></i>미달</span>
+          <span><i style="background:rgba(255,255,255,.05);border:1px solid var(--hair)"></i>미계산</span>
+        </div>
+      </section>
+
+      <section class="tile glass a-chart" aria-labelledby="c-title">
+        <div class="t-head">
+          <h2 id="c-title"></h2>
+          <div class="seg" role="group" aria-label="차트 보기">
+            <button type="button" data-v="stab" aria-pressed="true">안정도</button>
+            <button type="button" data-v="lin" aria-pressed="false">선형화</button>
+            <button type="button" data-v="pair" aria-pressed="false">스윙쌍</button>
+          </div>
+        </div>
+        <div class="stats" id="stats"></div>
+        <div class="plot" id="plot"><div class="tip" id="tip" role="status"></div></div>
+        <p class="note" id="c-note"></p>
+      </section>
+
+      <section class="tile glass a-ai" aria-labelledby="h-ai">
+        <div class="ai-body">
+          <div class="t-head"><h2 id="h-ai">연구 도우미</h2><span class="hint">현재 결과로 답합니다</span></div>
+          <div class="orb-wrap" aria-hidden="true"><div class="orb"></div></div>
+          <div class="log" id="log" aria-live="polite"></div>
+          <div class="chips">
+            <button type="button" data-q="요약">결과 요약</button>
+            <button type="button" data-q="미달">어디가 미달이야?</button>
+            <button type="button" data-q="다음">다음에 돌릴 조건</button>
+          </div>
+          <form class="ask" id="ask">
+            <input id="q" type="text" placeholder="결과에 대해 물어보세요" aria-label="질문 입력" autocomplete="off">
+            <button type="submit" aria-label="보내기">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 11 21 3l-8 18-2-8-8-2z" fill="#fff"/></svg>
+            </button>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+  <p class="toast" id="toast" aria-live="polite"></p>
+</div>
+
+<script>
+/* ── 데이터: X/R = 1.0 (본 조건), X/R = 0.5 (초기 확인, 감쇠율만) ── */
+const D = {
+  run:'J0.50_Dp20.0_Kpv0.050_wc62.8', xr:1.0, tsSpec:1.0, tsCoef:4.0,
+  stab:[ {scr:3.0,sigma:4.6445},{scr:2.0,sigma:2.9653},{scr:1.5,sigma:2.1637},{scr:1.0,sigma:1.2965} ],
+  part:[ {scr:3.0,pd:0.8169,pw:0.1073},{scr:2.0,pd:0.8808,pw:0.0705},
+         {scr:1.5,pd:0.9125,pw:0.0522},{scr:1.0,pd:0.9459,pw:0.0317} ],
+  lin:{ input:'Pref', tol:0.05, rows:[ {scr:3.0,thr:0.5401,n:1.97},{scr:2.0,thr:0.4786,n:1.91},
+                                       {scr:1.5,thr:0.3940,n:1.98},{scr:1.0,thr:0.2761,n:2.00} ]},
+  pair:[ {scr:3.0,slow:-4.6445,fast:-26.2573,ppf:0.1312,sep:1.86},
+         {scr:2.0,slow:-2.9653,fast:-29.5136,ppf:0.1099,sep:2.91},
+         {scr:1.5,slow:-2.1637,fast:-31.3347,ppf:0.0940,sep:3.98},
+         {scr:1.0,slow:-1.2965,fast:-40.5415,ppf:0.0110,sep:6.65} ],
+  dpj:40,
+  // 2D 격자: X/R → { SCR → σ }
+  grid:{ '0.5':{3.0:4.264,2.0:2.859,1.5:2.165,1.0:1.393,0.8:1.012},
+         '1.0':{3.0:4.6445,2.0:2.9653,1.5:2.1637,1.0:1.2965} },
+  gridXR:[0.5,1.0,2.0,3.0], gridSCR:[3.0,2.0,1.5,1.0,0.8]
+};
+const sigRef = () => D.tsCoef / D.tsSpec;
+const score = s => s / sigRef();
+const f = (v,n=2) => Number(v).toFixed(n);
+const S = v => Number(v).toFixed(1);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── 링 ── */
+function ring(p, color, label){
+  const r=34, c=2*Math.PI*r, v=Math.max(0,Math.min(1,p));
+  return `<svg class="ring" viewBox="0 0 86 86" role="img" aria-label="${label}">
+    <circle cx="43" cy="43" r="${r}" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="9"/>
+    <circle cx="43" cy="43" r="${r}" fill="none" stroke="${color}" stroke-width="9" stroke-linecap="round"
+      stroke-dasharray="${c*v} ${c}" transform="rotate(-90 43 43)"/>
+    <text x="43" y="48" text-anchor="middle">${Math.round(v*100)}%</text></svg>`;
+}
+
+/* ── 상단 타일 ── */
+function renderTop(){
+  const rows = D.stab.map(r => ({...r, sc:score(r.sigma)}));
+  const ok = rows.filter(r => r.sc >= 1);
+  const worst = rows.reduce((a,b) => a.sc < b.sc ? a : b);
+
+  document.getElementById('run').textContent = `${D.run}, X/R ${f(D.xr,1)}, 목표 σ ${f(sigRef(),1)} /s`;
+  document.getElementById('hero-big').innerHTML =
+    `${ok.length}<small>/ ${rows.length} 운전점</small>`;
+  document.getElementById('hero-sub').textContent =
+    ok.length ? `충족 SCR ${ok.map(r=>S(r.scr)).join(', ')}` : '충족하는 운전점이 없습니다';
+
+  const MAX = 1.3;
+  document.getElementById('gauges').innerHTML = rows.map(r => `
+    <div class="g-row" role="img" aria-label="SCR ${S(r.scr)} 여유 ${f(r.sc,3)}, ${r.sc>=1?'충족':'미달'}">
+      <span class="lab">SCR ${S(r.scr)}</span>
+      <span class="g-bar"><i class="${r.sc>=1?'ok':'ng'}" style="width:${Math.min(r.sc/MAX,1)*100}%"></i>
+        <b style="left:calc(${1/MAX*100}% - 1px)"></b></span>
+      <span class="num">${f(r.sc,3)}</span></div>`).join('');
+  document.getElementById('scale').innerHTML =
+    [0,0.5,1.0].map(t => `<em style="left:${t/MAX*100}%">${t.toFixed(1)}</em>`).join('');
+
+  document.getElementById('side-big').innerHTML = `${f(worst.sigma)}<small>/ ${f(sigRef(),1)}</small>`;
+  document.getElementById('side-sub').innerHTML =
+    `SCR ${S(worst.scr)}, 정착 ${f(D.tsCoef/worst.sigma)} s <span class="chip ${worst.sc>=1?'ok':'ng'}">${worst.sc>=1?'충족':Math.round((1-worst.sc)*100)+'% 부족'}</span>`;
+  const m = document.getElementById('meter');
+  m.setAttribute('aria-label', `목표 대비 ${Math.round(worst.sc*100)}퍼센트`);
+  m.innerHTML = `<i style="height:${Math.min(worst.sc,1)*100}%"></i><b style="bottom:calc(100% - 1px)"></b>`;
+
+  const pw = D.part.reduce((a,b) => a.scr < b.scr ? a : b);
+  const lw = D.lin.rows.reduce((a,b) => a.scr < b.scr ? a : b);
+  const cards = [
+    ['k1','동기화 참여도', f(pw.pd+pw.pw,3), '', `SCR ${S(pw.scr)}, δ가 지배`, pw.pd+pw.pw, 'var(--teal)'],
+    ['k2','선형화 유효 범위', f(lw.thr*100,1), '%', `SCR ${S(lw.scr)}, 허용 ${f(D.lin.tol*100,1)}%`, lw.thr, 'var(--yellow)'],
+    ['k3','충족 비율', ok.length, `/ ${rows.length}`, `목표 정착 ${D.tsSpec} s 기준`, ok.length/rows.length, 'var(--orange)']];
+  cards.forEach(([id,t,v,u,sub,p,c]) => {
+    document.getElementById(id).innerHTML = `
+      <div class="t-head"><h2>${t}</h2></div>
+      <div class="ring-row">
+        <div><div class="big">${v}<small>${u}</small></div><div class="muted">${sub}</div></div>
+        ${ring(p, c, `${t} ${Math.round(p*100)}퍼센트`)}</div>`;
+  });
+}
+
+/* ── 2D 격자 ── */
+function renderMap(){
+  let done = 0, total = D.gridXR.length * D.gridSCR.length;
+  document.getElementById('map').innerHTML = D.gridXR.map(xr => {
+    const row = D.grid[f(xr,1)] || {};
+    return `<div class="map-row"><span class="lab">X/R ${f(xr,1)}</span>${
+      D.gridSCR.map(s => {
+        const sg = row[s];
+        if (sg === undefined) return `<span class="cell" tabindex="0" title="X/R ${f(xr,1)}, SCR ${S(s)}: 미계산" aria-label="X/R ${f(xr,1)} SCR ${S(s)} 미계산"></span>`;
+        done++; const sc = score(sg), ok = sc >= 1;
+        return `<span class="cell ${ok?'ok':'ng'}" tabindex="0" title="X/R ${f(xr,1)}, SCR ${S(s)}: σ ${f(sg)}, 여유 ${f(sc,3)}"
+          aria-label="X/R ${f(xr,1)} SCR ${S(s)} 여유 ${f(sc,3)} ${ok?'충족':'미달'}"></span>`;
+      }).join('')}</div>`;
+  }).join('');
+  document.getElementById('map-cols').innerHTML = `<span></span>` + D.gridSCR.map(s => `<span>${S(s)}</span>`).join('');
+  document.getElementById('map-count').textContent = `${done} / ${total} 계산`;
+}
+
+/* ── 복합 차트 ── */
+function combo(cfg){
+  const host = document.getElementById('plot');
+  const W = Math.max(280, host.clientWidth), H = Math.round(Math.min(300, Math.max(200, W*.44)));
+  const m = {l:40, r:44, t:14, b:30}, iw = W-m.l-m.r, ih = H-m.t-m.b;
+  const n = cfg.labels.length, bw = Math.min(46, iw/n*.44);
+  const X = i => m.l + iw*(i+.5)/n;
+  const YL = v => m.t + ih*(1 - v/cfg.yL.max);
+  const YR = v => m.t + ih*(1 - (v-cfg.yR.min)/(cfg.yR.max-cfg.yR.min));
+  let g = '';
+  cfg.yL.ticks.forEach(t => { g += `<line x1="${m.l}" x2="${W-m.r}" y1="${YL(t)}" y2="${YL(t)}"/><text x="${m.l-8}" y="${YL(t)+4}" text-anchor="end">${cfg.yL.fmt(t)}</text>`; });
+  cfg.yR.ticks.forEach(t => { g += `<text x="${W-m.r+8}" y="${YR(t)+4}">${cfg.yR.fmt(t)}</text>`; });
+  cfg.labels.forEach((l,i) => { g += `<text x="${X(i)}" y="${H-8}" text-anchor="middle">${l}</text>`; });
+
+  let bars = '';
+  cfg.bars.forEach((v,i) => {
+    const y = YL(v), h = m.t+ih-y, ok = cfg.ok(i);
+    bars += `<g class="bar" tabindex="0" role="img" aria-label="${cfg.aria(i)}" data-i="${i}">
+      <rect x="${X(i)-bw/2}" y="${y}" width="${bw}" height="${h}" rx="9"
+        fill="${ok ? 'url(#gOk)' : 'rgba(255,255,255,.22)'}" stroke="${ok ? 'none' : 'rgba(255,255,255,.3)'}"
+        style="transform-origin:${X(i)}px ${m.t+ih}px;${reduce?'':'animation:grow .55s cubic-bezier(.2,.8,.2,1) '+(i*.06)+'s both'}"/>
+      <rect x="${X(i)-iw/n/2}" y="${m.t}" width="${iw/n}" height="${ih}" fill="transparent"/></g>`;
+  });
+  let ref = '';
+  if (cfg.ref){
+    const y = cfg.ref.axis === 'L' ? YL(cfg.ref.v) : YR(cfg.ref.v);
+    ref = `<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.75)" stroke-width="1.4" stroke-dasharray="5 5"/>
+           <text x="${W-m.r-4}" y="${y-7}" text-anchor="end" fill="#fff" stroke="rgba(30,40,46,.85)" stroke-width="4"
+             paint-order="stroke" stroke-linejoin="round" style="font-size:11.5px;font-weight:600">${cfg.ref.label}</text>`;
+  }
+  const pts = cfg.line.map((v,i) => [X(i), YR(v)]);
+  const line = `<path d="M${pts.map(p=>p.join(',')).join(' L')}" fill="none" stroke="var(--orange)" stroke-width="2.4" stroke-linejoin="round"/>` +
+    pts.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="#2E3A40" stroke="var(--orange)" stroke-width="2.4"/>`).join('');
+  host.querySelector('svg')?.remove();
+  host.insertAdjacentHTML('afterbegin', `<svg viewBox="0 0 ${W} ${H}" role="group" aria-label="${cfg.title}">
+    <defs><linearGradient id="gOk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5BD6C6"/><stop offset="1" stop-color="#2A9D8F"/></linearGradient>
+    <style>@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}</style></defs>
+    <g class="axis">${g}</g>${bars}${ref}${line}</svg>`);
+  const tip = document.getElementById('tip');
+  host.querySelectorAll('.bar').forEach(el => {
+    const show = () => { const i = +el.dataset.i; tip.innerHTML = cfg.tip(i);
+      tip.style.left = (X(i)/W*100)+'%';
+      tip.style.top = (Math.min(YL(cfg.bars[i]), YR(cfg.line[i]))/H*host.clientWidth*H/W)+'px';
+      tip.classList.add('on'); };
+    el.addEventListener('mouseenter', show); el.addEventListener('focus', show);
+    el.addEventListener('mouseleave', () => tip.classList.remove('on'));
+    el.addEventListener('blur', () => tip.classList.remove('on'));
+  });
+}
+
+const VIEWS = {
+  stab(){
+    const ts = D.stab.map(r => D.tsCoef/r.sigma), sr = sigRef();
+    const mx = Math.ceil(Math.max(...D.stab.map(r=>r.sigma), sr)*1.2);
+    return { title:'감쇠율과 정착시간',
+      stats:[['목표 감쇠율', `${f(sr,1)} /s`], ['최장 정착시간', `${f(Math.max(...ts))} s`, 1]],
+      labels:D.stab.map(r=>S(r.scr)), bars:D.stab.map(r=>r.sigma), line:ts,
+      ok:i => score(D.stab[i].sigma) >= 1,
+      yL:{max:mx, ticks:[...Array(mx+1).keys()].filter(t=>t%2===0 || mx<=5), fmt:t=>t},
+      yR:{min:0, max:Math.ceil(Math.max(...ts)*1.25), ticks:[0,1,2,3,4].filter(t=>t<=Math.ceil(Math.max(...ts)*1.25)), fmt:t=>t+'s'},
+      ref:{v:sr, axis:'L', label:`목표 σ ${f(sr,1)}`},
+      aria:i => `SCR ${S(D.stab[i].scr)} 감쇠율 ${f(D.stab[i].sigma)}`,
+      tip:i => `<b>SCR ${S(D.stab[i].scr)}</b><br>σ ${f(D.stab[i].sigma,4)} /s, t<sub>s</sub> ${f(ts[i])} s`,
+      note:'밝은 막대가 목표를 넘은 운전점입니다. 가로축은 SCR.' };
+  },
+  lin(){
+    const R = D.lin.rows, top = Math.ceil(Math.max(...R.map(r=>r.thr*100))/10+1)*10;
+    return { title:`선형화 유효 범위 (${D.lin.input})`,
+      stats:[['허용 오차', `${f(D.lin.tol*100,1)}%`], ['회귀 지수', `${f(Math.min(...R.map(r=>r.n)))} ~ ${f(Math.max(...R.map(r=>r.n)))}`, 1]],
+      labels:R.map(r=>S(r.scr)), bars:R.map(r=>r.thr*100), line:R.map(r=>r.n), ok:() => true,
+      yL:{max:top, ticks:[0,20,40,60].filter(t=>t<=top), fmt:t=>t+'%'},
+      yR:{min:1.5, max:2.3, ticks:[1.6,1.8,2.0,2.2], fmt:t=>f(t,1)},
+      ref:{v:2.0, axis:'R', label:'n = 2'},
+      aria:i => `SCR ${S(R[i].scr)} 유효 범위 ${f(R[i].thr*100,1)}퍼센트`,
+      tip:i => `<b>SCR ${S(R[i].scr)}</b><br>유효 ${f(R[i].thr*100,1)}%, n ${f(R[i].n)}`,
+      note:'지수가 2에 가까우면 오차가 섭동의 제곱에 비례합니다.' };
+  },
+  pair(){
+    const P = D.pair, sums = P.map(r => -(r.slow+r.fast));
+    return { title:'스윙극쌍의 합과 필터 혼합',
+      stats:[['순수 2차계 기준', `${D.dpj}`], ['필터 참여도', `${f(P[0].ppf,3)} → ${f(P.at(-1).ppf,3)}`, 1]],
+      labels:P.map(r=>S(r.scr)), bars:sums, line:P.map(r=>r.ppf),
+      ok:i => Math.abs(sums[i]-D.dpj)/D.dpj < .1,
+      yL:{max:50, ticks:[0,10,20,30,40,50], fmt:t=>t},
+      yR:{min:0, max:0.16, ticks:[0,0.05,0.1,0.15], fmt:t=>f(t,2)},
+      ref:{v:D.dpj, axis:'L', label:`Dp/J ${D.dpj}`},
+      aria:i => `SCR ${S(P[i].scr)} 두 근의 합 ${f(sums[i])}`,
+      tip:i => `<b>SCR ${S(P[i].scr)}</b><br>합 ${f(-sums[i])}, p(Pf) ${f(P[i].ppf,4)}`,
+      note:'밝은 막대만 순수한 2차계입니다. 강계통일수록 빠른 근이 필터극과 섞입니다.' };
+  }
+};
+
+let view = 'stab';
+function renderChart(){
+  const v = VIEWS[view]();
+  document.getElementById('c-title').textContent = v.title;
+  document.getElementById('stats').innerHTML = v.stats.map(([k,val,dot]) =>
+    `<div class="stat"><div class="k">${k}${dot?'<svg width="16" height="8" aria-hidden="true"><line x1="0" y1="4" x2="16" y2="4" stroke="#F4A261" stroke-width="2.4"/><circle cx="8" cy="4" r="3" fill="#F4A261"/></svg>':''}</div><div class="v">${val}</div></div>`).join('');
+  document.getElementById('c-note').textContent = v.note;
+  combo(v);
+}
+function setView(v){
+  view = v;
+  document.querySelectorAll('.nav button, .seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
+  renderChart();
+}
+document.querySelectorAll('.nav button, .seg button').forEach(b => b.addEventListener('click', () => setView(b.dataset.v)));
+
+/* ── 연구 도우미: 규칙 기반. 판정은 코드가 하고 문장만 만든다 ── */
+function answer(q){
+  const rows = D.stab.map(r => ({...r, sc:score(r.sigma)}));
+  const ok = rows.filter(r => r.sc >= 1), ng = rows.filter(r => r.sc < 1);
+  if (/요약|정리|summary/i.test(q)){
+    const pw = D.part.reduce((a,b)=>a.scr<b.scr?a:b), lw = D.lin.rows.reduce((a,b)=>a.scr<b.scr?a:b);
+    return `운전점 ${rows.length}곳 중 ${ok.length}곳이 정착시간 ${D.tsSpec}초 요구를 충족합니다.\n` +
+      `여유는 ${f(Math.max(...rows.map(r=>r.sc)),3)}에서 ${f(Math.min(...rows.map(r=>r.sc)),3)}까지 떨어집니다.\n` +
+      `임계 모드는 δ가 지배하는 실수극이며 SCR ${S(pw.scr)}에서 참여도 ${f(pw.pd+pw.pw,3)}입니다.\n` +
+      `선형화 유효 범위는 SCR ${S(lw.scr)}에서 ${f(lw.thr*100,1)}%로 가장 좁습니다.`;
+  }
+  if (/미달|부족|어디|fail/i.test(q)){
+    if (!ng.length) return '모든 운전점이 요구를 충족합니다.';
+    return '요구에 못 미치는 운전점입니다.\n' + ng.map(r =>
+      `SCR ${S(r.scr)}: 여유 ${f(r.sc,3)}, ${Math.round((1-r.sc)*100)}% 부족. 감쇠율을 ${f(1/r.sc)}배 올려야 합니다.`).join('\n');
+  }
+  if (/다음|추천|조건|next/i.test(q)){
+    const empty = [];
+    D.gridXR.forEach(xr => { const row = D.grid[f(xr,1)] || {};
+      const miss = D.gridSCR.filter(s => row[s] === undefined);
+      if (miss.length) empty.push([xr, miss]); });
+    const lowSep = D.pair.filter(r => r.sep < 3).map(r => S(r.scr));
+    let out = '';
+    if (empty.length){
+      const [xr, miss] = empty.sort((a,b)=>b[1].length-a[1].length)[0];
+      out += `2D 격자에서 X/R ${f(xr,1)} 행이 가장 많이 비어 있습니다.\n` +
+             `python Simulation/runner.py --XR ${f(xr,1)} --SCR ${miss.map(S).join(' ')}`;
+    }
+    if (lowSep.length) out += `\n\nSCR ${lowSep.join(', ')}은 SEP가 3 미만이라 K_eff를 인용하지 않는 편이 좋습니다.`;
+    return out || '비어 있는 조건이 없습니다.';
+  }
+  return '이 도우미는 화면의 결과만 읽어 답합니다. 결과 요약, 미달 운전점, 다음에 돌릴 조건을 물어보세요.\n' +
+         '자유로운 질문은 로컬 에이전트(agent/experiment.py)에서 처리합니다.';
+}
+function say(q){
+  const log = document.getElementById('log');
+  log.insertAdjacentHTML('beforeend', `<div class="msg me"></div><div class="msg bot"></div>`);
+  log.children[log.children.length-2].textContent = q;
+  log.lastElementChild.textContent = answer(q);
+  log.scrollTop = log.scrollHeight;
+}
+document.querySelectorAll('.chips button').forEach(b => b.addEventListener('click', () => say(b.textContent)));
+document.getElementById('ask').addEventListener('submit', e => {
+  e.preventDefault(); const i = document.getElementById('q');
+  if (i.value.trim()){ say(i.value.trim()); i.value=''; } });
+
+/* ── 파일 파싱 함수 (자동 불러오기와 수동 불러오기가 공유) ── */
+function parseResultJSON(j){
+  if (j.ctrl_params && j.SCR_list){
+    D.run = j.run_name ?? D.run; D.xr = j.XR ?? D.xr;
+    if (j.t_s_spec) D.tsSpec = j.t_s_spec;
+    if (j.sigma_ref) { /* sigma_ref from meta overrides */ }
+    return '실행 정보';
+  }
+  if (j.by_SCR && j.input){
+    D.lin = { input:j.input, tol:j.tol, rows:Object.entries(j.by_SCR).map(([k,v]) =>
+      ({scr:+k, thr:v.threshold_fit ?? v.threshold_ratio, n:v.fit?.exponent ?? 2})).sort((a,b)=>b.scr-a.scr) };
+    return '선형화';
+  }
+  if (j.by_SCR && j.delta_state){
+    D.part = Object.entries(j.by_SCR).map(([k,v]) =>
+      ({scr:+k, pd:v.p_delta, pw:v.p_omega})).sort((a,b)=>b.scr-a.scr);
+    return '참여계수';
+  }
+  if (j.by_SCR && j.sep_min !== undefined){
+    D.pair = Object.entries(j.by_SCR).map(([k,v]) =>
+      ({scr:+k, slow:v.lambda_slow, fast:v.lambda_fast, ppf:v.p_Pf_fast, sep:v.sep_ratio})).sort((a,b)=>b.scr-a.scr);
+    if (j.J && j.Dp) D.dpj = j.Dp/j.J;
+    return '스윙쌍';
+  }
+  // eigenvalue_results.json — sigma_min (new) or min_abs_real (old)
+  const rows = Object.entries(j).filter(([,v]) => v && (v.sigma_min !== undefined || v.min_abs_real !== undefined))
+    .map(([k,v]) => ({scr:+k, sigma: v.sigma_min ?? v.min_abs_real})).sort((a,b)=>b.scr-a.scr);
+  if (rows.length){
+    D.stab = rows; const key = f(D.xr,1); D.grid[key] = D.grid[key] || {};
+    rows.forEach(r => { D.grid[key][r.scr] = r.sigma; if (!D.gridSCR.includes(r.scr)) D.gridSCR.push(r.scr); });
+    if (!D.gridXR.includes(+key)) D.gridXR.push(+key);
+    D.gridSCR.sort((a,b)=>b-a); D.gridXR.sort((a,b)=>a-b);
+    return '안정도';
+  }
+  return null;
+}
+
+/* ── 자동 불러오기: LATEST.json → 네 파일 fetch ── */
+async function autoLoad(){
+  const toast = document.getElementById('toast');
+  const FILES = ['eigenvalue_results.json','participation_factors.json','linearization_validity_Pref.json','sync_reduction.json'];
+  let runName = null;
+
+  // 1) LATEST.json → run_name 얻기
+  try {
+    const latest = await fetch('/results/LATEST.json').then(r => { if (!r.ok) throw r; return r.json(); });
+    runName = latest.run_name;
+  } catch {
+    toast.textContent = 'LATEST.json 을 읽지 못했습니다. 기본 내장 데이터로 표시합니다.';
+    renderAll();
+    return;
+  }
+
+  // 2) meta.json 먼저 — run_name, XR, t_s_spec 설정
+  const base = `/results/${runName}`;
+  try {
+    const meta = await fetch(`${base}/meta.json`).then(r => { if (!r.ok) throw r; return r.json(); });
+    parseResultJSON(meta);
+  } catch {
+    toast.textContent = `meta.json 없음 (${runName}). 기본 실행 정보를 사용합니다.`;
+  }
+
+  // 3) 네 파일 차례로 읽기
+  const got = [], missing = [];
+  for (const name of FILES){
+    try {
+      const j = await fetch(`${base}/${name}`).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+      const label = parseResultJSON(j);
+      if (label) got.push(label);
+    } catch {
+      missing.push(name);
+    }
+  }
+
+  // 4) 2D 격자: /api/grid2d (serve_dashboard.py 가 제공)
+  try {
+    const g = await fetch('/api/grid2d').then(r => { if (!r.ok) throw r; return r.json(); });
+    if (g.grid) D.grid = g.grid;
+    if (g.gridXR?.length) D.gridXR = g.gridXR;
+    if (g.gridSCR?.length) D.gridSCR = g.gridSCR;
+    got.push('2D 격자');
+  } catch {
+    // grid2d API 없으면 (파일 직접 열기 등) 현재 run 데이터만 사용
+  }
+
+  // 5) 결과 보고
+  let msg = '';
+  if (got.length) msg += `${runName}: ${got.join(', ')} 자동 반영.`;
+  if (missing.length) msg += ` 누락: ${missing.join(', ')} → 해당 항목은 기본값 사용.`;
+  toast.textContent = msg;
+  renderAll();
+}
+
+/* ── 결과 파일 (수동 불러오기 — 기존 핸들러 유지) ── */
+document.getElementById('files').addEventListener('change', async e => {
+  const got = [];
+  for (const file of e.target.files){
+    let j; try { j = JSON.parse(await file.text()); } catch { continue; }
+    const label = parseResultJSON(j);
+    if (label) got.push(label);
+  }
+  document.getElementById('toast').textContent = got.length ? `${got.join(', ')} 결과를 반영했습니다.`
+    : '읽을 수 있는 결과가 없습니다. results 폴더의 JSON 파일을 선택하세요.';
+  e.target.value = ''; renderAll();
+});
+
+/* ── 배경 사진 ── */
+const scene = document.getElementById('scene');
+function setBg(url){ scene.style.backgroundImage = `url("${url}")`; scene.classList.add('photo'); }
+try { const saved = localStorage.getItem('gfm-bg'); if (saved) setBg(saved); } catch {}
+document.getElementById('bg').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = () => { setBg(r.result);
+    try { localStorage.setItem('gfm-bg', r.result);
+      document.getElementById('toast').textContent = '배경을 바꿨습니다. 다음에 열어도 유지됩니다.'; }
+    catch { document.getElementById('toast').textContent = '배경을 바꿨습니다. 사진이 커서 저장은 하지 않았습니다.'; } };
+  r.readAsDataURL(file); e.target.value = '';
+});
+
+function renderAll(){ renderTop(); renderMap(); renderChart(); }
+// 폭이 바뀔 때만 다시 그린다. 높이 변화까지 반응하면 막대 애니메이션이 매번 다시 시작된다.
+let rt, lastW = 0;
+new ResizeObserver(es => { const w = Math.round(es[0].contentRect.width);
+  if (w === lastW) return; lastW = w; clearTimeout(rt); rt = setTimeout(renderChart, 80);
+}).observe(document.getElementById('plot'));
+// 자동 불러오기 시도 → 실패 시 내장 데이터로 렌더
+autoLoad().then(() => say('결과 요약')).catch(() => { renderAll(); say('결과 요약'); });
+</script>
+</body>
+</html>

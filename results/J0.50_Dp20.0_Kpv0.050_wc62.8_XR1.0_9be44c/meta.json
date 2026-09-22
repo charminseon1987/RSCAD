@@ -3,7 +3,7 @@
   "model_version": "v3-22state",
   "n_states": 22,
   "n_dc_states": 8,
-  "timestamp": "2026-09-21 10:45:34",
+  "timestamp": "2026-09-22 10:33:34",
   "ctrl_params": {
     "Kp_vpv": 0.1,
     "Ki_vpv": 10.0,

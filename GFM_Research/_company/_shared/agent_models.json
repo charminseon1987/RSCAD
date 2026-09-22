@@ -1,0 +1,11 @@
+{
+  "ceo": "qwen3:8b",
+  "secretary": "qwen3:8b",
+  "youtube": "qwen3:8b",
+  "researcher": "qwen3:8b",
+  "business": "qwen3:8b",
+  "writer": "qwen3:8b",
+  "editor": "qwen3:8b",
+  "designer": "qwen3:8b",
+  "instagram": "qwen3:8b"
+}

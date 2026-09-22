@@ -1,4 +1,4 @@
-%% xval_check.m — 자동 생성 (2026-09-21 10:45)
+%% xval_check.m — 자동 생성 (2026-09-22 10:33)
 %  Python(sympy)에서 유도한 야코비안을 MATLAB에서 독립 검산한다.
 %  실행: gfm_model.mat 과 같은 폴더에서 xval_check
 
