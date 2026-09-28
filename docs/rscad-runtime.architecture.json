@@ -1,0 +1,398 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "RSCAD 런타임 아키텍처 — RTDS · 서버 · 에이전트 · RAG",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1360,
+      610
+    ],
+    "views": [
+      {
+        "id": "core-path",
+        "label": "핵심 계산 경로",
+        "focus": [
+          "web",
+          "api",
+          "sim",
+          "results"
+        ],
+        "note": "웹 요청이 Flask 를 거쳐 실계산과 저장본 로드로 이어지는 주 경로."
+      },
+      {
+        "id": "agent-rag",
+        "label": "에이전트 · RAG",
+        "focus": [
+          "api",
+          "orch",
+          "ragmgr",
+          "ollama",
+          "papers",
+          "brain",
+          "vault"
+        ],
+        "note": "자연어 명령 분배와 두 갈래 벡터 색인 — 전부 localhost 의존."
+      },
+      {
+        "id": "chil-planned",
+        "label": "P6 CHIL (미구축)",
+        "focus": [
+          "sim",
+          "rscad",
+          "rtds",
+          "chil",
+          "results"
+        ],
+        "note": "코드에 경로가 없는 계획 구간. 문서와 blocked 상태로만 존재한다."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "rscad",
+      "type": "external",
+      "label": "RSCAD FX",
+      "sublabel": "Draft · RunTime",
+      "tag": "미구축",
+      "pos": [
+        580,
+        60
+      ],
+      "size": [
+        180,
+        70
+      ]
+    },
+    {
+      "id": "rtds",
+      "type": "external",
+      "label": "RTDS NovaCor",
+      "sublabel": "50 µs / 2 µs 실시간",
+      "tag": "접근권 미확정",
+      "pos": [
+        855,
+        60
+      ],
+      "size": [
+        180,
+        70
+      ]
+    },
+    {
+      "id": "chil",
+      "type": "external",
+      "label": "GTAO / GTAI ↔ DSP",
+      "sublabel": "±10 V 아날로그 폐루프",
+      "pos": [
+        1130,
+        60
+      ],
+      "size": [
+        180,
+        70
+      ]
+    },
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "GMF Labs Web",
+      "sublabel": "React 18 · Vite :5173",
+      "pos": [
+        30,
+        205
+      ],
+      "size": [
+        180,
+        70
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Flask API",
+      "sublabel": "Server/app.py · gunicorn",
+      "tag": "Render",
+      "pos": [
+        305,
+        205
+      ],
+      "size": [
+        180,
+        70
+      ]
+    },
+    {
+      "id": "sim",
+      "type": "backend",
+      "label": "Simulation Core",
+      "sublabel": "model.py · op.py · runner.py",
+      "tag": "22-state",
+      "pos": [
+        580,
+        205
+      ],
+      "size": [
+        180,
+        70
+      ]
+    },
+    {
+      "id": "results",
+      "type": "database",
+      "label": "results/",
+      "sublabel": "*.npy · eigenvalue_results.json",
+      "tag": "LATEST.json",
+      "pos": [
+        855,
+        205
+      ],
+      "size": [
+        180,
+        70
+      ]
+    },
+    {
+      "id": "orch",
+      "type": "backend",
+      "label": "Agent Orchestrator",
+      "sublabel": "agent/orchestrator.py",
+      "pos": [
+        305,
+        350
+      ],
+      "size": [
+        180,
+        70
+      ]
+    },
+    {
+      "id": "ragmgr",
+      "type": "backend",
+      "label": "RAG Manager",
+      "sublabel": "rag_manager.py → Scripts/",
+      "pos": [
+        580,
+        350
+      ],
+      "size": [
+        180,
+        70
+      ]
+    },
+    {
+      "id": "brain",
+      "type": "backend",
+      "label": "Brain API",
+      "sublabel": "rag/server.py · FastAPI :5100",
+      "tag": "소비자 미배선",
+      "pos": [
+        1130,
+        350
+      ],
+      "size": [
+        180,
+        70
+      ]
+    },
+    {
+      "id": "ollama",
+      "type": "external",
+      "label": "Ollama",
+      "sublabel": "qwen3:8b · :11434",
+      "pos": [
+        305,
+        495
+      ],
+      "size": [
+        180,
+        70
+      ]
+    },
+    {
+      "id": "papers",
+      "type": "database",
+      "label": "ChromaDB — 논문 색인",
+      "sublabel": "BAAI/bge-m3",
+      "pos": [
+        580,
+        495
+      ],
+      "size": [
+        180,
+        70
+      ]
+    },
+    {
+      "id": "vault",
+      "type": "database",
+      "label": "ChromaDB — Vault 색인",
+      "sublabel": "nomic-embed-text",
+      "pos": [
+        1130,
+        495
+      ],
+      "size": [
+        180,
+        70
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "RTDS 랩 — P6 CHIL (코드 경로 없음)",
+      "wraps": [
+        "rscad",
+        "rtds",
+        "chil"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Render — gfm-labs-api (Python 3.12 · gunicorn)",
+      "wraps": [
+        "api",
+        "sim",
+        "results"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "로컬 전용 · localhost",
+      "wraps": [
+        "orch",
+        "ragmgr",
+        "brain",
+        "ollama",
+        "papers",
+        "vault"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "web-to-api",
+      "from": "web",
+      "to": "api",
+      "label": "HTTPS /api/*",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-to-sim",
+      "from": "api",
+      "to": "sim",
+      "label": "runner.run()",
+      "variant": "emphasis"
+    },
+    {
+      "id": "sim-to-results",
+      "from": "sim",
+      "to": "results",
+      "label": "A_num·x0 저장"
+    },
+    {
+      "id": "results-to-api",
+      "from": "results",
+      "to": "api",
+      "label": "LATEST.json 로드",
+      "fromSide": "bottom",
+      "toSide": "bottom"
+    },
+    {
+      "id": "api-to-orch",
+      "from": "api",
+      "to": "orch",
+      "label": "/api/command",
+      "labelDy": 60
+    },
+    {
+      "id": "orch-to-ollama",
+      "from": "orch",
+      "to": "ollama",
+      "label": "도구 루프 chat",
+      "labelDy": 60
+    },
+    {
+      "id": "orch-to-ragmgr",
+      "from": "orch",
+      "to": "ragmgr",
+      "label": "키워드 라우팅"
+    },
+    {
+      "id": "ragmgr-to-papers",
+      "from": "ragmgr",
+      "to": "papers",
+      "label": "01→02→03 색인",
+      "labelDy": 60
+    },
+    {
+      "id": "brain-to-vault",
+      "from": "brain",
+      "to": "vault",
+      "label": "search() 질의",
+      "labelDy": 60
+    },
+    {
+      "id": "sim-to-rscad",
+      "from": "sim",
+      "to": "rscad",
+      "label": "회로 → Draft 이식",
+      "variant": "dashed"
+    },
+    {
+      "id": "rscad-to-rtds",
+      "from": "rscad",
+      "to": "rtds",
+      "label": "LAN → GTWIF 로드",
+      "variant": "dashed",
+      "labelDy": 75
+    },
+    {
+      "id": "rtds-to-chil",
+      "from": "rtds",
+      "to": "chil",
+      "label": "GTAO ↔ GTAI",
+      "variant": "dashed",
+      "labelDy": 75
+    },
+    {
+      "id": "rtds-to-results",
+      "from": "rtds",
+      "to": "results",
+      "label": "실시간 스윕 파형 export",
+      "variant": "dashed",
+      "labelDy": 50
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "실제 계산 경로",
+      "items": [
+        "Flask 가 Simulation/ 을 import 해 runner.run() 직접 호출",
+        "저장본 로드 아니면 실계산 — 근사식 값은 응답에 없다",
+        "results/ 교체는 LATEST.json 포인터 원자 교체"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "에이전트 · RAG",
+      "items": [
+        "/api/command → orchestrator 키워드 라우팅",
+        "/api/rag 는 rag_manager 를 직접 호출",
+        "논문(bge-m3) · Vault(nomic-embed-text) 별도 색인"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "미구축 · 경계 주의",
+      "items": [
+        "P6 CHIL 은 설계 문서로만 존재 — RTDS 접근권 미확정",
+        "합류 지점은 results/ — 기존 파이프라인에 그대로 붙는다",
+        "Render 에는 api · sim · results 만 올라간다",
+        "에이전트 · 두뇌는 localhost 바인딩 → 배포본에서 불가"
+      ]
+    }
+  ]
+}

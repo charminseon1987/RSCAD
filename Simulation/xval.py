@@ -31,6 +31,7 @@ from datetime import datetime
 
 import model as M
 import op
+import quantize as Q
 
 parser = argparse.ArgumentParser(description='선형화 유효성 검증 + export')
 parser.add_argument('--run',   type=str,   default=None,
@@ -49,7 +50,19 @@ parser.add_argument('--traj-at', type=float, default=None,
 parser.add_argument('--steps', type=float, nargs='+',
                     default=[0.001, 0.005, 0.01, 0.02, 0.05, 0.10, 0.20, 0.30],
                     help='입력 섭동 비율 목록')
+parser.add_argument('--quantize', type=int, default=0,
+                    help='계측 ADC 비트수. 0 이면 양자화 없음 (기본)')
+parser.add_argument('--headroom', type=float, default=1.5,
+                    help='풀스케일 = 정격 × headroom. 작으면 포화, 크면 분해능 낭비')
+parser.add_argument('--adc-hz', type=float, default=10000.0,
+                    help='ADC 샘플 주파수 [Hz]. 제어기는 이 주기마다 계측값을 '
+                         '새로 읽고 그 사이에는 붙잡아 둔다 (--quantize 시에만 사용)')
 args = parser.parse_args()
+
+# 조건이 다르면 결과 파일도 나눈다. 양자화 없이 돌린 결과와 섞이면
+# 두 조건의 섭동점이 한 회귀에 들어가 지수가 의미를 잃는다.
+# 기본값(0)에서는 접미사가 비어 기존 파일명이 그대로 유지된다.
+QTAG = f'_q{args.quantize}' if args.quantize else ''
 
 RESULTS_ROOT = Path(__file__).parent.parent / 'results'
 if args.run:
@@ -82,6 +95,35 @@ op.INP.update(meta['inputs'])
 # 제어기 내부 적분기 8개는 물리적 관측량이 아니므로 판정에서 제외한다.
 NOM, OBS  = op.nominal_vector()
 OBS_NAMES = [n for n, m in zip(M.STATE_NAMES, OBS) if m]
+
+
+# ══════════════════════════════════════════════
+# 계측 양자화 (선택)
+# ══════════════════════════════════════════════
+# 제어기는 연속값이 아니라 ADC 를 거친 계단값을 읽는다. 소신호 모델에는 없는
+# 잡음원이며, 이것이 검증 가능한 최소 섭동을 정한다.
+# 비선형 궤적에만 넣는다. 선형 예측에 같이 넣으면 두 궤적이 같은 왜곡을
+# 공유해 오차가 상쇄되고, '실제 시스템이 계단을 본다'는 상황이 되지 않는다.
+class _NomOnly:
+    """quantize.Quantizer.from_op 은 nominal_vector() 가 정격 배열 하나를
+    돌려준다고 가정한다. 이 저장소의 op.nominal_vector() 는 (정격, 관측마스크)
+    튜플이므로 정격만 떼어 넘긴다. quantize.py 는 자기 시험을 통과했으므로
+    고치지 않는다."""
+
+    def __init__(self, nom):
+        self._nom = nom
+
+    def nominal_vector(self):
+        return self._nom
+
+
+if args.quantize:
+    QZ = Q.Quantizer.from_op(_NomOnly(NOM), M, bits=args.quantize,
+                             headroom=args.headroom)
+    qz_state = QZ                      # x → 계단값
+else:
+    QZ = None
+    qz_state = lambda x: x             # noqa: E731
 
 
 def horizon(A):
@@ -158,12 +200,79 @@ print("=" * 76)
 print(f"  Phase 2 게이트: 선형화 유효성 검증  ({RUN_NAME})")
 print(f"  섭동 입력: {args.input} = {op.INP[args.input]}  |  허용오차 {args.tol:.1%}"
       f"  |  T = {args.T}s")
+if args.quantize:
+    print(f"  계측 양자화: {args.quantize}-bit · headroom {args.headroom}"
+          f" · ADC {args.adc_hz/1000:g} kHz  |  비선형 궤적에만 적용")
 print("=" * 76)
 
 
 # ══════════════════════════════════════════════
 # 궤적 비교
 # ══════════════════════════════════════════════
+class _Sol:
+    """solve_ivp 결과와 같은 모양. 구간별 적분 결과를 이어 붙인 것."""
+
+    def __init__(self, t, y):
+        self.t, self.y, self.success = t, y, True
+
+
+def solve_nl_zoh(f, jac, x0, T, t_eval, kw):
+    """ADC 샘플·홀드를 반영해 비선형 궤적을 구간별로 적분한다.
+
+    왜 한 번에 못 푸는가
+        연속 양자화는 f 를 x 에 대한 계단 함수로 만든다. 그러면 ∂f/∂x 가
+        거의 모든 곳에서 0, 계단 경계에서 정의되지 않는다. Radau·BDF 같은
+        음해법은 그 야코비안으로 뉴턴 반복을 돌리므로 수렴하지 못하고 스텝을
+        계속 기각한다. 실제로 같은 궤적 하나에 900초를 써도 끝나지 않았다
+        (양자화 없이는 0.9초).
+
+    어떻게 푸는가
+        실제 ADC 는 연속으로 양자화하지 않는다. 샘플 주기마다 한 번 읽고
+        다음 샘플까지 그 값을 붙잡는다(ZOH). 구간 안에서는 제어기가 보는
+        값이 상수이므로 f 가 x 에 대해 매끄럽고, Radau 가 자기 허용오차를
+        그대로 지킨다. 계단은 구간 경계에만 남는다 — 물리적으로도 이쪽이 맞다.
+
+    한계
+        f_num 이 플랜트와 제어기를 한 덩어리로 갖고 있어, 붙잡힌 계측 채널은
+        플랜트 방정식에서도 함께 붙잡힌다. 샘플 주기(기본 100 µs)가 가장 빠른
+        모드(178 Hz, 주기 5.6 ms)의 1/56 이라 영향은 작지만 0 은 아니다.
+        비트수를 바꿔도 결과가 같다면 양자화가 아니라 이 ZOH 를 재고 있는 것이다.
+    """
+    h = 1.0 / args.adc_hz
+    n_seg = max(1, int(np.ceil(T / h)))
+    m = QZ.mask
+    seg_kw = {k: v for k, v in kw.items() if k != 't_eval'}
+    ts, ys = [], []
+    x, t = np.asarray(x0, float), 0.0
+    for i in range(n_seg):
+        t1 = T if i == n_seg - 1 else min(T, (i + 1) * h)
+        hold = QZ(x)                      # 이 구간 동안 제어기가 읽는 계단값
+
+        def rhs(_t, z, _h=hold):
+            z_eff = z.copy()
+            z_eff[m] = _h[m]
+            return f(z_eff)
+
+        def jfn(_t, z, _h=hold):
+            z_eff = z.copy()
+            z_eff[m] = _h[m]
+            J = jac(z_eff)
+            J[:, m] = 0.0                 # 붙잡힌 채널은 z 에 대해 상수
+            return J
+
+        s = integrate.solve_ivp(rhs, (t, t1), x, jac=jfn,
+                                dense_output=True, **seg_kw)
+        if not s.success:
+            return s
+        sel = ((t_eval >= t) & (t_eval <= t1) if i == n_seg - 1
+               else (t_eval >= t) & (t_eval < t1))
+        if sel.any():
+            ts.append(t_eval[sel])
+            ys.append(s.sol(t_eval[sel]))
+        x, t = s.y[:, -1], t1
+    return _Sol(np.concatenate(ts), np.hstack(ys))
+
+
 def trajectory_error(x0, A, B, SCR, ratio, T):
     """섭동 ratio에 대한 비선형 vs 선형 궤적의 최대 상대오차"""
     du = np.zeros(len(M.INPUT_NAMES))
@@ -172,20 +281,36 @@ def trajectory_error(x0, A, B, SCR, ratio, T):
     inp_pert = dict(op.INP)
     inp_pert[args.input] = op.INP[args.input] * (1 + ratio)
 
-    def rhs_nl(t, x):
+    def _f(x_eff):
+        # 제어기가 읽는 값만 계단이 된다 — 적분기 8개와 VSG 상태 4개는
+        # DSP 내부라 ADC 를 거치지 않는다 (quantize.py 가 마스크로 제외).
         saved = dict(op.INP)
         op.INP.update(inp_pert)
         try:
-            return np.array(f_fn(*op._args(x, SCR, XR))).ravel()
+            return np.array(f_fn(*op._args(x_eff, SCR, XR))).ravel()
         finally:
             op.INP.update(saved)
+
+    def _jac(x_eff):
+        saved = dict(op.INP)
+        op.INP.update(inp_pert)
+        try:
+            return np.array(A_fn(*op._args(x_eff, SCR, XR)), dtype=float)
+        finally:
+            op.INP.update(saved)
+
+    def rhs_nl(t, x):
+        return _f(qz_state(x))
 
     def rhs_lin(t, z):
         return A @ z + B @ du
 
     t_eval = np.linspace(0, T, 600)
     kw = dict(method='Radau', t_eval=t_eval, rtol=1e-8, atol=1e-10)
-    s_nl  = integrate.solve_ivp(rhs_nl,  (0, T), x0,            **kw)
+    if args.quantize:
+        s_nl = solve_nl_zoh(_f, _jac, x0, T, t_eval, kw)
+    else:
+        s_nl = integrate.solve_ivp(rhs_nl, (0, T), x0, **kw)
     s_lin = integrate.solve_ivp(rhs_lin, (0, T), np.zeros(M.N), **kw)
     if not (s_nl.success and s_lin.success):
         return np.nan, '-', None, None
@@ -216,7 +341,7 @@ report, export, TRAJ = {}, {}, {}
 # 섭동점은 누적한다. 파형 저장용으로 --steps 를 좁게 주고 다시 돌려도
 # 이전에 계산한 점이 사라지지 않는다. (실행_식별자_설계원칙: 선언이 아니라
 # 레지스트리로 관리한다)
-PREV_PATH = RES_DIR / f'linearization_validity_{args.input}.json'
+PREV_PATH = RES_DIR / f'linearization_validity_{args.input}{QTAG}.json'
 PREV = {}
 if PREV_PATH.exists() and not args.fresh:
     _p = json.loads(PREV_PATH.read_text(encoding='utf-8'))
@@ -322,16 +447,18 @@ mat = {
 # 파일명에 섭동 입력을 새긴다. 같은 이름을 쓰면 Vg 실행이 Pref 실행을
 # 덮어써 비교가 불가능해진다. (실행_식별자_설계원칙: 결과를 바꾸는 조건은
 # 식별자에 반영한다)
-TAG = args.input
-mat_path = RES_DIR / 'gfm_model.mat'
+TAG = args.input + QTAG
+MAT_NAME = f'gfm_model{QTAG}.mat'
+M_NAME   = f'xval_check{QTAG}.m'
+mat_path = RES_DIR / MAT_NAME
 sio.savemat(mat_path, mat, long_field_names=True)
 
-m_script = f"""%% xval_check.m — 자동 생성 ({datetime.now().strftime('%Y-%m-%d %H:%M')})
+m_script = f"""%% {M_NAME} — 자동 생성 ({datetime.now().strftime('%Y-%m-%d %H:%M')})
 %  Python(sympy)에서 유도한 야코비안을 MATLAB에서 독립 검산한다.
-%  실행: gfm_model.mat 과 같은 폴더에서 xval_check
+%  실행: {MAT_NAME} 과 같은 폴더에서 {M_NAME[:-2]}
 
 clear; clc;
-S = load('gfm_model.mat');
+S = load('{MAT_NAME}');
 names = string(S.state_names);
 cases = fieldnames(S.cases);
 
@@ -358,7 +485,7 @@ sys = ss(c.A, c.B, eye(numel(names)), 0, ...
          'StateName', cellstr(names), 'InputName', cellstr(string(S.input_names)));
 % step(sys);  damp(sys);
 """
-(RES_DIR / 'xval_check.m').write_text(m_script, encoding='utf-8')
+(RES_DIR / M_NAME).write_text(m_script, encoding='utf-8')
 
 # ── 시간영역 궤적 저장 ──
 if TRAJ:
@@ -404,6 +531,13 @@ out = {'run': RUN_NAME, 'input': args.input, 'tol': args.tol,
        'threshold_common': thr_min,
        'threshold_common_fit': thr_fit_min,
        'by_SCR': {str(k): v for k, v in report.items()}}
+
+if args.quantize:
+    print()
+    print('  ── 계측 양자화 ──')
+    print(QZ.report())
+    out['quantize'] = {'bits': args.quantize, 'headroom': args.headroom,
+                       'adc_hz': args.adc_hz, 'clips': int(QZ.clips.sum())}
 (RES_DIR / f'linearization_validity_{TAG}.json').write_text(
     json.dumps(out, indent=2, ensure_ascii=False), encoding='utf-8')
 
@@ -447,9 +581,9 @@ tags: [result, phase2, 선형화유효성, gate]
 
 ## 생성 파일
 
-- `gfm_model.mat` — A, B, x0, 고유값, 파라미터 (MATLAB/Simulink용)
-- `xval_check.m` — MATLAB 독립 검산 스크립트
-- `linearization_validity.json` — 섭동별 오차 원자료
+- `{MAT_NAME}` — A, B, x0, 고유값, 파라미터 (MATLAB/Simulink용)
+- `{M_NAME}` — MATLAB 독립 검산 스크립트
+- `linearization_validity_{TAG}.json` — 섭동별 오차 원자료
 
 ## 🔗 연결 노트
 
@@ -460,6 +594,6 @@ tags: [result, phase2, 선형화유효성, gate]
 (RES_DIR / f'linearization_validity_{TAG}.md').write_text(md, encoding='utf-8')
 
 print(f"\n  💾 {mat_path.name}  (MATLAB/Simulink)")
-print(f"  💾 xval_check.m")
+print(f"  💾 {M_NAME}")
 print(f"  💾 linearization_validity_{TAG}.json / .md")
 print("=" * 76)

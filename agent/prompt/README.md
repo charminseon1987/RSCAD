@@ -1,5 +1,9 @@
 # 담당별 이름표
 
+> 이 문서들은 **Claude.ai 프로젝트 지침용 원본**이다.
+> Claude Code 에서 바로 호출하는 서브에이전트 버전은 `.claude/agents/a0-hub.md` ~ `a10-archive.md` 에 있다.
+> 내용을 고칠 때는 양쪽을 함께 고친다 (대조표: `.claude/agents/CLAUDE.md` §7).
+
 | ID | 이름 | 담당 | 호출 |
 |---|---|---|---|
 | A0 | 허브 (Hub) | 총괄 | `@허브` / `@A0` |

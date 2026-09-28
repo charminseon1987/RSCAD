@@ -6,6 +6,12 @@
       "sourceType": "github",
       "skillPath": "skills/citation-management/SKILL.md",
       "computedHash": "0c2aac095756aca614071de10b98c5cd2808120beca754ba48c9e236ca090094"
+    },
+    "scientific-writing": {
+      "source": "k-dense-ai/scientific-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/scientific-writing/SKILL.md",
+      "computedHash": "0fd9d68cb198075da8cfc33c80bca52df6a47bb3c377da2102e2cbc09ce2766f"
     }
   }
 }
