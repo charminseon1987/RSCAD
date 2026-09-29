@@ -1300,6 +1300,6 @@ if __name__ == '__main__':
     print(f"  model: {M.N}-state")
     print(f"  run:   {STATE['run_dir'].name if STATE['run_dir'] else 'none'}")
     print(f"  SCR:   {sorted(STATE['A'], reverse=True)}")
-    print("  http://localhost:5000")
+    print("  http://localhost:5001")
     print("=" * 62)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)
