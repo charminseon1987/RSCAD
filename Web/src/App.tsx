@@ -8,6 +8,7 @@ import GfmLab from './pages/GfmLab';
 import Verification from './pages/Verification';
 import ExperimentLog from './pages/ExperimentLog';
 import Archify from './pages/Archify';
+import ControlLoop from './pages/ControlLoop';
 import Landing from './pages/Landing';
 import RscadFX from './pages/RscadFX';
 
@@ -22,12 +23,12 @@ const NAV: (Leaf | Group)[] = [
     label: '연구', base: '/research',
     children: [
       {
-        to: '/research/scholar/search', label: '연구실 스콜라',
+        to: '/research/scholar/flow', label: '연구실 스콜라',
         children: [
-          { to: '/research/scholar/search', label: '검색·답변' },
+          /* 검색·답변은 수집 워크플로 ①단계로 합쳐졌다 */
+          { to: '/research/scholar/flow', label: '수집 워크플로 (7단계)' },
           { to: '/research/scholar/compare', label: '비교표' },
           { to: '/research/scholar/library', label: '라이브러리' },
-          { to: '/research/scholar/flow', label: '수집 워크플로' },
         ],
       },
       { to: '/research/knowledge', label: '지식화' },
@@ -38,6 +39,7 @@ const NAV: (Leaf | Group)[] = [
     label: '실험', base: '/lab',
     children: [
       { to: '/lab/gfm', label: 'GFM 실험실' },
+      { to: '/lab/control-loop', label: 'GFM 제어루프' },
       { to: '/lab/verification', label: '검증' },
       { to: '/lab/log', label: '실험기록' },
     ],
@@ -111,11 +113,13 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/research/scholar/:screen" element={<Papers />} />
-      <Route path="/research/scholar" element={<Navigate to="/research/scholar/search" replace />} />
-      <Route path="/research/papers" element={<Navigate to="/research/scholar/search" replace />} />
+      <Route path="/research/scholar" element={<Navigate to="/research/scholar/flow" replace />} />
+      <Route path="/research/scholar/search" element={<Navigate to="/research/scholar/flow" replace />} />
+      <Route path="/research/papers" element={<Navigate to="/research/scholar/flow" replace />} />
       <Route path="/research/knowledge" element={<Knowledge />} />
       <Route path="/research/my-paper" element={<MyPaper />} />
       <Route path="/lab/gfm" element={<GfmLab />} />
+      <Route path="/lab/control-loop" element={<ControlLoop />} />
       <Route path="/lab/verification" element={<Verification />} />
       <Route path="/lab/log" element={<ExperimentLog />} />
       <Route path="/archify" element={<Archify />} />

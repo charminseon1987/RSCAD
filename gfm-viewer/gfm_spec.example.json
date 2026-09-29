@@ -1,0 +1,224 @@
+{
+ "format": "gfm-live-flow/spec@1",
+ "name": "teach_model",
+ "exported_at": "2026-09-29T07:53:01",
+ "states": [
+  {
+   "name": "w",
+   "label": "ω",
+   "unit": "pu"
+  },
+  {
+   "name": "dl",
+   "label": "δ",
+   "unit": "rad"
+  },
+  {
+   "name": "Pf",
+   "label": "P (필터)",
+   "unit": "pu"
+  },
+  {
+   "name": "Qf",
+   "label": "Q (필터)",
+   "unit": "pu"
+  },
+  {
+   "name": "xd",
+   "label": "∫e_vd",
+   "unit": "pu·s"
+  },
+  {
+   "name": "xq",
+   "label": "∫e_vq",
+   "unit": "pu·s"
+  },
+  {
+   "name": "gd",
+   "label": "∫e_cd",
+   "unit": "pu·s"
+  },
+  {
+   "name": "gq",
+   "label": "∫e_cq",
+   "unit": "pu·s"
+  },
+  {
+   "name": "ild",
+   "label": "i_ld",
+   "unit": "pu"
+  },
+  {
+   "name": "ilq",
+   "label": "i_lq",
+   "unit": "pu"
+  },
+  {
+   "name": "vod",
+   "label": "v_od",
+   "unit": "pu"
+  },
+  {
+   "name": "voq",
+   "label": "v_oq",
+   "unit": "pu"
+  },
+  {
+   "name": "iod",
+   "label": "i_od",
+   "unit": "pu"
+  },
+  {
+   "name": "ioq",
+   "label": "i_oq",
+   "unit": "pu"
+  }
+ ],
+ "inputs": {
+  "Pref": 0.5,
+  "Qref": 0.0,
+  "Vg": 1.0,
+  "SCR": 3.0,
+  "XR": 5.0
+ },
+ "params": {
+  "Lf": 0.05,
+  "Rf": 0.005,
+  "Cf": 0.05,
+  "Lc": 0.02,
+  "Rc": 0.002,
+  "wc": 62.83185307179586,
+  "nq": 0.05,
+  "V0": 1.0,
+  "kpv": 1.5,
+  "kiv": 10.0,
+  "kpc": 0.8,
+  "kic": 50.0,
+  "Ff": 0.75,
+  "H": 0.5,
+  "D": 60.0,
+  "wb": 376.9911184307752
+ },
+ "sliders": {
+  "H": {
+   "label": "관성 H",
+   "unit": "s",
+   "min": 0.1,
+   "max": 6
+  },
+  "D": {
+   "label": "댐핑 D",
+   "unit": "pu",
+   "min": 5,
+   "max": 150
+  }
+ },
+ "rhs": [
+  "(1/2)*(-D*(w - 1) - Pf + Pref)/H",
+  "wb*(w - 1)",
+  "wc*(-Pf + iod*vod + ioq*voq)",
+  "wc*(-Qf + iod*voq - ioq*vod)",
+  "V0 + nq*(-Qf + Qref) - vod",
+  "-voq",
+  "-Cf*voq*w + Ff*iod - ild + kiv*xd + kpv*(V0 + nq*(-Qf + Qref) - vod)",
+  "Cf*vod*w + Ff*ioq - ilq + kiv*xq - kpv*voq",
+  "wb*(-Rf*ild + gd*kic + kpc*(-Cf*voq*w + Ff*iod - ild + kiv*xd + kpv*(V0 + nq*(-Qf + Qref) - vod)))/Lf",
+  "wb*(-Rf*ilq + gq*kic + kpc*(Cf*vod*w + Ff*ioq - ilq + kiv*xq - kpv*voq))/Lf",
+  "wb*(Cf*voq*w + ild - iod)/Cf",
+  "wb*(-Cf*vod*w + ilq - ioq)/Cf",
+  "wb*(-Vg*Math.cos(dl) - iod*(Rc + 1/(SCR*XR)) + ioq*w*(Lc + 1/SCR) + vod)/(Lc + 1/SCR)",
+  "wb*(Vg*Math.sin(dl) - iod*w*(Lc + 1/SCR) - ioq*(Rc + 1/(SCR*XR)) + voq)/(Lc + 1/SCR)"
+ ],
+ "signals": {
+  "w": "w",
+  "dw": "w - 1",
+  "Pf": "Pf",
+  "Qf": "Qf",
+  "pe": "iod*vod + ioq*voq",
+  "qe": "iod*voq - ioq*vod",
+  "eP": "-Pf + Pref",
+  "eQ": "-Qf + Qref",
+  "dV": "nq*(-Qf + Qref)",
+  "Vref": "V0 + nq*(-Qf + Qref)",
+  "vod": "vod",
+  "voq": "voq",
+  "iod": "iod",
+  "ioq": "ioq",
+  "ild": "ild",
+  "ilq": "ilq",
+  "evd": "V0 + nq*(-Qf + Qref) - vod",
+  "evq": "-voq",
+  "pvd": "kiv*xd + kpv*(V0 + nq*(-Qf + Qref) - vod)",
+  "pvq": "kiv*xq - kpv*voq",
+  "cvd": "-Cf*voq*w",
+  "cvq": "Cf*vod*w",
+  "ildr": "-Cf*voq*w + Ff*iod + kiv*xd + kpv*(V0 + nq*(-Qf + Qref) - vod)",
+  "ilqr": "Cf*vod*w + Ff*ioq + kiv*xq - kpv*voq",
+  "ecd": "-Cf*voq*w + Ff*iod - ild + kiv*xd + kpv*(V0 + nq*(-Qf + Qref) - vod)",
+  "ecq": "Cf*vod*w + Ff*ioq - ilq + kiv*xq - kpv*voq",
+  "pcd": "gd*kic + kpc*(-Cf*voq*w + Ff*iod - ild + kiv*xd + kpv*(V0 + nq*(-Qf + Qref) - vod))",
+  "pcq": "gq*kic + kpc*(Cf*vod*w + Ff*ioq - ilq + kiv*xq - kpv*voq)",
+  "ccd": "-Lf*ilq*w",
+  "ccq": "Lf*ild*w",
+  "vid": "-Lf*ilq*w + gd*kic + kpc*(-Cf*voq*w + Ff*iod - ild + kiv*xd + kpv*(V0 + nq*(-Qf + Qref) - vod)) + vod",
+  "viq": "Lf*ild*w + gq*kic + kpc*(Cf*vod*w + Ff*ioq - ilq + kiv*xq - kpv*voq) + voq"
+ },
+ "x0": [
+  1.0,
+  0.18031816188829913,
+  0.5000000000000009,
+  -0.044823115513395725,
+  0.01247204819714915,
+  0.0011180721140590067,
+  4.9888192788607683e-05,
+  9.483494235114828e-06,
+  0.49888192788596675,
+  0.09483494235114379,
+  1.0022411557756699,
+  5.211353954366074e-25,
+  0.49888192788596675,
+  0.044722884562360295
+ ],
+ "check": {
+  "x": [
+   1.001257302210934,
+   0.17899711325538611,
+   0.5064042265044337,
+   -0.04377411434186533,
+   0.007115354465538041,
+   0.004734022663153854,
+   0.01308988864408998,
+   0.009480293125527535,
+   0.49184457552789684,
+   0.08218072764068327,
+   0.9960084111502964,
+   0.000413259793472436,
+   0.4756316201395784,
+   0.042534967923034836
+  ],
+  "inputs": {
+   "Pref": 0.5,
+   "Qref": 0.0,
+   "Vg": 1.0,
+   "SCR": 3.0,
+   "XR": 5.0
+  },
+  "f": [
+   -0.08184235916046845,
+   0.47399176670546694,
+   -2.0516833225505144,
+   0.10087578283355114,
+   0.006180294566796918,
+   -0.000413259793472436,
+   -0.054717562886933635,
+   0.04630386997930997,
+   4586.1810927187225,
+   3850.1865317003135,
+   122.39879485169197,
+   -77.03643873258306,
+   -6.003177892239137,
+   7.754125627788454
+  ],
+  "tol": 1e-08
+ }
+}

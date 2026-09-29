@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GFM 제어 루프 — 실시간 신호 흐름</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0E1220; --panel:#151A2B; --panel-2:#1C2236; --line:#2A3149; --ink:#E7EAF4; --ink-2:#AEB5CB; --ink-3:#7A829C;
+  --accent:#7C8CF8; --pos:#7C8CF8; --neg:#F2A65A; --ok:#63D2A1; --bad:#F2677A; --wire:#39415C; --blockfill:#161C2E;
+  --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#F3F5FA; --panel:#FFFFFF; --panel-2:#F0F2F8; --line:#DCE1EC; --ink:#161B2C; --ink-2:#465068; --ink-3:#7A829C;
+  --accent:#5563D6; --pos:#5563D6; --neg:#D9822B; --ok:#1F9B67; --bad:#D83A52; --wire:#C3C9D9; --blockfill:#FFFFFF;}}
+:root[data-theme="light"]{--bg:#F3F5FA; --panel:#FFFFFF; --panel-2:#F0F2F8; --line:#DCE1EC; --ink:#161B2C; --ink-2:#465068; --ink-3:#7A829C;
+  --accent:#5563D6; --pos:#5563D6; --neg:#D9822B; --ok:#1F9B67; --bad:#D83A52; --wire:#C3C9D9; --blockfill:#FFFFFF;}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding:18px 22px 6px}
+header h1{margin:0;font-size:19px;letter-spacing:-.01em}
+header p{margin:0;color:var(--ink-3);font-size:13px}
+.wrap{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,1fr);gap:14px;padding:10px 22px 22px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.diagram{padding:6px}
+svg{display:block;width:100%;height:auto}
+.scopes{display:flex;flex-direction:column;gap:10px;padding:12px}
+.scope h3{margin:0 0 4px;font-size:12.5px;font-weight:600;color:var(--ink-2);display:flex;justify-content:space-between;gap:8px}
+.scope h3 span{font-family:var(--mono);font-weight:400;color:var(--ink-3)}
+canvas{width:100%;height:112px;display:block;background:var(--panel-2);border-radius:8px}
+.controls{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px 18px;padding:14px 18px}
+.ctl label{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-2);margin-bottom:2px}
+.ctl label b{font-family:var(--mono);font-weight:500;color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.btns{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--panel-2);color:var(--ink);border-radius:999px;padding:7px 14px;cursor:pointer}
+button:hover{border-color:var(--ink-3)}
+button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:7px 12px}
+.status{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--ink-3)}
+.banner{display:none;grid-column:1/-1;padding:10px 16px;border-radius:12px;border:1px solid var(--bad);color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent)}
+.banner.on{display:block}
+.notes{grid-column:1/-1;font-size:12.5px;color:var(--ink-3);padding:0 4px}
+.notes b{color:var(--ink-2)}
+/* svg */
+.tier{fill:none;stroke:var(--line);stroke-dasharray:5 4}
+.tier.t1{stroke:var(--accent)}
+.tt{font:600 12.5px var(--sans);fill:var(--ink-2)}
+.tt.t1{fill:var(--accent)}
+.blk{fill:var(--blockfill);stroke:var(--ink-3);stroke-width:1.2}
+.blk.t1{stroke:var(--accent)}
+.bl{font:italic 14px "Times New Roman",serif;fill:var(--ink);text-anchor:middle}
+.bs{font:12px var(--sans);fill:var(--ink-2);text-anchor:middle}
+.sj{fill:var(--blockfill);stroke:var(--ink-3);stroke-width:1.2}
+.sg{font:bold 10px var(--sans);fill:var(--ink-2)}
+.wire{fill:none;stroke:var(--wire);stroke-width:1.6}
+.wire.hot{stroke-width:2.2}
+.sym{font:italic 13.5px "Times New Roman",serif;fill:var(--ink-2)}
+.chip rect{fill:var(--panel-2);stroke:var(--line)}
+.chip text{font:500 10.5px var(--mono);fill:var(--ink);text-anchor:middle}
+.dot{pointer-events:none}
+.src{fill:var(--blockfill);stroke:var(--ink-3)}
+@media (max-width:980px){.wrap{grid-template-columns:1fr;padding:8px 10px 18px}header{padding:14px 12px 4px}}
+@media (prefers-reduced-motion:reduce){.dot{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>GFM 제어 루프 — 실시간 신호 흐름</h1>
+  <p>평균화 dq 모델을 브라우저에서 실시간 적분(RK4, 20 µs)하고, 선 위의 점은 실제 신호 크기로 흐릅니다</p>
+</header>
+
+<div class="wrap">
+  <div class="banner" id="banner">발산 — 이 조건에서 시스템이 불안정합니다 (σ = −Re(λ) &lt; 0). 파라미터를 되돌리거나 ‘초기화’를 누르세요.</div>
+  <div class="card diagram"><svg id="dg" viewBox="0 0 1000 640" role="img" aria-label="GFM 제어 블록도, 신호 흐름 애니메이션"></svg></div>
+  <div class="card scopes">
+    <div class="scope"><h3><em style="font-style:normal">주파수 f</em> <span id="r_f">—</span></h3><canvas id="c_f"></canvas></div>
+    <div class="scope"><h3><em style="font-style:normal">유효·무효전력 P, Q (pu)</em> <span id="r_p">—</span></h3><canvas id="c_p"></canvas></div>
+    <div class="scope"><h3><em style="font-style:normal">전압 v<sub>od</sub> · 계통측 전류 |i<sub>o</sub>| (pu)</em> <span id="r_v">—</span></h3><canvas id="c_v"></canvas></div>
+    <div class="scope"><h3><em style="font-style:normal">3상 전류 i<sub>a</sub>, i<sub>b</sub>, i<sub>c</sub> (최근 50 ms)</em> <span id="r_i">—</span></h3><canvas id="c_i"></canvas></div>
+  </div>
+
+  <div class="card controls">
+    <div class="ctl"><label><span>P<sub>ref</sub> (pu)</span> <b id="v_Pref"></b></label><input type="range" id="Pref" min="0" max="1" step="0.01" value="0.5"></div>
+    <div class="ctl"><label><span>Q<sub>ref</sub> (pu)</span> <b id="v_Qref"></b></label><input type="range" id="Qref" min="-0.4" max="0.4" step="0.01" value="0"></div>
+    <div class="ctl"><label><span>SCR</span> <b id="v_SCR"></b></label><input type="range" id="SCR" min="1" max="10" step="0.1" value="3"></div>
+    <div class="ctl"><label><span>X/R</span> <b id="v_XR"></b></label><input type="range" id="XR" min="0.5" max="15" step="0.5" value="5"></div>
+    <div id="paramSliders" style="display:contents"></div>
+    <div class="btns">
+      <button id="stepP">P<sub>ref</sub> 스텝 +0.3</button>
+      <button id="sag">계통 전압 강하 0.8 pu · 100 ms</button>
+      <span class="seg" role="group" aria-label="재생 속도">
+        <button data-sp="1" class="on">실시간</button><button data-sp="0.1">1/10</button><button data-sp="0.01">1/100</button>
+      </span>
+      <button id="pause">일시정지</button>
+      <button id="reset">초기화</button>
+      <button id="theme">테마</button>
+      <button id="loadBtn">모델 JSON 불러오기</button><input type="file" id="loadFile" accept=".json,application/json" hidden>
+      <button id="defaultBtn">기본 모델</button>
+      <span class="status" id="status">t = 0.000 s</span>
+    </div>
+  </div>
+  <div class="notes" id="modelInfo"></div>
+  <div class="notes">
+    <b>읽는 법</b> — 점의 속도 = 신호 크기, 색 = 부호(<span style="color:var(--pos)">양</span> / <span style="color:var(--neg)">음</span>). 1/100 속도로 늦추면 전류 루프(수백 Hz)의 과도 응답까지 보입니다.
+    <b>모델 교체</b> — ‘모델 JSON 불러오기’(또는 파일을 끌어다 놓기)로 export_spec.py가 만든 연구 모델을 올리면 같은 화면이 그 모델로 움직입니다. 기본 모델은 예시 파라미터의 14차 교육용 모델(DC 링크 일정)입니다. 평균화 모델, 3상 3선식 평형 가정.
+    H를 키우거나 D를 줄이면 동기화 모드(δ–ω)가 불안정해지는 것을 직접 확인할 수 있습니다.
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const c_f=$('c_f'),c_p=$('c_p'),c_v=$('c_v'),c_i=$('c_i'),banner=$('banner'),statusEl=$('status'),r_f=$('r_f'),r_p=$('r_p'),r_v=$('r_v'),r_i=$('r_i'),btnStep=$('stepP'),btnSag=$('sag'),btnPause=$('pause'),btnReset=$('reset'),btnTheme=$('theme');
+/* ═════════ 1. 모델 — spec(JSON)으로 정의 (export_spec.py가 model.py에서 생성) ═════════ */
+const DEFAULT_SPEC = {"format": "gfm-live-flow/spec@1", "name": "teach_model", "exported_at": "2026-09-29T07:53:01", "states": [{"name": "w", "label": "ω", "unit": "pu"}, {"name": "dl", "label": "δ", "unit": "rad"}, {"name": "Pf", "label": "P (필터)", "unit": "pu"}, {"name": "Qf", "label": "Q (필터)", "unit": "pu"}, {"name": "xd", "label": "∫e_vd", "unit": "pu·s"}, {"name": "xq", "label": "∫e_vq", "unit": "pu·s"}, {"name": "gd", "label": "∫e_cd", "unit": "pu·s"}, {"name": "gq", "label": "∫e_cq", "unit": "pu·s"}, {"name": "ild", "label": "i_ld", "unit": "pu"}, {"name": "ilq", "label": "i_lq", "unit": "pu"}, {"name": "vod", "label": "v_od", "unit": "pu"}, {"name": "voq", "label": "v_oq", "unit": "pu"}, {"name": "iod", "label": "i_od", "unit": "pu"}, {"name": "ioq", "label": "i_oq", "unit": "pu"}], "inputs": {"Pref": 0.5, "Qref": 0.0, "Vg": 1.0, "SCR": 3.0, "XR": 5.0}, "params": {"Lf": 0.05, "Rf": 0.005, "Cf": 0.05, "Lc": 0.02, "Rc": 0.002, "wc": 62.83185307179586, "nq": 0.05, "V0": 1.0, "kpv": 1.5, "kiv": 10.0, "kpc": 0.8, "kic": 50.0, "Ff": 0.75, "H": 0.5, "D": 60.0, "wb": 376.9911184307752}, "sliders": {"H": {"label": "관성 H", "unit": "s", "min": 0.1, "max": 6}, "D": {"label": "댐핑 D", "unit": "pu", "min": 5, "max": 150}}, "rhs": ["(1/2)*(-D*(w - 1) - Pf + Pref)/H", "wb*(w - 1)", "wc*(-Pf + iod*vod + ioq*voq)", "wc*(-Qf + iod*voq - ioq*vod)", "V0 + nq*(-Qf + Qref) - vod", "-voq", "-Cf*voq*w + Ff*iod - ild + kiv*xd + kpv*(V0 + nq*(-Qf + Qref) - vod)", "Cf*vod*w + Ff*ioq - ilq + kiv*xq - kpv*voq", "wb*(-Rf*ild + gd*kic + kpc*(-Cf*voq*w + Ff*iod - ild + kiv*xd + kpv*(V0 + nq*(-Qf + Qref) - vod)))/Lf", "wb*(-Rf*ilq + gq*kic + kpc*(Cf*vod*w + Ff*ioq - ilq + kiv*xq - kpv*voq))/Lf", "wb*(Cf*voq*w + ild - iod)/Cf", "wb*(-Cf*vod*w + ilq - ioq)/Cf", "wb*(-Vg*Math.cos(dl) - iod*(Rc + 1/(SCR*XR)) + ioq*w*(Lc + 1/SCR) + vod)/(Lc + 1/SCR)", "wb*(Vg*Math.sin(dl) - iod*w*(Lc + 1/SCR) - ioq*(Rc + 1/(SCR*XR)) + voq)/(Lc + 1/SCR)"], "signals": {"w": "w", "dw": "w - 1", "Pf": "Pf", "Qf": "Qf", "pe": "iod*vod + ioq*voq", "qe": "iod*voq - ioq*vod", "eP": "-Pf + Pref", "eQ": "-Qf + Qref", "dV": "nq*(-Qf + Qref)", "Vref": "V0 + nq*(-Qf + Qref)", "vod": "vod", "voq": "voq", "iod": "iod", "ioq": "ioq", "ild": "ild", "ilq": "ilq", "evd": "V0 + nq*(-Qf + Qref) - vod", "evq": "-voq", "pvd": "kiv*xd + kpv*(V0 + nq*(-Qf + Qref) - vod)", "pvq": "kiv*xq - kpv*voq", "cvd": "-Cf*voq*w", "cvq": "Cf*vod*w", "ildr": "-Cf*voq*w + Ff*iod + kiv*xd + kpv*(V0 + nq*(-Qf + Qref) - vod)", "ilqr": "Cf*vod*w + Ff*ioq + kiv*xq - kpv*voq", "ecd": "-Cf*voq*w + Ff*iod - ild + kiv*xd + kpv*(V0 + nq*(-Qf + Qref) - vod)", "ecq": "Cf*vod*w + Ff*ioq - ilq + kiv*xq - kpv*voq", "pcd": "gd*kic + kpc*(-Cf*voq*w + Ff*iod - ild + kiv*xd + kpv*(V0 + nq*(-Qf + Qref) - vod))", "pcq": "gq*kic + kpc*(Cf*vod*w + Ff*ioq - ilq + kiv*xq - kpv*voq)", "ccd": "-Lf*ilq*w", "ccq": "Lf*ild*w", "vid": "-Lf*ilq*w + gd*kic + kpc*(-Cf*voq*w + Ff*iod - ild + kiv*xd + kpv*(V0 + nq*(-Qf + Qref) - vod)) + vod", "viq": "Lf*ild*w + gq*kic + kpc*(Cf*vod*w + Ff*ioq - ilq + kiv*xq - kpv*voq) + voq"}, "x0": [1.0, 0.18031816188829913, 0.5000000000000009, -0.044823115513395725, 0.01247204819714915, 0.0011180721140590067, 4.9888192788607683e-05, 9.483494235114828e-06, 0.49888192788596675, 0.09483494235114379, 1.0022411557756699, 5.211353954366074e-25, 0.49888192788596675, 0.044722884562360295], "check": {"x": [1.001257302210934, 0.17899711325538611, 0.5064042265044337, -0.04377411434186533, 0.007115354465538041, 0.004734022663153854, 0.01308988864408998, 0.009480293125527535, 0.49184457552789684, 0.08218072764068327, 0.9960084111502964, 0.000413259793472436, 0.4756316201395784, 0.042534967923034836], "inputs": {"Pref": 0.5, "Qref": 0.0, "Vg": 1.0, "SCR": 3.0, "XR": 5.0}, "f": [-0.08184235916046845, 0.47399176670546694, -2.0516833225505144, 0.10087578283355114, 0.006180294566796918, -0.000413259793472436, -0.054717562886933635, 0.04630386997930997, 4586.1810927187225, 3850.1865317003135, 122.39879485169197, -77.03643873258306, -6.003177892239137, 7.754125627788454], "tol": 1e-08}};
+const wb = 2*Math.PI*60;
+let SPEC, N, IW, IDL, rhsFn, sigFn;
+const U = {Pref:0.5,Qref:0,Vg:1,SCR:3,XR:5};
+const P = {};
+const IDENT=/^[A-Za-z_][A-Za-z0-9_]*$/;
+function compileSpec(spec){
+  if(spec.format!=='gfm-live-flow/spec@1') throw new Error('지원하지 않는 형식: '+spec.format);
+  const names=spec.states.map(s=>s.name);
+  for(const n of [...names,...Object.keys(spec.inputs),...Object.keys(spec.params)]) if(!IDENT.test(n)) throw new Error('잘못된 이름: '+n);
+  if(!names.includes('w')||!names.includes('dl')) throw new Error("상태 'w'(ω), 'dl'(δ)가 필요합니다");
+  if(spec.rhs.length!==names.length) throw new Error('rhs 개수가 상태 개수와 다릅니다');
+  const decl=names.map((n,i)=>`const ${n}=x[${i}];`).join('')
+    +Object.keys(spec.inputs).map(k=>`const ${k}=u.${k};`).join('')
+    +Object.keys(spec.params).map(k=>`const ${k}=p.${k};`).join('');
+  const rf=new Function('x','u','p',decl+`return [${spec.rhs.join(',')}];`);
+  const sf=new Function('x','u','p',decl+`return {${Object.entries(spec.signals).map(([k,v])=>`${k}:(${v})`).join(',')}};`);
+  // 자체 검증: Python에서 계산한 f(x_check)와 대조
+  const c=spec.check, fx=rf(c.x,c.inputs,spec.params);
+  let err=0; fx.forEach((v,i)=>{err=Math.max(err,Math.abs(v-c.f[i])/Math.max(1,Math.abs(c.f[i])));});
+  return {names,rf,sf,err,ok:err<=(c.tol||1e-8)};
+}
+function useSpec(spec){
+  const c=compileSpec(spec);
+  SPEC=spec; N=c.names.length; IW=c.names.indexOf('w'); IDL=c.names.indexOf('dl'); rhsFn=c.rf; sigFn=c.sf;
+  for(const k in P) delete P[k]; Object.assign(P,spec.params);
+  Object.assign(U,spec.inputs);
+  buildParamSliders();
+  $('modelInfo').innerHTML=`모델 <b>${spec.name}</b> · 상태 ${N}개 · 파라미터 ${Object.keys(spec.params).length}개 · `
+    +(c.ok?`<span style="color:var(--ok)">검증 ✓ (최대 상대오차 ${c.err.toExponential(1)})</span>`
+          :`<span style="color:var(--bad)">검증 ✗ (오차 ${c.err.toExponential(1)}) — 식 변환을 확인하세요</span>`);
+  return c.ok;
+}
+function signals(x){
+  const s=sigFn(x,U,P); s.w=x[IW]; s.dl=x[IDL];
+  if(s.dw===undefined) s.dw=x[IW]-1;
+  return new Proxy(s,{get:(o,k)=>k in o?o[k]:NaN});
+}
+function deriv(x){ return rhsFn(x,U,P); }
+const DT=2e-5;
+let x, theta, t, sagUntil=-1, diverged=false;
+let k1,k2,k3,tmp;
+function rk4(){
+  const a=deriv(x); for(let i=0;i<N;i++){k1[i]=a[i];tmp[i]=x[i]+DT/2*a[i];}
+  const b=deriv(tmp); for(let i=0;i<N;i++){k2[i]=b[i];tmp[i]=x[i]+DT/2*b[i];}
+  const c=deriv(tmp); for(let i=0;i<N;i++){k3[i]=c[i];tmp[i]=x[i]+DT*c[i];}
+  const d=deriv(tmp); for(let i=0;i<N;i++) x[i]+=DT/6*(k1[i]+2*k2[i]+2*k3[i]+d[i]);
+  theta+=wb*x[IW]*DT; if(theta>1e6) theta%=2*Math.PI; t+=DT;
+}
+function initState(){
+  k1=new Array(N);k2=new Array(N);k3=new Array(N);tmp=new Array(N);
+  x=SPEC.x0.slice(); theta=0; t=0; diverged=false; sagUntil=-1; U.Vg=1;
+  for(let i=0;i<Math.round(1.5/DT);i++) rk4();   // 현재 입력에서 정상상태까지 미리 적분
+  t=0; clearTraces();
+}
+
+/* ═════════ 2. 블록도 (SVG) + 신호 바인딩 ═════════ */
+const svg=document.getElementById('dg'), NS='http://www.w3.org/2000/svg';
+const el=(tag,attrs,parent=svg)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);parent.appendChild(e);return e;};
+const wires=[];   // {path,len,get,nom,dots[],phase,chip}
+const layerW=el('g',{}), layerB=el('g',{}), layerD=el('g',{}), layerC=el('g',{});
+function tier(x,y,w,h,label,cls=''){el('rect',{x,y,width:w,height:h,rx:10,class:'tier '+cls},layerW);const tx=el('text',{x:x+12,y:y+18,class:'tt '+cls},layerW);tx.innerHTML=label;}
+function block(x,y,w,h,label,sub='',cls=''){el('rect',{x,y,width:w,height:h,rx:4,class:'blk '+cls},layerB);
+  const a=el('text',{x:x+w/2,y:y+h/2+(sub?-2:5),class:'bl'},layerB);a.innerHTML=label;
+  if(sub){const b=el('text',{x:x+w/2,y:y+h/2+14,class:'bs'},layerB);b.textContent=sub;}}
+function sum(cx,cy,signs){el('circle',{cx,cy,r:13,class:'sj'},layerB);
+  const p={l:[cx-10,cy+4],t:[cx+3,cy-4],b:[cx+3,cy+10]};
+  for(const k in signs){const s=el('text',{x:p[k][0],y:p[k][1],class:'sg'},layerB);s.textContent=signs[k];}}
+function sym(x,y,html,anchor='middle'){const s=el('text',{x,y,class:'sym','text-anchor':anchor},layerB);s.innerHTML=html;}
+function wire(pts,get,{nom=1,unit='',fmt=v=>v.toFixed(3),chipAt=0.5,noChip=false}={}){
+  const d='M'+pts.map(p=>p.join(',')).join(' L');
+  const path=el('path',{d,class:'wire','marker-end':'url(#ar)'},layerW);
+  const len=path.getTotalLength();
+  const w={path,len,get,nom,fmt,unit,dots:[],phase:Math.random()*40};
+  const n=Math.max(2,Math.round(len/34));
+  for(let i=0;i<n;i++) w.dots.push(el('circle',{r:2.6,class:'dot'},layerD));
+  if(!noChip){const p=path.getPointAtLength(len*chipAt);const g=el('g',{class:'chip'},layerC);
+    w.chipRect=el('rect',{x:p.x-31,y:p.y-19,width:62,height:15,rx:7},g);w.chipText=el('text',{x:p.x,y:p.y-8},g);}
+  wires.push(w);return w;
+}
+const sub=(b,s)=>`${b}<tspan font-size="10" dy="3">${s}</tspan><tspan dy="-3"></tspan>`;
+el('defs',{}).innerHTML='<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color:var(--ink-3)"/></marker>';
+let S={};  // 현재 신호 (프레임마다 갱신)
+
+// ① 전력 동기화
+tier(8,8,984,168,'① 전력 동기화 — VSG · Q–V droop','t1');
+sym(34,76,sub('P','ref'));
+wire([[56,70],[118,70]],()=>U.Pref,{chipAt:.45});
+sum(132,70,{l:'+',b:'−'});
+wire([[145,70],[178,70]],()=>S.eP,{noChip:true});
+block(178,50,104,40,'1 / (2Hs + D)','VSG 스윙','t1');
+wire([[282,70],[334,70]],()=>S.dw*60,{nom:0.5,fmt:v=>(v>=0?'+':'')+v.toFixed(3)+' Hz'});
+sum(348,70,{l:'+',t:'+'}); wire([[348,32],[348,56]],()=>1,{noChip:true}); sym(348,27,sub('ω','0'));
+wire([[361,70],[400,70]],()=>S.w*60,{nom:60,fmt:v=>v.toFixed(3)+' Hz'});
+block(400,52,56,36,'ω<tspan font-size="10" dy="3">b</tspan><tspan dy="-3"> / s</tspan>','','t1');
+wire([[456,70],[520,70]],()=>1,{fmt:()=>((theta*180/Math.PI)%360).toFixed(0)+'°'});
+sym(530,74,'θ → dq↔abc','start');
+block(178,112,104,34,'ω<tspan font-size="10" dy="3">c</tspan><tspan dy="-3"> / (s+ω</tspan><tspan font-size="10" dy="3">c</tspan><tspan dy="-3">)</tspan>','','t1');
+wire([[330,129],[282,129]],()=>S.pe,{chipAt:.5});  sym(338,133,'p','start');
+wire([[178,129],[132,129],[132,83]],()=>S.Pf,{chipAt:.25});
+// Q
+sym(620,76,sub('Q','ref'));
+wire([[642,70],[690,70]],()=>U.Qref,{chipAt:.5});
+sum(704,70,{l:'+',b:'−'});
+wire([[717,70],[744,70]],()=>S.eQ,{noChip:true});
+block(744,52,46,36,sub('n','q'),'','t1');
+wire([[790,70],[836,70]],()=>S.dV,{nom:.05,chipAt:.5});
+sum(850,70,{l:'+',t:'+'}); wire([[850,32],[850,56]],()=>1,{noChip:true}); sym(850,27,sub('V','0'));
+block(744,112,104,34,'ω<tspan font-size="10" dy="3">c</tspan><tspan dy="-3"> / (s+ω</tspan><tspan font-size="10" dy="3">c</tspan><tspan dy="-3">)</tspan>','','t1');
+wire([[900,129],[848,129]],()=>S.qe,{chipAt:.5}); sym(906,133,'q','start');
+wire([[744,129],[704,129],[704,83]],()=>S.Qf,{chipAt:.25});
+// ② 전압 루프 (d | q)
+tier(8,186,984,170,'② 전압 제어 루프 — 커패시터 전압 v<tspan font-size="10" dy="3">o</tspan>');
+tier(8,366,984,170,'③ 전류 제어 루프 — 인버터측 전류 i<tspan font-size="10" dy="3">l</tspan>');
+function channel(x0,y,cfg){
+  sum(x0+80,y,{l:'+',b:'−'});
+  wire([[x0+80,y+46],[x0+80,y+14]],cfg.fb,{chipAt:.2}); sym(x0+80,y+62,cfg.fbL);
+  wire([[x0+93,y],[x0+120,y]],cfg.err,{noChip:true});
+  block(x0+120,y-18,86,36,'PI',cfg.piL);
+  wire([[x0+206,y],[x0+262,y]],cfg.pi,{chipAt:.5});
+  sum(x0+276,y,{l:'+',t:'+',b:cfg.cs});
+  wire([[x0+276,y-44],[x0+276,y-14]],cfg.ff,{chipAt:.25}); sym(x0+312,y-34,cfg.ffL,'start');
+  block(x0+196,y+26,56,26,cfg.crossL);
+  wire([[x0+150,y+39],[x0+196,y+39]],cfg.crossIn,{noChip:true}); sym(x0+146,y+44,cfg.crossInL,'end');
+  wire([[x0+252,y+39],[x0+276,y+39],[x0+276,y+14]],cfg.cross,{chipAt:.2});
+}
+// Vref → d-ref (긴 배선: ① → ②)
+wire([[863,70],[970,70],[970,176],[20,176],[20,250],[64,250]],()=>S.Vref,{chipAt:.08});
+channel(20,250,{fb:()=>S.vod,fbL:sub('v','od'),err:()=>S.evd,piL:'k_pv, k_iv',pi:()=>S.pvd,ff:()=>S.iod,ffL:sub('i','od'),
+  cs:'−',crossL:'×ωC<tspan font-size="10" dy="3">f</tspan>',crossIn:()=>S.voq,crossInL:sub('v','oq'),cross:()=>S.cvd});
+sym(20,238,sub('v','od,ref'),'start');
+wire([[500+22,250],[500+64,250]],()=>0,{noChip:true}); sym(505,254,'0','end'); sym(522,238,sub('v','oq,ref'),'start');
+channel(500,250,{fb:()=>S.voq,fbL:sub('v','oq'),err:()=>S.evq,piL:'k_pv, k_iv',pi:()=>S.pvq,ff:()=>S.ioq,ffL:sub('i','oq'),
+  cs:'+',crossL:'×ωC<tspan font-size="10" dy="3">f</tspan>',crossIn:()=>S.vod,crossInL:sub('v','od'),cross:()=>S.cvq});
+// ② 출력 → ③ 기준 (i_l,ref)
+wire([[310,250],[450,250],[450,342],[14,342],[14,430],[64,430]],()=>S.ildr,{chipAt:.12});
+wire([[790,250],[960,250],[960,350],[494,350],[494,430],[564,430]],()=>S.ilqr,{chipAt:.1});
+channel(20,430,{fb:()=>S.ild,fbL:sub('i','ld'),err:()=>S.ecd,piL:'k_pc, k_ic',pi:()=>S.pcd,ff:()=>S.vod,ffL:sub('v','od'),
+  cs:'−',crossL:'×ωL<tspan font-size="10" dy="3">f</tspan>',crossIn:()=>S.ilq,crossInL:sub('i','lq'),cross:()=>S.ccd});
+channel(500,430,{fb:()=>S.ilq,fbL:sub('i','lq'),err:()=>S.ecq,piL:'k_pc, k_ic',pi:()=>S.pcq,ff:()=>S.voq,ffL:sub('v','oq'),
+  cs:'+',crossL:'×ωL<tspan font-size="10" dy="3">f</tspan>',crossIn:()=>S.ild,crossInL:sub('i','ld'),cross:()=>S.ccq});
+// ④ 전력단
+tier(8,546,984,86,'④ 전력단');
+wire([[310,430],[440,430],[440,520],[70,520],[70,566]],()=>S.vid,{chipAt:.3});
+wire([[790,430],[972,430],[972,528],[110,528],[110,566]],()=>S.viq,{chipAt:.2});
+block(40,566,110,40,'dq → abc','θ');
+wire([[150,586],[196,586]],()=>Math.hypot(S.vid,S.viq),{chipAt:.5,fmt:v=>'|v|'+v.toFixed(2)});
+block(196,566,110,40,'PWM · VSI','');
+const dcLabel=el('text',{x:251,y:624,class:'bs'},layerB);
+wire([[306,586],[356,586]],()=>Math.hypot(S.ild,S.ilq),{chipAt:.5,fmt:v=>'|i|'+v.toFixed(2)});
+block(356,562,150,48,'L<tspan font-size="10" dy="3">f</tspan><tspan dy="-3"> · C</tspan><tspan font-size="10" dy="3">f</tspan><tspan dy="-3"> · L</tspan><tspan font-size="10" dy="3">c</tspan>','LCL 필터');
+wire([[506,586],[560,586]],()=>S.pe,{chipAt:.5,fmt:v=>'P '+v.toFixed(2)});
+block(560,566,150,40,'R<tspan font-size="10" dy="3">g</tspan><tspan dy="-3"> + jX</tspan><tspan font-size="10" dy="3">g</tspan>','계통 임피던스');
+wire([[710,586],[760,586]],()=>S.pe,{noChip:true});
+el('circle',{cx:780,cy:586,r:18,class:'src'},layerB); el('path',{d:'M769,586 q5.5,-9 11,0 t11,0',fill:'none',stroke:'currentColor',style:'color:var(--ink-2)'},layerB);
+const vgLabel=el('text',{x:806,y:590,class:'sym','text-anchor':'start'},layerB);
+
+/* ═════════ 3. 점 애니메이션 ═════════ */
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+let COL={};
+function refreshColors(){COL={pos:css('--pos'),neg:css('--neg')};}
+function animateWires(dtReal){
+  for(const w of wires){
+    let v=0; try{v=w.get();}catch(e){}
+    if(!isFinite(v)) v=0;
+    const mag=Math.min(Math.abs(v)/w.nom,2);
+    const speed=mag<0.01?0:(18+95*mag);
+    w.phase=(w.phase+speed*dtReal)%34;
+    const col=v<0?COL.neg:COL.pos, op=mag<0.01?0.12:Math.min(0.35+0.5*mag,1);
+    for(let i=0;i<w.dots.length;i++){
+      const L=(i*34+w.phase)%w.len;
+      const p=w.path.getPointAtLength(L);
+      const d=w.dots[i]; d.setAttribute('cx',p.x); d.setAttribute('cy',p.y);
+      d.setAttribute('fill',col); d.setAttribute('opacity',op); d.setAttribute('r',2+1.3*mag);
+    }
+  }
+}
+let chipTimer=0;
+function updateChips(){
+  for(const w of wires){ if(!w.chipText) continue;
+    let v=0; try{v=w.get();}catch(e){}
+    w.chipText.textContent=w.fmt(v);
+    w.chipText.style.fill=v<0?COL.neg:'';
+  }
+  dcLabel.textContent=isFinite(S.vdc)?'v_dc '+S.vdc.toFixed(3)+' pu':'v_dc 일정 (DC 단 미포함)';
+  vgLabel.innerHTML='v<tspan font-size="10" dy="3">g</tspan><tspan dy="-3"> = '+U.Vg.toFixed(2)+' pu</tspan>';
+}
+
+/* ═════════ 4. 스코프 ═════════ */
+const scopes={f:{c:c_f,keys:['f'],cols:['--accent']},p:{c:c_p,keys:['P','Q','Pref'],cols:['--accent','--neg','--ink-3']},
+  v:{c:c_v,keys:['v','i'],cols:['--accent','--neg']},i:{c:c_i,keys:['a','b','c'],cols:['--accent','--neg','--ok']}};
+let tr=[], tr3=[], lastRec=0, lastRec3=0, speed=1;
+function clearTraces(){tr=[];tr3=[];lastRec=0;lastRec3=0;}
+function record(){
+  const win=Math.max(0.05,3*speed);
+  if(t-lastRec>=win/500){lastRec=t; const io=Math.hypot(S.iod,S.ioq);
+    tr.push({t,f:S.w*60,P:S.pe,Q:S.qe,Pref:U.Pref,v:S.vod,i:io}); while(tr.length&&tr[0].t<t-win) tr.shift();}
+  if(t-lastRec3>=0.05/400){lastRec3=t;
+    const a=theta, id=S.iod, iq=S.ioq, ph=2*Math.PI/3;
+    tr3.push({t,a:id*Math.cos(a)-iq*Math.sin(a),b:id*Math.cos(a-ph)-iq*Math.sin(a-ph),c:id*Math.cos(a+ph)-iq*Math.sin(a+ph)});
+    while(tr3.length&&tr3[0].t<t-0.05) tr3.shift();}
+}
+function drawScope(sc,data,win){
+  const cv=sc.c, dpr=window.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight;
+  if(cv.width!==W*dpr){cv.width=W*dpr;cv.height=H*dpr;}
+  const g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+  if(data.length<2) return;
+  let lo=Infinity,hi=-Infinity;
+  for(const d of data) for(const k of sc.keys){const v=d[k]; if(isFinite(v)){lo=Math.min(lo,v);hi=Math.max(hi,v);}}
+  const pad=Math.max((hi-lo)*0.15, sc===scopes.f?0.02:0.05); lo-=pad; hi+=pad;
+  const t0=data[data.length-1].t-win, X=tt=>(tt-t0)/win*(W-38)+34, Y=v=>H-6-(v-lo)/(hi-lo)*(H-14);
+  g.strokeStyle=css('--line'); g.lineWidth=1; g.font='10px IBM Plex Mono, monospace'; g.fillStyle=css('--ink-3');
+  for(let k=0;k<=2;k++){const v=lo+(hi-lo)*k/2, y=Y(v); g.beginPath(); g.moveTo(34,y); g.lineTo(W,y); g.stroke(); g.fillText(v.toFixed(v>10?2:3),2,y+3);}
+  sc.keys.forEach((k,j)=>{g.strokeStyle=css(sc.cols[j]); g.lineWidth=k==='Pref'?1:1.6; g.setLineDash(k==='Pref'?[4,3]:[]);
+    g.beginPath(); data.forEach((d,i)=>{const px=X(d.t),py=Y(d[k]); i?g.lineTo(px,py):g.moveTo(px,py);}); g.stroke();});
+  g.setLineDash([]);
+}
+function drawScopes(){
+  const win=Math.max(0.05,3*speed);
+  drawScope(scopes.f,tr,win); drawScope(scopes.p,tr,win); drawScope(scopes.v,tr,win); drawScope(scopes.i,tr3,0.05);
+  const l=tr[tr.length-1]; if(!l) return;
+  r_f.textContent=l.f.toFixed(3)+' Hz'; r_p.textContent=`P ${l.P.toFixed(3)} · Q ${l.Q.toFixed(3)}`;
+  r_v.textContent=`v ${l.v.toFixed(3)} · |i| ${l.i.toFixed(3)}`; r_i.textContent='θ '+((theta*180/Math.PI)%360).toFixed(0)+'°';
+}
+
+/* ═════════ 5. 루프 ═════════ */
+let paused=false, last=performance.now();
+function frame(now){
+  const dtReal=Math.min((now-last)/1000,0.05); last=now;
+  if(!paused && !diverged){
+    const steps=Math.max(1,Math.round(dtReal*speed/DT));
+    for(let i=0;i<steps;i++){
+      U.Vg = t<sagUntil?0.8:1.0;
+      rk4();
+      if(i%10===0){S=signals(x); record();}
+      if(!x.every(isFinite)||x.some(v=>Math.abs(v)>1e3)||Math.abs(x[IW]-1)>0.2){diverged=true;banner.classList.add('on');break;}
+    }
+    S=signals(x);
+  }
+  if(!diverged) animateWires(paused?0:dtReal);
+  chipTimer+=dtReal; if(chipTimer>0.1){chipTimer=0; if(!diverged) updateChips(); drawScopes();}
+  statusEl.textContent=`t = ${t.toFixed(3)} s · δ = ${(x[IDL]*180/Math.PI).toFixed(1)}°`;
+  requestAnimationFrame(frame);
+}
+
+/* ═════════ 6. 컨트롤 ═════════ */
+const fmt={Pref:v=>v.toFixed(2),Qref:v=>v.toFixed(2),SCR:v=>v.toFixed(1),XR:v=>v.toFixed(1)};
+for(const id in fmt){const inp=document.getElementById(id), out=document.getElementById('v_'+id);
+  const apply=()=>{const v=+inp.value; out.textContent=fmt[id](v); U[id]=v;};
+  inp.addEventListener('input',apply);}
+function syncInputSliders(){for(const id in fmt){const inp=$(id); if(id in U){inp.value=U[id];} inp.dispatchEvent(new Event('input'));}}
+function buildParamSliders(){
+  const box=$('paramSliders'); box.innerHTML='';
+  for(const [k,cfg] of Object.entries(SPEC.sliders||{})){
+    const v0=SPEC.params[k], step="any";
+    const d=document.createElement('div'); d.className='ctl';
+    d.innerHTML=`<label><span>${cfg.label} (${cfg.unit})</span> <b></b></label><input type="range" min="${cfg.min}" max="${cfg.max}" step="${step}" value="${v0}" data-param="${k}">`;
+    const inp=d.querySelector('input'), out=d.querySelector('b');
+    const apply=()=>{P[k]=+inp.value; out.textContent=(+inp.value).toPrecision(3);};
+    inp.addEventListener('input',apply); apply(); box.appendChild(d);
+  }
+}
+btnStep.onclick=()=>{const inp=document.getElementById('Pref'); inp.value=Math.min(1,(+inp.value>=0.8?0.2:+inp.value+0.3)).toFixed(2); inp.dispatchEvent(new Event('input'));};
+btnSag.onclick=()=>{sagUntil=t+0.1;};
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');speed=+b.dataset.sp;clearTraces();});
+btnPause.onclick=()=>{paused=!paused;btnPause.textContent=paused?'재생':'일시정지';btnPause.classList.toggle('on',paused);};
+btnReset.onclick=()=>{
+  useSpec(SPEC); syncInputSliders(); banner.classList.remove('on'); initState();};
+btnTheme.onclick=()=>{const r=document.documentElement, dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+  r.dataset.theme=dark?'light':'dark'; refreshColors();};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',refreshColors);
+
+function loadSpec(spec){
+  try{ useSpec(spec); syncInputSliders(); banner.classList.remove('on'); initState(); S=signals(x); updateChips(); }
+  catch(e){ $('modelInfo').innerHTML='<span style="color:var(--bad)">모델 불러오기 실패: '+e.message+'</span>'; }
+}
+$('loadBtn').onclick=()=>$('loadFile').click();
+$('loadFile').onchange=e=>{const f=e.target.files[0]; if(!f) return; f.text().then(t=>loadSpec(JSON.parse(t))).catch(err=>loadSpec({format:'bad: '+err.message}));};
+$('defaultBtn').onclick=()=>loadSpec(DEFAULT_SPEC);
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',e=>{e.preventDefault(); const f=e.dataTransfer.files[0]; if(f) f.text().then(t=>loadSpec(JSON.parse(t)));});
+/* ── 임베드용 입구 (RSCAD 웹 '실험 > GFM 제어루프' 에서 쓴다) ──
+   ?spec=<URL> 로 열면 그 spec 을 바로 불러오고, 부모 창이 postMessage 로 밀어 넣을 수도 있다.
+   단독 실행(파일 더블클릭)일 때는 아무 영향이 없다. */
+function loadSpecUrl(url){
+  return fetch(url).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(loadSpec)
+    .catch(e=>{ $('modelInfo').innerHTML='<span style="color:var(--bad)">spec 을 못 읽었습니다: '+e.message+'</span>'; });
+}
+window.addEventListener('message',e=>{
+  const d=e.data||{};
+  if(d.type==='gfm-spec' && d.spec) loadSpec(d.spec);
+  else if(d.type==='gfm-spec-url' && d.url) loadSpecUrl(d.url);
+});
+
+refreshColors(); loadSpec(DEFAULT_SPEC); requestAnimationFrame(frame);
+{ const q=new URLSearchParams(location.search).get('spec'); if(q) loadSpecUrl(q); }
+parent!==window && parent.postMessage({type:'gfm-viewer-ready'},'*');
+</script>
+</body>
+</html>

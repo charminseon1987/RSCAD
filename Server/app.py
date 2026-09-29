@@ -42,12 +42,16 @@ from runner import resolve_latest, BANDS, ZETA_TARGET   # noqa: E402
 
 sys.path.insert(0, str(ROOT / 'Server'))
 from vault import Vault                 # noqa: E402
+from scholar import bp as scholar_bp    # noqa: E402  — 연구실 스콜라 7단계
+from nblm import bp as nblm_bp          # noqa: E402  — NotebookLM (MCP stdio)
 
 RESULTS_ROOT = ROOT / 'results'
 WEB_DIR      = ROOT / 'Web'
 
 app = Flask(__name__, static_folder=str(WEB_DIR), static_url_path='')
 CORS(app)
+app.register_blueprint(scholar_bp)      # /api/scholar/{stages,search,inbox,original,note,link,cite,draft,settings}
+app.register_blueprint(nblm_bp)         # /api/scholar/nblm/{status,notebook,source,generate,studio,query,to-note}
 
 # ── Firebase Admin SDK (reloader 자식에서만 초기화) ──
 _fb_key = ROOT / 'Server' / 'firebase-key.json'
@@ -952,6 +956,66 @@ def scholar_info():
     })
 
 
+# ── 라이브러리 폴더 규칙 — 사용자가 직접 만든다 ──
+#   category 만으로는 석사/박사가 갈리지 않아 제목·경로 키워드를 함께 쓴다.
+FOLDERS_CFG = ROOT / 'Server' / 'scholar_folders.json'
+
+DEFAULT_FOLDERS = [
+    {'key': 'phd', 'label': '박사 · GFM 안정도', 'categories': ['literature'],
+     'keywords': ['GFM', 'VSG', 'SCR', '야코비안', '고유값', '안정도', '인버터', '커플링', 'PSO']},
+    {'key': 'master', 'label': '석사 · ZEB PV/BIPV', 'categories': [],
+     'keywords': ['ZEB', 'BIPV', 'nZEB', '자립률', '건물일체', '경제성', 'LCOE', 'NPV']},
+    {'key': 'claim', 'label': '주장 · 근거', 'categories': ['claim'], 'keywords': []},
+    {'key': 'inbox', 'label': '수집 인박스', 'categories': ['phase'], 'keywords': []},
+]
+
+
+@app.route('/api/scholar/folders', methods=['GET'])
+def get_folders():
+    if FOLDERS_CFG.exists():
+        try:
+            saved = json.loads(FOLDERS_CFG.read_text(encoding='utf-8'))
+            return jsonify({'status': 'ok', 'folders': saved.get('folders', DEFAULT_FOLDERS),
+                            'source': 'saved', 'path': 'Server/scholar_folders.json'})
+        except Exception:                           # noqa: BLE001
+            pass
+    return jsonify({'status': 'ok', 'folders': DEFAULT_FOLDERS,
+                    'source': 'default', 'path': 'Server/scholar_folders.json'})
+
+
+@app.route('/api/scholar/folders', methods=['POST'])
+def save_folders():
+    d = request.json or {}
+    folders = d.get('folders')
+    if not isinstance(folders, list) or not folders:
+        return jsonify({'status': 'error', 'error': 'folders 배열이 필요합니다'}), 400
+
+    clean = []
+    for i, f in enumerate(folders):
+        if not isinstance(f, dict):
+            continue
+        label = str(f.get('label', '')).strip()
+        if not label:
+            return jsonify({'status': 'error', 'error': f'{i + 1}번째 폴더의 이름이 비었습니다'}), 400
+        clean.append({
+            'key': str(f.get('key') or f'f{i}').strip(),
+            'label': label,
+            'categories': [str(c) for c in (f.get('categories') or []) if str(c).strip()],
+            'keywords': [str(k).strip() for k in (f.get('keywords') or []) if str(k).strip()],
+        })
+
+    FOLDERS_CFG.write_text(
+        json.dumps({'folders': clean}, ensure_ascii=False, indent=2), encoding='utf-8')
+    return jsonify({'status': 'ok', 'saved': len(clean), 'path': 'Server/scholar_folders.json'})
+
+
+@app.route('/api/scholar/folders/reset', methods=['POST'])
+def reset_folders():
+    if FOLDERS_CFG.exists():
+        FOLDERS_CFG.unlink()
+    return jsonify({'status': 'ok', 'folders': DEFAULT_FOLDERS})
+
+
 @app.route('/scholar/<path:filepath>')
 def serve_scholar(filepath):
     """lab-scholar 의 시안 HTML 등을 그대로 내보낸다."""
@@ -972,6 +1036,51 @@ def serve_docs(filepath):
     except ValueError:
         return jsonify({'status': 'error', 'error': '경로 이탈'}), 403
     return send_from_directory(str(DOCS_ROOT), filepath)
+
+
+# ═══════════════════════════════════════════════
+# API — GFM 제어루프 뷰어 (gfm-viewer/)
+#   뷰어는 spec JSON 하나로 모델을 받아 브라우저에서 RK4(20 µs)로 적분한다.
+#   spec 은 export_spec.py 가 model.py 의 sympy 식에서 만든다 — 화면과 해석이 같은 식을 쓴다.
+# ═══════════════════════════════════════════════
+VIEWER_ROOT = ROOT / 'gfm-viewer'
+
+
+@app.route('/gfm-viewer/<path:filepath>')
+def serve_viewer(filepath):
+    from flask import send_from_directory
+    try:
+        (VIEWER_ROOT / filepath).resolve().relative_to(VIEWER_ROOT.resolve())
+    except ValueError:
+        return jsonify({'status': 'error', 'error': '경로 이탈'}), 403
+    return send_from_directory(str(VIEWER_ROOT), filepath)
+
+
+@app.route('/api/gfm_viewer/specs')
+def gfm_viewer_specs():
+    """뷰어에 올릴 수 있는 모델 spec 목록. 내용은 열어 보고 형식이 맞는 것만 내보낸다."""
+    out = []
+    for p in sorted(VIEWER_ROOT.glob('*.json')):
+        try:
+            spec = json.loads(p.read_text(encoding='utf-8'))
+        except Exception:                           # noqa: BLE001
+            continue
+        if spec.get('format') != 'gfm-live-flow/spec@1':
+            continue
+        out.append({
+            'file': p.name,
+            'url': f'/gfm-viewer/{p.name}',
+            'name': spec.get('name', p.stem),
+            'states': len(spec.get('states') or []),
+            'params': len(spec.get('params') or {}),
+            'signals': len(spec.get('signals') or {}),
+            'inputs': spec.get('inputs') or {},
+            'sliders': list((spec.get('sliders') or {}).keys()),
+            'exported_at': spec.get('exported_at'),
+            'mtime': p.stat().st_mtime,
+        })
+    return jsonify({'status': 'ok', 'specs': out,
+                    'viewer': '/gfm-viewer/gfm-live-flow.html'})
 
 
 @app.route('/api/export_paper', methods=['POST'])

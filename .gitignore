@@ -9,3 +9,8 @@ node_modules/
 dist/
 debug.log
 .omm/
+
+# 연구실 스콜라 — 사용자 로컬 상태 (수집함·폴더 규칙·설정)
+Server/scholar_inbox.json
+Server/scholar_settings.json
+Server/scholar_folders.json
