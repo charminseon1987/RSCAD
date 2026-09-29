@@ -2,7 +2,7 @@
 type: result
 phase: 2
 run: J0.50_Dp20.0_Kpv0.050_wc62.8_XR1.0_9be44c
-date: 2026-09-22 16:57
+date: 2026-09-29 14:25
 threshold_input: Pref
 T_mode: auto
 threshold_common: 0.2
@@ -39,7 +39,7 @@ tags: [result, phase2, 선형화유효성, gate]
 
 - `gfm_model.mat` — A, B, x0, 고유값, 파라미터 (MATLAB/Simulink용)
 - `xval_check.m` — MATLAB 독립 검산 스크립트
-- `linearization_validity.json` — 섭동별 오차 원자료
+- `linearization_validity_Pref.json` — 섭동별 오차 원자료
 
 ## 🔗 연결 노트
 

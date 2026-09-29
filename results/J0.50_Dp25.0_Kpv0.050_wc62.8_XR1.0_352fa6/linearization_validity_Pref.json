@@ -1,0 +1,492 @@
+{
+  "run": "J0.50_Dp25.0_Kpv0.050_wc62.8_XR1.0_352fa6",
+  "input": "Pref",
+  "tol": 0.05,
+  "T_mode": "auto",
+  "tau_margin": 1.5,
+  "timestamp": "2026-09-29 15:19:57",
+  "threshold_common": 0.2,
+  "threshold_common_fit": 0.27611042949622344,
+  "by_SCR": {
+    "3.0": {
+      "threshold_ratio": 0.3,
+      "threshold_fit": 0.5398171572082932,
+      "fit": {
+        "exponent": 1.9751579844060472,
+        "k": 0.16897603090760982,
+        "r2": 0.9997918678213522,
+        "n_points": 6
+      },
+      "T": 2.1769103319563516,
+      "slow_pole": -3.4452498524640096,
+      "dc_gain_error_max": 0.01588,
+      "dc_gain_error_delta": 0.0017428675728691362,
+      "sweep": [
+        {
+          "ratio": 0.001,
+          "max_rel_error": 0.0,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.0,
+          "dc_gain_state": "i_Less",
+          "dc_gain_delta": {
+            "rel": 2.3474039235180967e-07,
+            "lin_deg": 0.020212944113899615,
+            "nl_deg": 0.02019949448013661
+          }
+        },
+        {
+          "ratio": 0.005,
+          "max_rel_error": 0.0,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 1e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 1.6097617946682179e-06,
+            "lin_deg": 0.10106472056949808,
+            "nl_deg": 0.10097248801264219
+          }
+        },
+        {
+          "ratio": 0.01,
+          "max_rel_error": 2e-05,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 2e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 4.3045643833830236e-06,
+            "lin_deg": 0.20212944113899617,
+            "nl_deg": 0.20188280776718598
+          }
+        },
+        {
+          "ratio": 0.02,
+          "max_rel_error": 7e-05,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 8e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 1.2915354845986424e-05,
+            "lin_deg": 0.40425888227799234,
+            "nl_deg": 0.40351888695440347
+          }
+        },
+        {
+          "ratio": 0.05,
+          "max_rel_error": 0.00045,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00046,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 6.39130190962997e-05,
+            "lin_deg": 1.0106472056949807,
+            "nl_deg": 1.0069852594448236
+          }
+        },
+        {
+          "ratio": 0.1,
+          "max_rel_error": 0.00179,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00181,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.0002288468128808091,
+            "lin_deg": 2.0212944113899614,
+            "nl_deg": 2.008182454856871
+          }
+        },
+        {
+          "ratio": 0.2,
+          "max_rel_error": 0.0071,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00714,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.0008300055302379039,
+            "lin_deg": 4.042588822779923,
+            "nl_deg": 3.9950330089247728
+          }
+        },
+        {
+          "ratio": 0.3,
+          "max_rel_error": 0.01582,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.01588,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.0017428675728691362,
+            "lin_deg": 6.063883234169884,
+            "nl_deg": 5.964024277994273
+          }
+        }
+      ]
+    },
+    "2.0": {
+      "threshold_ratio": 0.3,
+      "threshold_fit": 0.4786309037666961,
+      "fit": {
+        "exponent": 1.9064502082016939,
+        "k": 0.20371953081320604,
+        "r2": 0.9985411246212964,
+        "n_points": 7
+      },
+      "T": 3.3015841264681827,
+      "slow_pole": -2.2716368000057616,
+      "dc_gain_error_max": 0.02224,
+      "dc_gain_error_delta": 0.0011931076628946546,
+      "sweep": [
+        {
+          "ratio": 0.001,
+          "max_rel_error": 0.0,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.0,
+          "dc_gain_state": "i_Less",
+          "dc_gain_delta": {
+            "rel": 3.1720452307567107e-07,
+            "lin_deg": 0.0292042831678924,
+            "nl_deg": 0.029186108687477706
+          }
+        },
+        {
+          "ratio": 0.005,
+          "max_rel_error": 1e-05,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 1e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 1.984259461656167e-06,
+            "lin_deg": 0.14602141583946202,
+            "nl_deg": 0.14590772614685024
+          }
+        },
+        {
+          "ratio": 0.01,
+          "max_rel_error": 3e-05,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 3e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 4.951995851874488e-06,
+            "lin_deg": 0.29204283167892403,
+            "nl_deg": 0.2917591032164454
+          }
+        },
+        {
+          "ratio": 0.02,
+          "max_rel_error": 0.0001,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.0001,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 1.375737302177979e-05,
+            "lin_deg": 0.5840856633578481,
+            "nl_deg": 0.583297423946513
+          }
+        },
+        {
+          "ratio": 0.05,
+          "max_rel_error": 0.00062,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00063,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 6.16939145880388e-05,
+            "lin_deg": 1.4602141583946204,
+            "nl_deg": 1.456679357467085
+          }
+        },
+        {
+          "ratio": 0.1,
+          "max_rel_error": 0.00249,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.0025,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.0002038536339245972,
+            "lin_deg": 2.920428316789241,
+            "nl_deg": 2.9087483639269562
+          }
+        },
+        {
+          "ratio": 0.2,
+          "max_rel_error": 0.00991,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00993,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.0006521496413603722,
+            "lin_deg": 5.840856633578482,
+            "nl_deg": 5.803491211517562
+          }
+        },
+        {
+          "ratio": 0.3,
+          "max_rel_error": 0.02221,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.02224,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.0011931076628946546,
+            "lin_deg": 8.761284950367722,
+            "nl_deg": 8.692924916779141
+          }
+        }
+      ]
+    },
+    "1.5": {
+      "threshold_ratio": 0.3,
+      "threshold_fit": 0.39404215109196383,
+      "fit": {
+        "exponent": 1.9831582276278912,
+        "k": 0.31700992819200724,
+        "r2": 0.9992603178992537,
+        "n_points": 7
+      },
+      "T": 4.4649904742050905,
+      "slow_pole": -1.6797348266090617,
+      "dc_gain_error_max": 0.03006,
+      "dc_gain_error_delta": 0.001952683189153065,
+      "sweep": [
+        {
+          "ratio": 0.001,
+          "max_rel_error": 0.0,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.0,
+          "dc_gain_state": "i_Less",
+          "dc_gain_delta": {
+            "rel": 3.8101202749513813e-07,
+            "lin_deg": 0.038565835615272624,
+            "nl_deg": 0.03854400523415343
+          }
+        },
+        {
+          "ratio": 0.005,
+          "max_rel_error": 1e-05,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 1e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 1.7904804655026647e-06,
+            "lin_deg": 0.1928291780763631,
+            "nl_deg": 0.19272659110238918
+          }
+        },
+        {
+          "ratio": 0.01,
+          "max_rel_error": 3e-05,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 3e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 3.2688840920789067e-06,
+            "lin_deg": 0.3856583561527262,
+            "nl_deg": 0.3854710628905326
+          }
+        },
+        {
+          "ratio": 0.02,
+          "max_rel_error": 0.00013,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00013,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 5.118433770380862e-06,
+            "lin_deg": 0.7713167123054524,
+            "nl_deg": 0.7710234476526924
+          }
+        },
+        {
+          "ratio": 0.05,
+          "max_rel_error": 0.00082,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00082,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 1.2776185310675592e-06,
+            "lin_deg": 1.9282917807636315,
+            "nl_deg": 1.9283649829132894
+          }
+        },
+        {
+          "ratio": 0.1,
+          "max_rel_error": 0.00329,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.0033,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 7.247589336709104e-05,
+            "lin_deg": 3.856583561527263,
+            "nl_deg": 3.8607361243336378
+          }
+        },
+        {
+          "ratio": 0.2,
+          "max_rel_error": 0.01325,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.01325,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.0006007554527502346,
+            "lin_deg": 7.713167123054526,
+            "nl_deg": 7.747587875016586
+          }
+        },
+        {
+          "ratio": 0.3,
+          "max_rel_error": 0.03005,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.03006,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.001952683189153065,
+            "lin_deg": 11.569750684581786,
+            "nl_deg": 11.681631190046403
+          }
+        }
+      ]
+    },
+    "1.0": {
+      "threshold_ratio": 0.2,
+      "threshold_fit": 0.27611042949622344,
+      "fit": {
+        "exponent": 1.9963990537193377,
+        "k": 0.6528174437012981,
+        "r2": 0.9987945144089552,
+        "n_points": 7
+      },
+      "T": 7.354975937582167,
+      "slow_pole": -1.0197178160266704,
+      "dc_gain_error_max": 0.06475,
+      "dc_gain_error_delta": 0.03210235692371133,
+      "sweep": [
+        {
+          "ratio": 0.001,
+          "max_rel_error": 0.0,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.0,
+          "dc_gain_state": "i_Less",
+          "dc_gain_delta": {
+            "rel": 3.814070577770612e-07,
+            "lin_deg": 0.06189817669947954,
+            "nl_deg": 0.061876323684792414
+          }
+        },
+        {
+          "ratio": 0.005,
+          "max_rel_error": 2e-05,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 1e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 2.7092159827976636e-06,
+            "lin_deg": 0.30949088349739773,
+            "nl_deg": 0.3096461101390014
+          }
+        },
+        {
+          "ratio": 0.01,
+          "max_rel_error": 6e-05,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 6e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 1.7103845199525902e-05,
+            "lin_deg": 0.6189817669947955,
+            "nl_deg": 0.6199617451381734
+          }
+        },
+        {
+          "ratio": 0.02,
+          "max_rel_error": 0.00024,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00024,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 8.19294956785066e-05,
+            "lin_deg": 1.237963533989591,
+            "nl_deg": 1.2426577483096046
+          }
+        },
+        {
+          "ratio": 0.05,
+          "max_rel_error": 0.00155,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00154,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.0005830862067850232,
+            "lin_deg": 3.0949088349739773,
+            "nl_deg": 3.1283172137150514
+          }
+        },
+        {
+          "ratio": 0.1,
+          "max_rel_error": 0.00634,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00632,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.002573917054611255,
+            "lin_deg": 6.189817669947955,
+            "nl_deg": 6.337292253993923
+          }
+        },
+        {
+          "ratio": 0.2,
+          "max_rel_error": 0.02683,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.0268,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.012096909276907125,
+            "lin_deg": 12.37963533989591,
+            "nl_deg": 13.07273718661534
+          }
+        },
+        {
+          "ratio": 0.3,
+          "max_rel_error": 0.06481,
+          "pass": false,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.06475,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.03210235692371133,
+            "lin_deg": 18.56945300984387,
+            "nl_deg": 20.408782573995108
+          }
+        }
+      ]
+    }
+  }
+}

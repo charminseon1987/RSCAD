@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>연구실 스콜라 — 화면 시안</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1E2433; --ink-2:#4A5368; --ink-3:#7A8397;
+  --bg:#FFFFFF; --panel:#F4F6FA; --panel-2:#EAEEF5; --line:#DCE1EA;
+  --accent:#7C8CF8; --accent-ink:#3F4DB8; --accent-soft:#ECEEFE;
+  --fact:#3F4DB8; --interp:#A86B12; --interp-soft:#FBF2E2;
+  --ok:#2F7D5B; --ok-soft:#E3F2EA;
+  --sans:"IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --serif:"Noto Serif KR", "AppleMyungjo", "Batang", Georgia, serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#E6E9F2; --ink-2:#B3BACB; --ink-3:#8790A6;
+    --bg:#151925; --panel:#1C2130; --panel-2:#252B3C; --line:#30374A;
+    --accent:#8D9BFA; --accent-ink:#B7C0FF; --accent-soft:#262C4E;
+    --fact:#AEB8FF; --interp:#E2B15E; --interp-soft:#3A2F1C;
+    --ok:#6FCB9C; --ok-soft:#1D3329;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E6E9F2; --ink-2:#B3BACB; --ink-3:#8790A6;
+  --bg:#151925; --panel:#1C2130; --panel-2:#252B3C; --line:#30374A;
+  --accent:#8D9BFA; --accent-ink:#B7C0FF; --accent-soft:#262C4E;
+  --fact:#AEB8FF; --interp:#E2B15E; --interp-soft:#3A2F1C;
+  --ok:#6FCB9C; --ok-soft:#1D3329;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.app{display:grid;grid-template-columns:220px 1fr;height:100%}
+/* ── rail ── */
+.rail{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:20px 14px;gap:4px}
+.brand{font-weight:700;font-size:17px;letter-spacing:-.01em;padding:4px 10px 18px;display:flex;align-items:center;gap:8px}
+.brand-mark{width:22px;height:22px;border-radius:6px;background:var(--accent);display:grid;place-items:center;color:#fff;font-size:13px}
+.nav{all:unset;display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--ink-2);cursor:pointer}
+.nav:hover{background:var(--panel-2)}
+.nav[aria-current="page"]{background:var(--bg);color:var(--ink);font-weight:600;box-shadow:inset 3px 0 0 var(--accent)}
+.nav svg{width:18px;height:18px;flex:none}
+.rail-foot{margin-top:auto;font-size:12.5px;color:var(--ink-3);padding:10px;border-top:1px solid var(--line)}
+.theme-btn{all:unset;cursor:pointer;color:var(--ink-2);font-size:12.5px;padding:8px 10px;border-radius:8px}
+.theme-btn:hover{background:var(--panel-2)}
+main{overflow:auto;min-width:0}
+.screen{display:none;padding:28px 36px 60px;max-width:1280px}
+.screen.on{display:block}
+.sample{display:inline-block;font-size:12px;color:var(--interp);background:var(--interp-soft);padding:2px 8px;border-radius:4px;margin-bottom:14px}
+h1{font-size:24px;letter-spacing:-.02em;margin:0 0 4px;font-weight:700}
+.sub{color:var(--ink-3);margin:0 0 22px}
+/* ── search ── */
+.qbar{display:flex;gap:10px;align-items:center;border:1.5px solid var(--line);border-radius:12px;padding:6px 6px 6px 16px;background:var(--bg)}
+.qbar:focus-within{border-color:var(--accent)}
+.qbar input{flex:1;border:0;background:transparent;font-size:16px;padding:8px 0;min-width:0}
+.qbar input:focus{outline:none}
+.btn{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 12px;font-size:13.5px}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;padding:9px 16px}
+.btn.primary:hover{filter:brightness(1.05)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 26px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:13px;background:var(--bg);color:var(--ink-2)}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);font-weight:500}
+.results{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:32px;align-items:start}
+.answer{font-family:var(--serif);font-size:16.5px;line-height:1.85;max-width:68ch}
+.answer h2{font-family:var(--sans);font-size:15px;font-weight:600;color:var(--ink-2);margin:0 0 10px;display:flex;gap:14px;align-items:center}
+.legend{font-weight:400;font-size:12.5px;color:var(--ink-3);display:flex;gap:12px}
+.legend b{font-weight:600}
+.s{display:block;position:relative;padding:6px 0 6px 28px;border-radius:6px}
+.s::before{position:absolute;left:6px;top:7px;font-family:var(--sans);font-size:14px;font-weight:700}
+.s.f::before{content:"▸";color:var(--fact)}
+.s.i::before{content:"※";color:var(--interp)}
+.s.i{background:var(--interp-soft);padding-right:10px}
+.s.hot{background:var(--accent-soft)}
+.cite{font-family:var(--sans);font-size:11.5px;font-weight:600;vertical-align:2px;margin-left:3px;border:0;border-radius:4px;background:var(--accent-soft);color:var(--accent-ink);padding:1px 5px}
+.cite:hover,.cite.hot{background:var(--accent);color:#fff}
+.gap-box{margin-top:22px;border-top:1px solid var(--line);padding-top:16px;font-family:var(--sans);font-size:14px}
+.gap-box strong{display:block;margin-bottom:6px}
+.gap-box li{margin:4px 0;color:var(--ink-2)}
+.sources h2{font-size:15px;font-weight:600;color:var(--ink-2);margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline}
+.sources h2 span{font-weight:400;font-size:12.5px;color:var(--ink-3)}
+.src{border-top:1px solid var(--line);padding:14px 4px 14px 44px;position:relative;transition:background .15s}
+.src:last-child{border-bottom:1px solid var(--line)}
+.src.hot{background:var(--accent-soft)}
+.src-n{position:absolute;left:4px;top:15px;width:28px;height:22px;border-radius:5px;background:var(--panel-2);font-size:12px;font-weight:600;display:grid;place-items:center;color:var(--ink-2)}
+.src.hot .src-n{background:var(--accent);color:#fff}
+.src-t{font-weight:600;line-height:1.4;margin:0 0 3px;font-size:14.5px}
+.src-m{font-size:12.5px;color:var(--ink-3)}
+.src-m .venue{color:var(--ink-2);font-style:italic}
+.src-snip{font-size:13px;color:var(--ink-2);margin:8px 0 0;padding-left:10px;border-left:2px solid var(--accent);display:none}
+.src.hot .src-snip{display:block}
+.src-a{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.tag{font-size:11.5px;padding:1px 7px;border-radius:4px;background:var(--panel-2);color:var(--ink-2)}
+.tag.oa{background:var(--ok-soft);color:var(--ok)}
+.mini{border:0;background:transparent;color:var(--accent-ink);font-size:12.5px;padding:2px 4px;border-radius:4px}
+.mini:hover{background:var(--accent-soft)}
+/* ── compare ── */
+.toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.toolbar .hint{font-size:12.5px;color:var(--ink-3);margin-left:auto}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:980px;font-size:13.5px}
+th,td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+th:last-child,td:last-child{border-right:0}
+thead th{background:var(--panel);font-weight:600;position:sticky;top:0;white-space:nowrap}
+thead th .x{border:0;background:transparent;color:var(--ink-3);margin-left:6px;padding:0 4px;border-radius:3px}
+thead th .x:hover{background:var(--panel-2);color:var(--ink)}
+tbody th{font-weight:600;background:var(--bg);min-width:210px}
+tbody th small{display:block;font-weight:400;color:var(--ink-3);margin-top:2px}
+td[contenteditable]:hover{background:var(--panel)}
+td[contenteditable]:focus{outline:2px solid var(--accent);outline-offset:-2px;background:var(--bg)}
+td.empty{color:var(--interp);background:var(--interp-soft)}
+tfoot td{background:var(--panel);font-size:13px;color:var(--ink-2)}
+/* ── library ── */
+.lib{display:grid;grid-template-columns:230px 1fr;gap:28px}
+.folders{font-size:14px}
+.folders h3{font-size:12.5px;color:var(--ink-3);font-weight:500;margin:0 0 6px}
+.fold{all:unset;display:flex;justify-content:space-between;width:100%;box-sizing:border-box;padding:7px 10px;border-radius:7px;cursor:pointer;color:var(--ink-2)}
+.fold:hover{background:var(--panel)}
+.fold[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:600}
+.fold span{color:var(--ink-3);font-size:12.5px}
+.drop{margin-top:18px;border:1.5px dashed var(--line);border-radius:10px;padding:16px;font-size:13px;color:var(--ink-3);text-align:center}
+.drop .btn{margin-top:8px}
+.row{display:grid;grid-template-columns:1fr 110px 90px 80px;gap:12px;align-items:center;padding:12px 6px;border-bottom:1px solid var(--line);font-size:14px}
+.row.head{font-size:12.5px;color:var(--ink-3);padding-top:0}
+.row .t{font-weight:600;line-height:1.4}
+.row .t small{display:block;font-weight:400;color:var(--ink-3);font-size:12.5px}
+.status{font-size:12px;padding:2px 8px;border-radius:999px;justify-self:start}
+.st-inbox{background:var(--panel-2);color:var(--ink-2)}
+.st-read{background:var(--accent-soft);color:var(--accent-ink)}
+.st-cited{background:var(--ok-soft);color:var(--ok)}
+/* ── detail drawer ── */
+.scrim{position:fixed;inset:0;background:rgba(15,20,35,.35);display:none;z-index:9}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--bg);border-left:1px solid var(--line);z-index:10;transform:translateX(100%);transition:transform .22s ease;overflow:auto;padding:calc(24px + env(safe-area-inset-top,0px)) 28px calc(40px + env(safe-area-inset-bottom,0px))}
+.drawer.on{transform:none}.scrim.on{display:block}
+.drawer h2{font-size:19px;line-height:1.4;margin:6px 0 6px;letter-spacing:-.01em}
+.drawer .close{float:right}
+.kv{display:grid;grid-template-columns:120px 1fr;gap:6px 14px;font-size:13.5px;margin:18px 0}
+.kv dt{color:var(--ink-3)} .kv dd{margin:0}
+.drawer h3{font-size:14px;margin:22px 0 8px}
+.drawer p{font-family:var(--serif);font-size:15px;line-height:1.8;color:var(--ink-2);margin:0}
+.ieee{font-size:13px;background:var(--panel);border-radius:8px;padding:12px;line-height:1.6}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-size:13.5px;opacity:0;transition:.2s;z-index:20;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .rail{flex-direction:row;padding:8px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}
+  .brand{padding:4px 8px}.rail-foot{display:none}
+  .screen{padding:20px 18px 48px}
+  .results,.lib{grid-template-columns:1fr}
+  .row{grid-template-columns:1fr 80px}.row>:nth-child(3),.row>:nth-child(4){display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="rail" aria-label="주 메뉴">
+    <div class="brand"><span class="brand-mark">∿</span>연구실 스콜라</div>
+    <button class="nav" data-go="search" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>검색·답변</button>
+    <button class="nav" data-go="compare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16M15 4v16"/></svg>비교표</button>
+    <button class="nav" data-go="library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h5l2 2h9v12H4z"/></svg>라이브러리</button>
+    <div class="rail-foot">
+      <button class="theme-btn" id="theme">테마 전환</button>
+      <div style="margin-top:8px">검색 소스: OpenAlex · Semantic Scholar · arXiv</div>
+    </div>
+  </nav>
+
+  <main>
+  <!-- ───────── 검색·답변 ───────── -->
+  <section class="screen on" id="search">
+    <span class="sample">샘플 데이터로 만든 화면 시안입니다</span>
+    <div class="qbar">
+      <input id="q" value="약계통(SCR<2)에서 그리드포밍 인버터의 소신호 안정도를 높이는 파라미터 튜닝 방법은?" aria-label="연구 질문">
+      <button class="btn primary">질문하기</button>
+    </div>
+    <div class="filters" role="group" aria-label="검색 필터">
+      <button class="chip" aria-pressed="true">최근 5년</button>
+      <button class="chip" aria-pressed="false">Q1 저널만</button>
+      <button class="chip" aria-pressed="true">IEEE Trans.</button>
+      <button class="chip" aria-pressed="false">오픈액세스만</button>
+      <button class="chip" aria-pressed="false">프리프린트 제외</button>
+    </div>
+
+    <div class="results">
+      <article class="answer">
+        <h2>답변 <span class="legend"><span><b style="color:var(--fact)">▸</b> 논문 근거</span><span><b style="color:var(--interp)">※</b> AI 종합 해석</span></span></h2>
+        <span class="s f" data-src="1">약계통에서는 GFM 인버터의 전압 루프와 가상 임피던스 간 상호작용이 저주파 진동 모드를 불안정하게 만드는 주요 원인으로 보고된다.<button class="cite" data-src="1">1</button><button class="cite" data-src="3">3</button></span>
+        <span class="s f" data-src="2">참여인자 분석으로 지배 모드에 영향이 큰 파라미터를 먼저 골라낸 뒤, 그 파라미터만 최적화하면 탐색 차원을 크게 줄일 수 있다.<button class="cite" data-src="2">2</button></span>
+        <span class="s f" data-src="4">여러 운전점(SCR·X/R 조합)을 동시에 목적함수에 넣은 PSO 튜닝은 단일 운전점 튜닝보다 넓은 범위에서 감쇠비를 유지했다.<button class="cite" data-src="4">4</button></span>
+        <span class="s i">다만 검토한 연구 대부분이 단일단(DC-AC) 구조를 가정하고 있어, DC-DC 단과 ESS를 포함한 2단 구조에 같은 결론을 그대로 적용하기는 어렵다.</span>
+        <span class="s f" data-src="5">RTDS 기반 CHIL 검증을 수행한 연구는 상대적으로 적고, 대부분 오프라인 EMT 시뮬레이션으로 검증을 마쳤다.<button class="cite" data-src="5">5</button></span>
+        <div class="gap-box">
+          <strong>드러난 연구 공백</strong>
+          <ul>
+            <li>2단 PV+ESS 구조의 다중 운전점 최적화 <button class="cite" data-src="2">2</button><button class="cite" data-src="4">4</button></li>
+            <li>X/R 비를 함께 스윕한 강건성 경계 정량화 <button class="cite" data-src="3">3</button></li>
+          </ul>
+        </div>
+      </article>
+
+      <aside class="sources" aria-label="출처 논문">
+        <h2>출처 논문 <span>답변 번호를 가리키면 근거가 표시됩니다</span></h2>
+        <div id="srcList"></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ───────── 비교표 ───────── -->
+  <section class="screen" id="compare">
+    <span class="sample">샘플 데이터로 만든 화면 시안입니다</span>
+    <h1>선행연구 비교표</h1>
+    <p class="sub">셀을 클릭해 직접 고칠 수 있습니다. 비어 있는 칸은 논문에서 찾지 못한 항목입니다.</p>
+    <div class="toolbar">
+      <select class="btn" id="preset" aria-label="비교 항목 세트">
+        <option value="gfm">GFM·계통 안정도 항목</option>
+        <option value="zeb">PV/BIPV·ZEB 항목</option>
+      </select>
+      <button class="btn" id="addCol">열 추가</button>
+      <button class="btn">CSV로 내보내기</button>
+      <button class="btn">연구 공백 정리하기</button>
+      <span class="hint">5편 · 마지막 수정 방금 전</span>
+    </div>
+    <div class="tbl-wrap"><table id="tbl"></table></div>
+  </section>
+
+  <!-- ───────── 라이브러리 ───────── -->
+  <section class="screen" id="library">
+    <span class="sample">샘플 데이터로 만든 화면 시안입니다</span>
+    <h1>라이브러리</h1>
+    <p class="sub">저장한 논문을 폴더로 정리합니다. 읽기 상태는 Obsidian 노트와 함께 바뀝니다.</p>
+    <div class="lib">
+      <div class="folders">
+        <h3>폴더</h3>
+        <button class="fold" aria-pressed="false" data-f="all">전체 <span>24</span></button>
+        <button class="fold" aria-pressed="true" data-f="gfm">박사 · GFM 안정도 <span>11</span></button>
+        <button class="fold" aria-pressed="false" data-f="zeb">석사 · ZEB PV/BIPV <span>9</span></button>
+        <button class="fold" aria-pressed="false" data-f="inbox">수집 인박스 <span>4</span></button>
+        <div class="drop">
+          PDF를 끌어다 놓거나
+          <div><button class="btn">Zotero에서 가져오기</button></div>
+        </div>
+      </div>
+      <div>
+        <div class="toolbar">
+          <button class="chip" aria-pressed="true">전체</button>
+          <button class="chip" aria-pressed="false">안 읽음</button>
+          <button class="chip" aria-pressed="false">읽음</button>
+          <button class="chip" aria-pressed="false">인용함</button>
+          <span class="hint">정렬: 최근 저장순</span>
+        </div>
+        <div class="row head"><div>논문</div><div>상태</div><div>연도</div><div>인용</div></div>
+        <div id="libList"></div>
+      </div>
+    </div>
+  </section>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="논문 상세" aria-hidden="true">
+  <button class="btn close" id="close">닫기</button>
+  <div id="dBody"></div>
+</aside>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const P = [
+ {n:1,t:"Small-Signal Stability of Grid-Forming Inverters Under Weak Grid Conditions",a:"J. Park, M. Lee, S. Choi",v:"IEEE Trans. Power Electron.",y:2023,c:142,oa:false,f:"gfm",st:"cited",
+  snip:"In weak grids, the interaction between the voltage loop and virtual impedance produces a poorly damped low-frequency mode.",
+  sys:"단일단, 단일 인버터",grid:"SCR 1.2–5, X/R 고정",ctrl:"Droop + 가상 임피던스",ana:"고유값·참여인자",opt:"—",val:"MATLAB/Simulink",lim:"X/R 영향 미검토"},
+ {n:2,t:"Participation-Factor-Guided Parameter Selection for Grid-Forming Control",a:"H. Kim, R. Zhang",v:"IEEE Trans. Power Syst.",y:2024,c:57,oa:true,f:"gfm",st:"read",
+  snip:"Parameters with the highest participation in the dominant mode were selected, reducing the search space from 18 to 6 dimensions.",
+  sys:"단일단, 단일 인버터",grid:"SCR 1.5–3",ctrl:"VSG",ana:"참여인자",opt:"GA (6개 파라미터)",val:"PSCAD",lim:"단일 운전점 최적화"},
+ {n:3,t:"Robustness Boundaries of Virtual Synchronous Generators Across SCR and X/R Ratios",a:"L. Wang, T. Nguyen, D. Müller",v:"IEEE Trans. Smart Grid",y:2022,c:98,oa:false,f:"gfm",st:"read",
+  snip:"Stability margins shrink sharply when X/R falls below 2, a region rarely examined in prior sweeps.",
+  sys:"단일단, 다중 인버터",grid:"SCR 1–6 × X/R 1–10",ctrl:"VSG",ana:"고유값 스윕",opt:"—",val:"시간영역 시뮬레이션",lim:""},
+ {n:4,t:"Multi-Operating-Point PSO Tuning of Grid-Forming Converters",a:"S. Yoon, K. Han",v:"IEEE Access",y:2025,c:12,oa:true,f:"gfm",st:"inbox",
+  snip:"A weighted objective over 12 operating points kept the minimum damping ratio above 0.1 throughout the tested range.",
+  sys:"단일단",grid:"12개 운전점",ctrl:"Droop",ana:"고유값",opt:"PSO (9개 파라미터)",val:"",lim:"하드웨어 검증 없음"},
+ {n:5,t:"Controller Hardware-in-the-Loop Validation of Grid-Forming Inverters with RTDS",a:"A. Rossi, B. Tanaka",v:"Int. J. Electr. Power Energy Syst.",y:2024,c:23,oa:false,f:"gfm",st:"inbox",
+  snip:"Only a small share of reviewed studies validated GFM stability results in real-time CHIL environments.",
+  sys:"2단 PV (ESS 없음)",grid:"SCR 2–4",ctrl:"dVOC",ana:"임피던스 기반",opt:"—",val:"RTDS CHIL",lim:"최적화 미적용"}
+];
+const Z = [
+ {n:6,t:"Hourly Self-Sufficiency of BIPV in Public Buildings Under ZEB Certification",a:"Y. Jung, E. Seo",v:"Energy Build.",y:2024,c:31,oa:true,f:"zeb",st:"read"},
+ {n:7,t:"Reverse Power Flow from Rooftop PV in Zero Energy Buildings",a:"C. Lim, P. Kang",v:"Appl. Energy",y:2023,c:64,oa:false,f:"zeb",st:"inbox"}
+];
+const $ = s=>document.querySelector(s), $$ = s=>[...document.querySelectorAll(s)];
+const ieee = p=>`[${p.n}] ${p.a.replace(/, ([^,]+)$/," and $1")}, "${p.t}," ${p.v}, ${p.y}, doi: 10.0000/sample.${p.n}.`;
+
+/* nav */
+$$(".nav").forEach(b=>b.onclick=()=>{
+  $$(".nav").forEach(x=>x.removeAttribute("aria-current")); b.setAttribute("aria-current","page");
+  $$(".screen").forEach(s=>s.classList.toggle("on",s.id===b.dataset.go));
+  try{localStorage.setItem("tab",b.dataset.go)}catch(e){}
+});
+try{const t=localStorage.getItem("tab"); if(t) $(`.nav[data-go="${t}"]`)?.click()}catch(e){}
+
+/* theme */
+$("#theme").onclick=()=>{
+  const r=document.documentElement, dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme=dark?"light":"dark";
+};
+
+/* sources */
+$("#srcList").innerHTML=P.map(p=>`
+ <div class="src" data-src="${p.n}">
+  <div class="src-n">${p.n}</div>
+  <p class="src-t">${p.t}</p>
+  <div class="src-m">${p.a} · <span class="venue">${p.v}</span> · ${p.y} · 인용 ${p.c}</div>
+  <p class="src-snip">${p.snip}</p>
+  <div class="src-a">${p.oa?'<span class="tag oa">PDF 열람 가능</span>':'<span class="tag">도서관 경유</span>'}
+   <button class="mini" data-open="${p.n}">자세히</button><button class="mini" data-save="${p.n}">라이브러리에 저장</button><button class="mini" data-cite="${p.n}">IEEE 인용 복사</button></div>
+ </div>`).join("");
+
+function hot(n,on){
+  $$(`.src[data-src="${n}"], .cite[data-src="${n}"], .s[data-src="${n}"]`).forEach(el=>el.classList.toggle("hot",on));
+}
+$$(".cite").forEach(c=>{
+  c.onmouseenter=c.onfocus=()=>hot(c.dataset.src,true);
+  c.onmouseleave=c.onblur=()=>hot(c.dataset.src,false);
+  c.onclick=()=>{hot(c.dataset.src,true);$(`.src[data-src="${c.dataset.src}"]`).scrollIntoView({block:"nearest",behavior:"smooth"})};
+});
+$$(".src").forEach(s=>{s.onmouseenter=()=>hot(s.dataset.src,true);s.onmouseleave=()=>hot(s.dataset.src,false)});
+
+/* chips */
+$$(".chip").forEach(c=>c.onclick=()=>c.setAttribute("aria-pressed",c.getAttribute("aria-pressed")!=="true"));
+
+/* toast */
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("on"),1800)}
+document.addEventListener("click",e=>{
+  const s=e.target.closest("[data-save]"), c=e.target.closest("[data-cite]"), o=e.target.closest("[data-open]");
+  if(s){toast("‘박사 · GFM 안정도’ 폴더에 저장했습니다")}
+  if(c){const p=[...P,...Z].find(x=>x.n==c.dataset.cite);try{navigator.clipboard.writeText(ieee(p))}catch(_){}toast("IEEE 인용을 복사했습니다")}
+  if(o){openDetail(+o.dataset.open)}
+});
+
+/* drawer */
+function openDetail(n){
+  const p=[...P,...Z].find(x=>x.n===n);
+  $("#dBody").innerHTML=`
+   <div class="src-m"><span class="venue">${p.v}</span> · ${p.y}</div>
+   <h2>${p.t}</h2>
+   <div class="src-m">${p.a}</div>
+   <dl class="kv">
+    ${p.sys?`<dt>시스템 구성</dt><dd>${p.sys}</dd><dt>계통 조건</dt><dd>${p.grid}</dd><dt>제어 구조</dt><dd>${p.ctrl}</dd><dt>안정도 해석</dt><dd>${p.ana}</dd><dt>최적화</dt><dd>${p.opt}</dd><dt>검증</dt><dd>${p.val||"<span style='color:var(--interp)'>논문에서 찾지 못함</span>"}</dd>`:""}
+    <dt>피인용</dt><dd>${p.c}회</dd>
+   </dl>
+   <h3>핵심 근거 문장</h3><p>${p.snip||"본문 확보 후 표시됩니다."}</p>
+   <h3>내 연구와의 연결</h3><p style="font-family:var(--sans);font-size:14px">※ ${p.lim?`한계(${p.lim})가 본 연구의 차별화 지점이 될 수 있음`:"추가 검토 필요"}</p>
+   <h3>IEEE 인용</h3><div class="ieee">${ieee(p)}</div>
+   <div class="src-a" style="margin-top:16px"><button class="btn primary" data-save="${p.n}">라이브러리에 저장</button><button class="btn" data-cite="${p.n}">인용 복사</button><button class="btn">Obsidian 노트 열기</button></div>`;
+  $("#drawer").classList.add("on");$("#scrim").classList.add("on");$("#drawer").setAttribute("aria-hidden","false");$("#close").focus();
+}
+function closeDetail(){$("#drawer").classList.remove("on");$("#scrim").classList.remove("on");$("#drawer").setAttribute("aria-hidden","true")}
+$("#close").onclick=closeDetail;$("#scrim").onclick=closeDetail;
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDetail()});
+
+/* compare table */
+const COLS={
+ gfm:[["sys","시스템 구성"],["grid","계통 조건 (SCR·X/R)"],["ctrl","제어 구조"],["ana","안정도 해석"],["opt","최적화"],["val","검증"],["lim","한계"]],
+ zeb:[["bld","대상 건물"],["data","데이터·해상도"],["size","용량 산정"],["kpi","자립률 지표"],["econ","경제성"],["grid","계통 영향"],["lim","한계"]]
+};
+let cols=[...COLS.gfm];
+function renderTbl(){
+  const rows=$("#preset").value==="gfm"?P:Z;
+  $("#tbl").innerHTML=`<thead><tr><th>논문</th>${cols.map((c,i)=>`<th>${c[1]}<button class="x" data-rm="${i}" aria-label="${c[1]} 열 삭제">×</button></th>`).join("")}</tr></thead>
+  <tbody>${rows.map(p=>`<tr><th>[${p.n}] ${p.t.length>52?p.t.slice(0,52)+"…":p.t}<small>${p.v}, ${p.y}</small></th>${cols.map(c=>{const v=p[c[0]]||"";return `<td contenteditable="true" class="${v?"":"empty"}">${v}</td>`}).join("")}</tr>`).join("")}</tbody>
+  <tfoot><tr><td colspan="${cols.length+1}">※ 비어 있는 칸이 여러 논문에서 반복되면 연구 공백 후보입니다. 현재: ${$("#preset").value==="gfm"?"2단 구조 · X/R 동시 스윕 · CHIL 검증":"시간정합 분석 · 역전력 정량화"}</td></tr></tfoot>`;
+  $$("[data-rm]").forEach(b=>b.onclick=()=>{cols.splice(+b.dataset.rm,1);renderTbl()});
+  $$("td[contenteditable]").forEach(td=>td.oninput=()=>td.classList.toggle("empty",!td.textContent.trim()));
+}
+$("#preset").onchange=()=>{cols=[...COLS[$("#preset").value]];renderTbl()};
+$("#addCol").onclick=()=>{const name=prompt("추가할 열 이름","핵심 수치");if(name){cols.push(["c"+Date.now(),name]);renderTbl()}};
+renderTbl();
+
+/* library */
+function renderLib(f){
+  const all=[...P,...Z]; const list=f==="all"?all:f==="inbox"?all.filter(p=>p.st==="inbox"):all.filter(p=>p.f===f);
+  const lab={inbox:"안 읽음",read:"읽음",cited:"인용함"};
+  $("#libList").innerHTML=list.map(p=>`<div class="row"><div class="t"><button class="mini" style="all:unset;cursor:pointer" data-open="${p.n}">${p.t}</button><small>${p.a} · ${p.v}</small></div><div><span class="status st-${p.st}">${lab[p.st]}</span></div><div>${p.y}</div><div>${p.c}</div></div>`).join("")||`<p class="sub" style="padding:20px 6px">이 폴더는 비어 있습니다. 검색 결과에서 ‘라이브러리에 저장’을 눌러 추가하세요.</p>`;
+}
+$$(".fold").forEach(b=>b.onclick=()=>{$$(".fold").forEach(x=>x.setAttribute("aria-pressed","false"));b.setAttribute("aria-pressed","true");renderLib(b.dataset.f)});
+renderLib("gfm");
+</script>
+</body>
+</html>

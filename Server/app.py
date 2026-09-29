@@ -40,6 +40,9 @@ import model as M                       # noqa: E402
 import runner                           # noqa: E402
 from runner import resolve_latest, BANDS, ZETA_TARGET   # noqa: E402
 
+sys.path.insert(0, str(ROOT / 'Server'))
+from vault import Vault                 # noqa: E402
+
 RESULTS_ROOT = ROOT / 'results'
 WEB_DIR      = ROOT / 'Web'
 
@@ -728,6 +731,247 @@ def save_note():
     fp.write_text('\n'.join(lines), encoding='utf-8')
     rel_path = str(fp.relative_to(vault))
     return jsonify({'status': 'ok', 'path': rel_path, 'filename': filename})
+
+
+# ═══════════════════════════════════════════════
+# API — 볼트 지식화 (GFM_Research)
+#   /api/notes 는 Phase* 와 literature·claims 네 glob 만 훑는 레거시다.
+#   여기서는 볼트 전체를 읽고 위키링크를 정규화해 해석까지 끝낸 뒤 돌려준다.
+# ═══════════════════════════════════════════════
+VAULT = Vault(ROOT / 'GFM_Research')
+
+
+@app.route('/api/vault/tree')
+def vault_tree():
+    """볼트 폴더 트리. _company 등은 제외된다."""
+    try:
+        return jsonify({'status': 'ok', **VAULT.tree()})
+    except Exception as e:                          # noqa: BLE001
+        return jsonify({'status': 'error', 'error': str(e)}), 500
+
+
+@app.route('/api/vault/note')
+def vault_note():
+    """노트 한 개 — 본문 + 파싱된 frontmatter + 아웃링크(해석 결과) + 백링크."""
+    rel = request.args.get('path', '').strip()
+    if not rel:
+        return jsonify({'status': 'error', 'error': 'path 파라미터 필요'}), 400
+    try:
+        # 경로 이탈 방어 — 기존 /api/note 와 같은 방식
+        (ROOT / 'GFM_Research' / rel).resolve().relative_to((ROOT / 'GFM_Research').resolve())
+    except ValueError:
+        return jsonify({'status': 'error', 'error': '경로 이탈'}), 403
+    try:
+        n = VAULT.note(rel)
+    except Exception as e:                          # noqa: BLE001
+        return jsonify({'status': 'error', 'error': str(e)}), 500
+    if not n:
+        return jsonify({'status': 'error', 'error': f'노트 없음: {rel}'}), 404
+    return jsonify({'status': 'ok', **n})
+
+
+@app.route('/api/vault/graph')
+def vault_graph():
+    """지식 그래프. 링크 정규화·중복해소·미작성 판정은 여기서 끝낸다."""
+    try:
+        return jsonify({'status': 'ok', **VAULT.graph()})
+    except Exception as e:                          # noqa: BLE001
+        return jsonify({'status': 'error', 'error': str(e)}), 500
+
+
+@app.route('/api/vault/search')
+def vault_search():
+    """본문 전문 검색 — 기존 /api/notes 에는 없던 기능."""
+    q = request.args.get('q', '')
+    try:
+        return jsonify({'status': 'ok', **VAULT.search(q)})
+    except Exception as e:                          # noqa: BLE001
+        return jsonify({'status': 'error', 'error': str(e)}), 500
+
+
+# ═══════════════════════════════════════════════
+# API — 소스 코드와 모듈 데이터
+#   화면에서 model.py · op.py · runner.py 를 눌렀을 때
+#   "코드" 와 "그 모듈이 실제로 들고 있는 값" 을 둘 다 보여주기 위한 것.
+# ═══════════════════════════════════════════════
+SOURCE_DIRS = ('Simulation', 'Server', 'agent', 'Scripts', 'rag')
+
+
+@app.route('/api/source')
+def get_source():
+    rel = (request.args.get('path') or '').strip().replace('\\', '/')
+    if not rel.endswith('.py'):
+        return jsonify({'status': 'error', 'error': '.py 파일만 볼 수 있습니다'}), 400
+    if not rel.split('/')[0] in SOURCE_DIRS:
+        return jsonify({'status': 'error',
+                        'error': f'허용된 폴더가 아닙니다: {SOURCE_DIRS}'}), 403
+    fp = ROOT / rel
+    try:
+        fp.resolve().relative_to(ROOT.resolve())
+    except ValueError:
+        return jsonify({'status': 'error', 'error': '경로 이탈'}), 403
+    if not fp.exists():
+        return jsonify({'status': 'error', 'error': f'파일 없음: {rel}'}), 404
+
+    text = fp.read_text(encoding='utf-8')
+    doc = ''
+    if text.lstrip().startswith('"""'):
+        body = text.lstrip()[3:]
+        doc = body.split('"""')[0].strip()
+    return jsonify({
+        'status': 'ok', 'path': rel, 'name': fp.name,
+        'lines': text.count('\n') + 1, 'bytes': len(text.encode('utf-8')),
+        'mtime': fp.stat().st_mtime, 'docstring': doc, 'source': text,
+    })
+
+
+@app.route('/api/model_info')
+def model_info():
+    """model.py · op.py · runner.py 가 들고 있는 값을 사람이 읽을 형태로."""
+    import op as OP
+
+    ctrl = (STATE['meta'] or {}).get('ctrl_params') or {}
+    return jsonify({
+        'status': 'ok',
+        'model': {
+            'file': 'Simulation/model.py',
+            'n_states': M.N, 'n_dc': M.N_DC, 'n_ac': M.N_AC,
+            'dc_states': list(M.DC_STATES),
+            'ac_states': list(M.AC_STATES),
+            'state_names': list(M.STATE_NAMES),
+            'input_names': list(M.INPUT_NAMES),
+            'param_names': list(M.PARAM_NAMES),
+            'fixed_names': list(M.FIXED_NAMES),
+        },
+        'op': {
+            'file': 'Simulation/op.py',
+            'fixed': {k: v for k, v in OP.FIXED.items()},
+            'ctrl_defaults': {k: v for k, v in OP.CTRL.items()},
+            'inputs': {k: v for k, v in OP.INP.items()},
+            'z_base': OP.Z_BASE,
+            'observable': list(OP.OBSERVABLE),
+            'integrators': list(OP.INTEGRATORS),
+        },
+        'runner': {
+            'file': 'Simulation/runner.py',
+            'model_version': runner.MODEL_VERSION,
+            'zeta_target': ZETA_TARGET,
+            'bands': [{'name': b[0], 'lo': b[1], 'hi': b[2]} if len(b) >= 3 else {'raw': str(b)}
+                      for b in BANDS],
+        },
+        'current_run': {
+            'run_dir': STATE['run_dir'].name if STATE['run_dir'] else None,
+            'ctrl_params': ctrl,
+            'XR': (STATE['meta'] or {}).get('XR'),
+            'SCR_list': (STATE['meta'] or {}).get('SCR_list'),
+        },
+    })
+
+
+# ═══════════════════════════════════════════════
+# API — Archify 다이어그램
+#   docs/ 를 재귀로 훑어 self-describing 스펙(schema_version + diagram_type)만 고른다.
+#   폴더 관례를 지키든 안 지키든 갤러리가 깨지지 않게 하려는 것이다.
+# ═══════════════════════════════════════════════
+DOCS_ROOT = ROOT / 'docs'
+
+
+@app.route('/api/diagrams')
+def list_diagrams():
+    items = []
+    if DOCS_ROOT.exists():
+        for p in sorted(DOCS_ROOT.rglob('*.json')):
+            try:
+                spec = json.loads(p.read_text(encoding='utf-8'))
+            except Exception:                       # noqa: BLE001
+                continue
+            if not isinstance(spec, dict):
+                continue
+            if 'schema_version' not in spec or 'diagram_type' not in spec:
+                continue
+
+            meta = spec.get('meta', {}) or {}
+            # 렌더된 HTML 찾기 — meta.output 우선, 없으면 <stem>-<type>.html 관례
+            html = None
+            out = meta.get('output')
+            if out and (p.parent / out).exists():
+                html = (p.parent / out).relative_to(DOCS_ROOT).as_posix()
+            else:
+                stem = p.stem
+                if stem.endswith('.' + spec['diagram_type']):
+                    stem = stem[: -(len(spec['diagram_type']) + 1)]
+                cand = p.parent / f"{stem}-{spec['diagram_type']}.html"
+                if cand.exists():
+                    html = cand.relative_to(DOCS_ROOT).as_posix()
+
+            items.append({
+                'name': p.stem.replace('.' + spec['diagram_type'], ''),
+                'type': spec['diagram_type'],
+                'title': meta.get('title', p.stem),
+                'spec': p.relative_to(DOCS_ROOT).as_posix(),
+                'html': html,
+                'views': [v.get('label') for v in (meta.get('views') or [])],
+                'nodes': len(spec.get('components') or spec.get('nodes') or []),
+                'mtime': p.stat().st_mtime,
+            })
+    return jsonify({'status': 'ok', 'total': len(items), 'diagrams': items})
+
+
+# ═══════════════════════════════════════════════
+# API — lab-scholar (논문 서비스, 별도 프로젝트)
+#   GFM_Research/lab-scholar/ 의 SPEC 과 화면 시안을 논문 탭에서 보기 위한 것.
+# ═══════════════════════════════════════════════
+SCHOLAR_ROOT = ROOT / 'GFM_Research' / 'lab-scholar'
+
+
+@app.route('/api/scholar')
+def scholar_info():
+    """lab-scholar 의 Stage 목록과 시안 존재 여부."""
+    if not SCHOLAR_ROOT.exists():
+        return jsonify({'status': 'error', 'error': 'lab-scholar 폴더 없음'}), 404
+
+    spec = SCHOLAR_ROOT / 'docs' / 'SPEC.md'
+    stages = []
+    if spec.exists():
+        for line in spec.read_text(encoding='utf-8').split('\n'):
+            if line.startswith('### Stage '):
+                head = line[4:].strip()
+                num, _, title = head.partition('.')
+                stages.append({'stage': num.replace('Stage', '').strip(),
+                               'title': title.strip()})
+
+    proto = SCHOLAR_ROOT / 'docs' / 'design' / 'scholar-prototype.html'
+    return jsonify({
+        'status': 'ok',
+        'root': 'GFM_Research/lab-scholar',
+        'stages': stages,
+        'prototype': 'docs/design/scholar-prototype.html' if proto.exists() else None,
+        'files': sorted(p.relative_to(SCHOLAR_ROOT).as_posix()
+                        for p in SCHOLAR_ROOT.rglob('*')
+                        if p.is_file() and '.git' not in p.parts),
+    })
+
+
+@app.route('/scholar/<path:filepath>')
+def serve_scholar(filepath):
+    """lab-scholar 의 시안 HTML 등을 그대로 내보낸다."""
+    from flask import send_from_directory
+    try:
+        (SCHOLAR_ROOT / filepath).resolve().relative_to(SCHOLAR_ROOT.resolve())
+    except ValueError:
+        return jsonify({'status': 'error', 'error': '경로 이탈'}), 403
+    return send_from_directory(str(SCHOLAR_ROOT), filepath)
+
+
+@app.route('/docs/<path:filepath>')
+def serve_docs(filepath):
+    """렌더된 다이어그램 HTML 을 그대로 내보낸다 (iframe 으로 띄운다)."""
+    from flask import send_from_directory
+    try:
+        (DOCS_ROOT / filepath).resolve().relative_to(DOCS_ROOT.resolve())
+    except ValueError:
+        return jsonify({'status': 'error', 'error': '경로 이탈'}), 403
+    return send_from_directory(str(DOCS_ROOT), filepath)
 
 
 @app.route('/api/export_paper', methods=['POST'])

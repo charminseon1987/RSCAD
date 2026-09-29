@@ -11,11 +11,15 @@
   "dependencies": {
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
+    "@types/d3-force": "^3.0.10",
+    "d3-force": "^3.0.0",
     "lucide-react": "^1.47.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^6.26.0",
     "recharts": "^3.10.1",
+    "remark-gfm": "^4.0.1",
     "three": "^0.169.0"
   },
   "devDependencies": {

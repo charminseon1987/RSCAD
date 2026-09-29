@@ -95,15 +95,15 @@ function GaugeBar({ label, value, max, ok }: { label: string; value: number; max
   const pct = Math.min(value / max, 1) * 100;
   const refPct = (1 / max) * 100;
   return (
-    <div className="flex items-center gap-3" style={{ fontSize: 13 }}>
-      <span className="mono-clock w-16 shrink-0" style={{ color: 'var(--outline)', fontSize: 12 }}>{label}</span>
+    <div className="flex items-center gap-3" style={{ fontSize: 16 }}>
+      <span className="mono-clock w-16 shrink-0" style={{ color: 'var(--outline)', fontSize: 15 }}>{label}</span>
       <div className="flex-1 relative h-3.5 rounded-lg overflow-visible" style={{ background: 'var(--surface-container-high)' }}>
         <div className="absolute left-0 top-0 bottom-0 rounded-lg transition-all duration-500"
           style={{ width: `${pct}%`, background: ok ? 'var(--primary)' : 'var(--secondary-container)' }} />
         <div className="absolute top-[-3px] bottom-[-3px] w-0.5 rounded bg-white"
           style={{ left: `calc(${refPct}% - 1px)`, boxShadow: '0 0 0 2px var(--outline-variant)' }} />
       </div>
-      <span className="mono-clock w-12 text-right font-semibold" style={{ color: ok ? 'var(--primary)' : 'var(--secondary)', fontSize: 12 }}>
+      <span className="mono-clock w-12 text-right font-semibold" style={{ color: ok ? 'var(--primary)' : 'var(--secondary)', fontSize: 15 }}>
         {ff(value, 3)}
       </span>
     </div>
@@ -154,14 +154,14 @@ function ComboChart({ cfg }: { cfg: {
         {cfg.yL.ticks.map(t => (
           <g key={`gl${t}`}>
             <line x1={m.l} x2={W - m.r} y1={YL(t)} y2={YL(t)} stroke="var(--border)" />
-            <text x={m.l - 8} y={YL(t) + 4} textAnchor="end" style={{ fontSize: 11, fill: 'var(--outline)' }}>{cfg.yL.fmt(t)}</text>
+            <text x={m.l - 8} y={YL(t) + 4} textAnchor="end" style={{ fontSize: 15, fill: 'var(--outline)' }}>{cfg.yL.fmt(t)}</text>
           </g>
         ))}
         {cfg.yR.ticks.map(t => (
-          <text key={`gr${t}`} x={W - m.r + 8} y={YR(t) + 4} style={{ fontSize: 11, fill: 'var(--outline)' }}>{cfg.yR.fmt(t)}</text>
+          <text key={`gr${t}`} x={W - m.r + 8} y={YR(t) + 4} style={{ fontSize: 15, fill: 'var(--outline)' }}>{cfg.yR.fmt(t)}</text>
         ))}
         {cfg.labels.map((l, i) => (
-          <text key={`lbl${i}`} x={X(i)} y={H - 8} textAnchor="middle" className="mono-label" style={{ fontSize: 10, fill: 'var(--outline)' }}>{l}</text>
+          <text key={`lbl${i}`} x={X(i)} y={H - 8} textAnchor="middle" className="mono-label" style={{ fontSize: 14, fill: 'var(--outline)' }}>{l}</text>
         ))}
 
         {/* Bars */}
@@ -183,7 +183,7 @@ function ComboChart({ cfg }: { cfg: {
           const y = cfg.ref.axis === 'L' ? YL(cfg.ref.v) : YR(cfg.ref.v);
           return <>
             <line x1={m.l} x2={W - m.r} y1={y} y2={y} stroke="var(--secondary-container)" strokeWidth={1.5} strokeDasharray="5 5" />
-            <text x={W - m.r - 4} y={y - 7} textAnchor="end" style={{ fontSize: 11, fontWeight: 600, fill: 'var(--secondary)' }}>{cfg.ref.label}</text>
+            <text x={W - m.r - 4} y={y - 7} textAnchor="end" style={{ fontSize: 15, fontWeight: 600, fill: 'var(--secondary)' }}>{cfg.ref.label}</text>
           </>;
         })()}
 
@@ -197,7 +197,7 @@ function ComboChart({ cfg }: { cfg: {
 
       {/* Tooltip */}
       {hov !== null && (
-        <div className="absolute pointer-events-none px-3 py-2 rounded-xl text-xs"
+        <div className="absolute pointer-events-none px-3 py-2 rounded-xl text-sm"
           style={{
             left: `${X(hov) / W * 100}%`, top: `${Math.min(YL(cfg.bars[hov]), YR(cfg.line[hov])) / H * 100}%`,
             transform: 'translate(-50%, calc(-100% - 12px))',
@@ -295,7 +295,7 @@ function getChartCfg(view: string, d: DashData) {
 /* ================================================================
    Main Lab Component
 ================================================================ */
-export default function Lab() {
+export default function Verification() {
   const [d, setD] = useState<DashData>({ ...DEFAULT });
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState('');
@@ -409,7 +409,7 @@ export default function Lab() {
   );
 
   return (
-    <div className="max-w-[1600px] mx-auto px-8 py-8 space-y-5">
+    <div className="max-w-[1600px] mx-auto px-10 py-10 space-y-7">
 
       {/* ── Header ── */}
       <div className="flex items-end justify-between flex-wrap gap-4">
@@ -417,7 +417,7 @@ export default function Lab() {
           <h1 className="text-display" style={{ color: 'var(--primary)', fontSize: 28 }}>
             GFM 소신호 안정도
           </h1>
-          <p className="mono-clock mt-1" style={{ color: 'var(--outline)', fontSize: 12 }}>
+          <p className="mono-clock mt-1" style={{ color: 'var(--outline)', fontSize: 15 }}>
             {d.run}, X/R {ff(d.xr, 1)}, 목표 σ {ff(sr, 1)} /s
           </p>
         </div>
@@ -428,7 +428,7 @@ export default function Lab() {
               <button key={v} onClick={() => setView(v)}
                 className="mono-label px-3 py-1.5 rounded-lg transition-all duration-200"
                 style={{
-                  fontSize: 10,
+                  fontSize: 14,
                   color: view === v ? 'var(--primary)' : 'var(--outline)',
                   background: view === v ? 'var(--surface-container-lowest)' : 'transparent',
                   border: view === v ? '1px solid var(--border)' : '1px solid transparent',
@@ -442,7 +442,7 @@ export default function Lab() {
           <input ref={fileRef} type="file" multiple accept=".json" className="hidden"
             onChange={e => e.target.files && handleFiles(e.target.files)} />
           <button onClick={() => fileRef.current?.click()}
-            className="mc-btn-secondary mono-label" style={{ fontSize: 10, padding: '6px 14px' }}>
+            className="mc-btn-secondary mono-label" style={{ fontSize: 14, padding: '6px 14px' }}>
             결과 불러오기
           </button>
         </div>
@@ -450,7 +450,7 @@ export default function Lab() {
 
       {/* ── Toast ── */}
       {toast && (
-        <p className="mono-clock" style={{ color: 'var(--outline)', fontSize: 12 }}>{toast}</p>
+        <p className="mono-clock" style={{ color: 'var(--outline)', fontSize: 15 }}>{toast}</p>
       )}
 
       {/* ── Top Cards Grid ── */}
@@ -459,16 +459,16 @@ export default function Lab() {
         {/* Hero — 운전점별 여유 */}
         <div className="glass-card" style={{ gridArea: 'hero', padding: 20 }}>
           <div className="flex items-center justify-between mb-3">
-            <span className="mono-label" style={{ color: 'var(--primary)', fontSize: 11 }}>운전점별 여유</span>
-            <span className="mono-clock" style={{ color: 'var(--outline)', fontSize: 11 }}>흰 눈금이 목표 1.0</span>
+            <span className="mono-label" style={{ color: 'var(--primary)', fontSize: 15 }}>운전점별 여유</span>
+            <span className="mono-clock" style={{ color: 'var(--outline)', fontSize: 15 }}>흰 눈금이 목표 1.0</span>
           </div>
           <div className="grid gap-6 items-center" style={{ gridTemplateColumns: 'minmax(140px, 200px) 1fr' }}>
             <div>
-              <span className="mono-label" style={{ color: 'var(--outline)', fontSize: 10 }}>요구 충족</span>
+              <span className="mono-label" style={{ color: 'var(--outline)', fontSize: 14 }}>요구 충족</span>
               <div className="mono-metric mt-1" style={{ color: 'var(--primary)', fontSize: 32 }}>
                 {okRows.length}<span className="text-body-sm ml-1" style={{ color: 'var(--outline)', fontWeight: 400 }}>/ {rows.length} 운전점</span>
               </div>
-              <p className="mono-clock mt-2" style={{ color: 'var(--outline)', fontSize: 11 }}>
+              <p className="mono-clock mt-2" style={{ color: 'var(--outline)', fontSize: 15 }}>
                 {okRows.length ? `충족 SCR ${okRows.map(r => S(r.scr)).join(', ')}` : '충족하는 운전점이 없습니다'}
               </p>
             </div>
@@ -482,18 +482,18 @@ export default function Lab() {
 
         {/* Side — 최약 운전점 */}
         <div className="glass-card" style={{ gridArea: 'side', padding: 20 }}>
-          <span className="mono-label" style={{ color: 'var(--primary)', fontSize: 11 }}>최약 운전점</span>
+          <span className="mono-label" style={{ color: 'var(--primary)', fontSize: 15 }}>최약 운전점</span>
           {worst ? (
             <div className="mt-3 flex justify-between items-end h-full" style={{ paddingBottom: 4 }}>
               <div>
                 <div className="mono-metric" style={{ color: 'var(--on-surface)', fontSize: 28 }}>
                   {ff(worst.sigma)}<span className="text-body-sm ml-1" style={{ color: 'var(--outline)', fontWeight: 400 }}>/ {ff(sr, 1)}</span>
                 </div>
-                <p className="mono-clock mt-1" style={{ color: 'var(--outline)', fontSize: 11 }}>
+                <p className="mono-clock mt-1" style={{ color: 'var(--outline)', fontSize: 15 }}>
                   SCR {S(worst.scr)}, 정착 {ff(TS_COEF / worst.sigma)} s
                 </p>
                 <span className="mono-label inline-block mt-1 px-2 py-0.5 rounded" style={{
-                  fontSize: 10,
+                  fontSize: 14,
                   background: worst.sc >= 1 ? 'rgba(5,21,43,0.06)' : 'rgba(129,85,0,0.08)',
                   color: worst.sc >= 1 ? 'var(--primary)' : 'var(--secondary)',
                 }}>{worst.sc >= 1 ? '충족' : `${Math.round((1 - worst.sc) * 100)}% 부족`}</span>
@@ -512,13 +512,13 @@ export default function Lab() {
 
         {/* K1 — 동기화 참여도 */}
         <div className="glass-card flex flex-col" style={{ gridArea: 'k1', padding: 20 }}>
-          <span className="mono-label mb-3" style={{ color: 'var(--primary)', fontSize: 11 }}>동기화 참여도</span>
+          <span className="mono-label mb-3" style={{ color: 'var(--primary)', fontSize: 15 }}>동기화 참여도</span>
           <div className="flex items-center justify-between flex-1">
             <div>
               <div className="mono-metric" style={{ color: 'var(--on-surface)', fontSize: 22 }}>
                 {pw ? ff(pw.pd + pw.pw, 3) : '—'}
               </div>
-              <p className="mono-clock mt-1" style={{ color: 'var(--outline)', fontSize: 10 }}>
+              <p className="mono-clock mt-1" style={{ color: 'var(--outline)', fontSize: 14 }}>
                 {pw ? `SCR ${S(pw.scr)}, δ가 지배` : ''}
               </p>
             </div>
@@ -528,13 +528,13 @@ export default function Lab() {
 
         {/* K2 — 선형화 유효 범위 */}
         <div className="glass-card flex flex-col" style={{ gridArea: 'k2', padding: 20 }}>
-          <span className="mono-label mb-3" style={{ color: 'var(--primary)', fontSize: 11 }}>선형화 유효 범위</span>
+          <span className="mono-label mb-3" style={{ color: 'var(--primary)', fontSize: 15 }}>선형화 유효 범위</span>
           <div className="flex items-center justify-between flex-1">
             <div>
               <div className="mono-metric" style={{ color: 'var(--on-surface)', fontSize: 22 }}>
                 {lw ? `${ff(lw.thr * 100, 1)}%` : '—'}
               </div>
-              <p className="mono-clock mt-1" style={{ color: 'var(--outline)', fontSize: 10 }}>
+              <p className="mono-clock mt-1" style={{ color: 'var(--outline)', fontSize: 14 }}>
                 {lw ? `SCR ${S(lw.scr)}, 허용 ${ff(d.lin.tol * 100, 1)}%` : ''}
               </p>
             </div>
@@ -544,13 +544,13 @@ export default function Lab() {
 
         {/* K3 — 충족 비율 */}
         <div className="glass-card flex flex-col" style={{ gridArea: 'k3', padding: 20 }}>
-          <span className="mono-label mb-3" style={{ color: 'var(--primary)', fontSize: 11 }}>충족 비율</span>
+          <span className="mono-label mb-3" style={{ color: 'var(--primary)', fontSize: 15 }}>충족 비율</span>
           <div className="flex items-center justify-between flex-1">
             <div>
               <div className="mono-metric" style={{ color: 'var(--on-surface)', fontSize: 22 }}>
                 {okRows.length}<span className="text-body-sm ml-1" style={{ color: 'var(--outline)', fontWeight: 400 }}>/ {rows.length}</span>
               </div>
-              <p className="mono-clock mt-1" style={{ color: 'var(--outline)', fontSize: 10 }}>
+              <p className="mono-clock mt-1" style={{ color: 'var(--outline)', fontSize: 14 }}>
                 목표 정착 {d.tsSpec} s 기준
               </p>
             </div>
@@ -561,15 +561,15 @@ export default function Lab() {
         {/* Map — 2D 스윕 */}
         <div className="glass-card" style={{ gridArea: 'map', padding: 20 }}>
           <div className="flex items-center justify-between mb-3">
-            <span className="mono-label" style={{ color: 'var(--primary)', fontSize: 11 }}>2D 스윕 진행</span>
-            <span className="mono-clock" style={{ color: 'var(--outline)', fontSize: 10 }}>{gridDone} / {gridTotal} 계산</span>
+            <span className="mono-label" style={{ color: 'var(--primary)', fontSize: 15 }}>2D 스윕 진행</span>
+            <span className="mono-clock" style={{ color: 'var(--outline)', fontSize: 14 }}>{gridDone} / {gridTotal} 계산</span>
           </div>
           <div className="space-y-1.5">
             {d.gridXR.map(xr => {
               const row = d.grid[ff(xr, 1)] || {};
               return (
                 <div key={xr} className="grid items-center gap-1.5" style={{ gridTemplateColumns: `36px repeat(${d.gridSCR.length}, 1fr)` }}>
-                  <span className="mono-clock" style={{ color: 'var(--outline)', fontSize: 10 }}>{ff(xr, 1)}</span>
+                  <span className="mono-clock" style={{ color: 'var(--outline)', fontSize: 14 }}>{ff(xr, 1)}</span>
                   {d.gridSCR.map(s => <MapCell key={s} sigma={row[s]} xr={xr} scr={s} d={d} />)}
                 </div>
               );
@@ -578,12 +578,12 @@ export default function Lab() {
             <div className="grid gap-1.5" style={{ gridTemplateColumns: `36px repeat(${d.gridSCR.length}, 1fr)` }}>
               <span />
               {d.gridSCR.map(s => (
-                <span key={s} className="mono-clock text-center" style={{ color: 'var(--outline-variant)', fontSize: 9 }}>{S(s)}</span>
+                <span key={s} className="mono-clock text-center" style={{ color: 'var(--outline-variant)', fontSize: 14 }}>{S(s)}</span>
               ))}
             </div>
           </div>
           {/* Legend */}
-          <div className="flex gap-4 mt-3 mono-clock" style={{ fontSize: 10, color: 'var(--outline)' }}>
+          <div className="flex gap-4 mt-3 mono-clock" style={{ fontSize: 14, color: 'var(--outline)' }}>
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ background: 'var(--primary)' }} />충족</span>
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ background: 'var(--secondary-container)' }} />미달</span>
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ background: 'var(--surface-container)', border: '1px solid var(--border)' }} />미계산</span>
@@ -592,24 +592,24 @@ export default function Lab() {
       </div>
 
       {/* ── Chart + AI ── */}
-      <div className="grid grid-cols-12 gap-5">
+      <div className="grid grid-cols-12 gap-6">
         {/* Chart */}
         <div className="col-span-12 lg:col-span-7 glass-card" style={{ padding: 20 }}>
           {chartCfg ? (
             <>
               <div className="flex items-center justify-between mb-3">
-                <span className="mono-label" style={{ color: 'var(--primary)', fontSize: 11 }}>{chartCfg.title}</span>
+                <span className="mono-label" style={{ color: 'var(--primary)', fontSize: 15 }}>{chartCfg.title}</span>
               </div>
               <div className="flex flex-wrap gap-6 mb-4">
                 {chartCfg.stats.map(([k, v]) => (
                   <div key={k}>
-                    <span className="mono-clock" style={{ color: 'var(--outline)', fontSize: 11 }}>{k}</span>
+                    <span className="mono-clock" style={{ color: 'var(--outline)', fontSize: 15 }}>{k}</span>
                     <div className="mono-metric mt-0.5" style={{ color: 'var(--on-surface)', fontSize: 18 }}>{v}</div>
                   </div>
                 ))}
               </div>
               <ComboChart cfg={chartCfg} />
-              <p className="mono-clock mt-3" style={{ color: 'var(--outline)', fontSize: 11 }}>{chartCfg.note}</p>
+              <p className="mono-clock mt-3" style={{ color: 'var(--outline)', fontSize: 15 }}>{chartCfg.note}</p>
             </>
           ) : (
             <p className="mono-clock" style={{ color: 'var(--outline)' }}>데이터 없음</p>
@@ -619,8 +619,8 @@ export default function Lab() {
         {/* AI Assistant */}
         <div className="col-span-12 lg:col-span-5 glass-card flex flex-col" style={{ padding: 20, minHeight: 380 }}>
           <div className="flex items-center justify-between mb-3">
-            <span className="mono-label" style={{ color: 'var(--primary)', fontSize: 11 }}>연구 도우미</span>
-            <span className="mono-clock" style={{ color: 'var(--outline)', fontSize: 10 }}>현재 결과로 답합니다</span>
+            <span className="mono-label" style={{ color: 'var(--primary)', fontSize: 15 }}>연구 도우미</span>
+            <span className="mono-clock" style={{ color: 'var(--outline)', fontSize: 14 }}>현재 결과로 답합니다</span>
           </div>
 
           {/* Log */}
@@ -629,11 +629,11 @@ export default function Lab() {
               <div key={i} className="space-y-1.5">
                 <div className="text-right">
                   <span className="inline-block px-3 py-2 rounded-xl text-body-sm text-right"
-                    style={{ background: 'var(--primary)', color: 'var(--on-primary)', fontSize: 13, maxWidth: '85%' }}>{c.me}</span>
+                    style={{ background: 'var(--primary)', color: 'var(--on-primary)', fontSize: 16, maxWidth: '85%' }}>{c.me}</span>
                 </div>
                 <div>
                   <span className="inline-block px-3 py-2 rounded-xl text-body-sm whitespace-pre-line"
-                    style={{ background: 'var(--surface-container)', color: 'var(--on-surface)', fontSize: 13, maxWidth: '85%', border: '1px solid var(--border)' }}>{c.bot}</span>
+                    style={{ background: 'var(--surface-container)', color: 'var(--on-surface)', fontSize: 16, maxWidth: '85%', border: '1px solid var(--border)' }}>{c.bot}</span>
                 </div>
               </div>
             ))}
@@ -644,7 +644,7 @@ export default function Lab() {
             {[['결과 요약', '요약'], ['어디가 미달이야?', '미달'], ['다음에 돌릴 조건', '다음']].map(([label, q]) => (
               <button key={q} onClick={() => ask(q)}
                 className="mono-label px-3 py-1.5 rounded-full transition-colors"
-                style={{ fontSize: 10, border: '1px solid var(--border)', color: 'var(--on-surface-variant)', background: 'var(--surface-container-low)' }}>
+                style={{ fontSize: 14, border: '1px solid var(--border)', color: 'var(--on-surface-variant)', background: 'var(--surface-container-low)' }}>
                 {label}
               </button>
             ))}
@@ -657,7 +657,7 @@ export default function Lab() {
             <input value={chatInput} onChange={e => setChatInput(e.target.value)}
               placeholder="결과에 대해 물어보세요"
               className="flex-1 bg-transparent border-0 outline-none text-body-sm"
-              style={{ color: 'var(--on-surface)', fontSize: 13 }} />
+              style={{ color: 'var(--on-surface)', fontSize: 16 }} />
             <button type="submit" className="w-8 h-8 rounded-full flex items-center justify-center"
               style={{ background: 'var(--primary)', color: 'var(--on-primary)' }}>
               <svg width="14" height="14" viewBox="0 0 24 24"><path d="M3 11 21 3l-8 18-2-8-8-2z" fill="currentColor"/></svg>

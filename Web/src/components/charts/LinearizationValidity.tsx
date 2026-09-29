@@ -52,7 +52,7 @@ export default function LinearizationValidity() {
         <div className="flex gap-2">
           {availableInputs.map(inp => (
             <button key={inp} onClick={() => setSelectedInput(inp)}
-              className={`text-xs px-3 py-1 rounded-lg transition ${
+              className={`text-sm px-3 py-1 rounded-lg transition ${
                 selectedInput === inp
                   ? 'bg-green-500/20 text-green-400 border border-green-500/30'
                   : 'bg-gray-800 text-gray-500 hover:text-gray-300'
@@ -62,7 +62,7 @@ export default function LinearizationValidity() {
           ))}
         </div>
       </div>
-      <p className="text-xs text-gray-500 mb-4">
+      <p className="text-sm text-gray-500 mb-4">
         섭동 크기 vs 정규화 오차 / threshold = {tol}%
         {current.threshold_common_fit && ` / common fit = ${(current.threshold_common_fit * 100).toFixed(1)}%`}
       </p>
@@ -70,11 +70,11 @@ export default function LinearizationValidity() {
         <LineChart data={chartData} margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
           <XAxis dataKey="ratio_pct" stroke="#9ca3af"
-            label={{ value: 'Perturbation [%]', position: 'bottom', offset: 5, fill: '#9ca3af', fontSize: 11 }} />
+            label={{ value: 'Perturbation [%]', position: 'bottom', offset: 5, fill: '#9ca3af', fontSize: 14 }} />
           <YAxis stroke="#9ca3af" scale="log" domain={['auto', 'auto']}
-            label={{ value: 'Normalized Error [%]', angle: -90, position: 'insideLeft', fill: '#9ca3af', fontSize: 11 }} />
+            label={{ value: 'Normalized Error [%]', angle: -90, position: 'insideLeft', fill: '#9ca3af', fontSize: 14 }} />
           <ReferenceLine y={tol} stroke="#ef4444" strokeDasharray="6 3" strokeWidth={1.5}
-            label={{ value: `${tol}% tol`, fill: '#ef4444', fontSize: 10, position: 'right' }} />
+            label={{ value: `${tol}% tol`, fill: '#ef4444', fontSize: 14, position: 'right' }} />
           <Tooltip
             contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 8 }}
             formatter={(val: any, name: any) => [`${Number(val).toFixed(4)}%`, String(name).replace('err_', 'SCR ')]}

@@ -298,7 +298,7 @@ export default function RscadFX() {
           {/* Hero text overlay */}
           <div className="absolute inset-0 flex items-end justify-center pb-24 pointer-events-none">
             <div className="text-center pointer-events-auto" style={{ animation: 'fade-in-up 1s ease-out both' }}>
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-indigo-300 font-mono mb-6 backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm text-indigo-300 font-mono mb-6 backdrop-blur-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                 Z-Anime 3D &middot; RTDS Technologies
               </div>
@@ -341,7 +341,7 @@ export default function RscadFX() {
 
           {/* Scroll indicator */}
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-500">
-            <span className="text-xs font-mono">scroll</span>
+            <span className="text-sm font-mono">scroll</span>
             <div className="w-px h-8 bg-gradient-to-b from-indigo-400/50 to-transparent" />
           </div>
         </section>
@@ -382,7 +382,7 @@ export default function RscadFX() {
                     onMouseLeave={() => setHoveredStep(null)}
                   >
                     {/* Step number */}
-                    <div className="absolute top-4 right-4 text-xs font-mono text-white/10 group-hover:text-white/20 transition-colors">
+                    <div className="absolute top-4 right-4 text-sm font-mono text-white/10 group-hover:text-white/20 transition-colors">
                       {String(i + 1).padStart(2, '0')}
                     </div>
 
@@ -393,8 +393,8 @@ export default function RscadFX() {
                     </div>
 
                     <h3 className="font-semibold text-sm mb-0.5 text-white/90">{step.title}</h3>
-                    <p className="text-xs text-indigo-300/60 mb-2 font-mono">{step.titleKr}</p>
-                    <p className="text-xs text-gray-500 leading-relaxed">{step.desc}</p>
+                    <p className="text-sm text-indigo-300/60 mb-2 font-mono">{step.titleKr}</p>
+                    <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
 
                     {/* Connection line to next step */}
                     {i < STEPS.length - 1 && i % 3 !== 2 && (
@@ -430,7 +430,7 @@ export default function RscadFX() {
 
             <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm overflow-hidden">
               {/* Header */}
-              <div className="grid grid-cols-3 gap-0 text-xs font-mono border-b border-white/[0.06]">
+              <div className="grid grid-cols-3 gap-0 text-sm font-mono border-b border-white/[0.06]">
                 <div className="px-6 py-4 text-gray-500">Feature</div>
                 <div className="px-6 py-4 text-indigo-400 border-l border-white/[0.06]">RSCAD Legacy</div>
                 <div className="px-6 py-4 text-cyan-400 border-l border-white/[0.06]">RSCAD FX</div>
@@ -444,11 +444,11 @@ export default function RscadFX() {
                     hover:bg-white/[0.02] transition-colors"
                   style={{ animation: `fade-in-up 0.4s ease-out ${0.06 * i}s both` }}
                 >
-                  <div className="px-6 py-3.5 text-gray-400 font-medium text-xs">{row.feature}</div>
-                  <div className="px-6 py-3.5 text-gray-500 text-xs border-l border-white/[0.06] font-mono">
+                  <div className="px-6 py-3.5 text-gray-400 font-medium text-sm">{row.feature}</div>
+                  <div className="px-6 py-3.5 text-gray-500 text-sm border-l border-white/[0.06] font-mono">
                     {row.legacy}
                   </div>
-                  <div className="px-6 py-3.5 text-cyan-300/80 text-xs border-l border-white/[0.06] font-mono flex items-center gap-2">
+                  <div className="px-6 py-3.5 text-cyan-300/80 text-sm border-l border-white/[0.06] font-mono flex items-center gap-2">
                     <span className="w-1 h-1 rounded-full bg-cyan-400 flex-shrink-0" />
                     {row.fx}
                   </div>
@@ -560,7 +560,7 @@ export default function RscadFX() {
         {/*  FOOTER                                                       */}
         {/* ============================================================ */}
         <footer className="border-t border-white/[0.06] py-10 px-6">
-          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
+          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500">
             <div className="flex items-center gap-2">
               <span className="font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
                 GFM Labs
@@ -575,6 +575,13 @@ export default function RscadFX() {
             </div>
           </div>
         </footer>
+
+        {/* 발표 순서 — 앞은 Landing. 발표 중 되돌아갈 수 있게 */}
+        <Link to="/present/landing"
+          className="fixed bottom-6 right-6 z-[90] flex items-center gap-2 px-4 py-2.5 rounded-full text-[14px] font-medium tracking-wide transition-all duration-200
+                     bg-white/10 text-white border border-white/20 backdrop-blur hover:bg-white/20">
+          ← 이전 — Landing
+        </Link>
       </div>
     </>
   );

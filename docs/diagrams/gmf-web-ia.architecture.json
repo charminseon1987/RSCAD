@@ -1,0 +1,386 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "GMF Labs 웹 IA — 화면 10개 · 볼트 지식 그래프",
+    "output": "gmf-web-ia-architecture.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1360,
+      660
+    ],
+    "views": [
+      {
+        "id": "knowledge-graph",
+        "label": "볼트 지식 그래프",
+        "focus": [
+          "knowledge",
+          "vaultapi",
+          "vault"
+        ],
+        "note": "그래프·노트·표 세 탭. 노드를 누르면 해당 md 가 열린다. 링크 해석은 서버가 끝낸다."
+      },
+      {
+        "id": "lab-path",
+        "label": "실험 — 실행 · 검증 · 기록",
+        "focus": [
+          "gfmlab",
+          "verification",
+          "explog",
+          "registry",
+          "api",
+          "results"
+        ],
+        "note": "Lab.tsx 에 뒤섞여 있던 세 관심사를 분리한 경로."
+      },
+      {
+        "id": "present-path",
+        "label": "발표 · 문서",
+        "focus": [
+          "present",
+          "archify",
+          "main",
+          "api"
+        ],
+        "note": "발표는 nav 없는 풀스크린. Archify 는 프롬프트만 만들고 생성은 Claude Code 에서 한다."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "gfmlab",
+      "type": "frontend",
+      "label": "GFM 실험실",
+      "sublabel": "P2~P6 실행",
+      "pos": [
+        50,
+        50
+      ],
+      "size": [
+        145,
+        96
+      ]
+    },
+    {
+      "id": "verification",
+      "type": "frontend",
+      "label": "검증",
+      "sublabel": "σ · 고유값 · 선형화",
+      "pos": [
+        208,
+        50
+      ],
+      "size": [
+        145,
+        96
+      ]
+    },
+    {
+      "id": "explog",
+      "type": "frontend",
+      "label": "실험기록",
+      "sublabel": "run 연대기 · 노트",
+      "pos": [
+        366,
+        50
+      ],
+      "size": [
+        145,
+        96
+      ]
+    },
+    {
+      "id": "main",
+      "type": "frontend",
+      "label": "메인",
+      "sublabel": "명령창 · 일정",
+      "pos": [
+        524,
+        50
+      ],
+      "size": [
+        145,
+        96
+      ]
+    },
+    {
+      "id": "archify",
+      "type": "frontend",
+      "label": "Archify",
+      "sublabel": "다이어그램 5유형",
+      "pos": [
+        682,
+        50
+      ],
+      "size": [
+        145,
+        96
+      ]
+    },
+    {
+      "id": "present",
+      "type": "frontend",
+      "label": "발표",
+      "sublabel": "Landing→RscadFX",
+      "pos": [
+        840,
+        50
+      ],
+      "size": [
+        145,
+        96
+      ],
+      "tag": "풀스크린"
+    },
+    {
+      "id": "research",
+      "type": "frontend",
+      "label": "논문 · 내논문",
+      "sublabel": "문헌 9 · PDF 7",
+      "pos": [
+        998,
+        50
+      ],
+      "size": [
+        145,
+        96
+      ]
+    },
+    {
+      "id": "knowledge",
+      "type": "frontend",
+      "label": "지식화",
+      "sublabel": "그래프 · 노트 · 표",
+      "pos": [
+        1156,
+        50
+      ],
+      "size": [
+        145,
+        96
+      ]
+    },
+    {
+      "id": "registry",
+      "type": "backend",
+      "label": "레지스트리",
+      "sublabel": "에이전트 19개",
+      "tag": "A1~A7 대기",
+      "pos": [
+        50,
+        270
+      ],
+      "size": [
+        145,
+        106
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Flask API",
+      "sublabel": "Server/app.py · 라우트 25개",
+      "tag": "gunicorn · Render",
+      "pos": [
+        208,
+        270
+      ],
+      "size": [
+        935,
+        106
+      ]
+    },
+    {
+      "id": "vaultapi",
+      "type": "backend",
+      "label": "볼트 API",
+      "sublabel": "/api/vault/*",
+      "tag": "신규",
+      "pos": [
+        1155,
+        270
+      ],
+      "size": [
+        146,
+        106
+      ]
+    },
+    {
+      "id": "results",
+      "type": "database",
+      "label": "results/",
+      "sublabel": "eigenvalue · xval",
+      "tag": "LATEST.json",
+      "pos": [
+        555,
+        500
+      ],
+      "size": [
+        240,
+        96
+      ]
+    },
+    {
+      "id": "vault",
+      "type": "database",
+      "label": "GFM_Research 볼트",
+      "sublabel": "md 90 · 링크 631",
+      "pos": [
+        1061,
+        500
+      ],
+      "size": [
+        240,
+        96
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "실험 ▾",
+      "wraps": [
+        "gfmlab",
+        "verification",
+        "explog"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "연구 ▾",
+      "wraps": [
+        "research",
+        "knowledge"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Flask :5000 · gunicorn (Render)",
+      "wraps": [
+        "registry",
+        "api",
+        "vaultapi"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "저장소 — 파일 시스템",
+      "wraps": [
+        "results",
+        "vault"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "knowledge-to-vaultapi",
+      "from": "knowledge",
+      "to": "vaultapi",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "그래프 · 노트 요청",
+      "variant": "emphasis"
+    },
+    {
+      "id": "vaultapi-to-vault",
+      "from": "vaultapi",
+      "to": "vault",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "링크 631개 정규화 · 백링크",
+      "variant": "emphasis"
+    },
+    {
+      "id": "gfmlab-to-registry",
+      "from": "gfmlab",
+      "to": "registry",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "agents/{id}/run",
+      "labelDy": 100
+    },
+    {
+      "id": "verification-to-api",
+      "from": "verification",
+      "to": "api",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "고유값 · 선형화",
+      "labelSegment": 0
+    },
+    {
+      "id": "explog-to-api",
+      "from": "explog",
+      "to": "api",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "main-to-api",
+      "from": "main",
+      "to": "api",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "POST /api/command"
+    },
+    {
+      "id": "archify-to-api",
+      "from": "archify",
+      "to": "api",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "present-to-api",
+      "from": "present",
+      "to": "api",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "research-to-api",
+      "from": "research",
+      "to": "api",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "api-to-results",
+      "from": "api",
+      "to": "results",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "LATEST.json 로드"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "화면 10개 · 2단 nav",
+      "items": [
+        "메인 · 연구 3 · 실험 3 · Archify · 발표 2 (Landing → RscadFX)",
+        "Lab.tsx 670줄을 검증과 실험기록으로 분리",
+        "/present/* 는 nav 를 렌더하지 않는다 — 심사 발표용 풀스크린"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "볼트 지식 그래프",
+      "items": [
+        "노트 90개 · 위키링크 631개 (_company 123개 제외)",
+        "링크 대상 86개 중 정확 일치 55개 — 공백↔언더스코어 정규화 필수",
+        "노드 클릭 → 해당 md 렌더, frontmatter 는 표로"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "빈틈 · 경계 주의",
+      "items": [
+        "recharts 5개가 미사용 — 대응 API 는 전부 살아있다",
+        "01_개념 22 · 02_방법론 5 · 00_MOC 7 은 /api/notes glob 밖",
+        "에이전트 19개 중 A1~A7 은 2026-11 RTDS Tier 결정 대기",
+        "Archify · 내논문은 담당 에이전트 없음 — 사람이 한다"
+      ]
+    }
+  ]
+}

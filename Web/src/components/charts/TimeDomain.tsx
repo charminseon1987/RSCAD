@@ -48,7 +48,7 @@ export default function TimeDomain() {
     <div className="glass p-5">
       <div className="flex items-center justify-between mb-1">
         <h2 className="text-sm font-semibold text-rose-400">Time-Domain Response</h2>
-        <div className="text-xs text-gray-500">
+        <div className="text-sm text-gray-500">
           Input: {data.input} / Step: {(data.ratio * 100).toFixed(0)}%
         </div>
       </div>
@@ -56,7 +56,7 @@ export default function TimeDomain() {
       <div className="flex gap-1.5 mb-4 flex-wrap">
         {stateNames.map((name: string, i: number) => (
           <button key={i} onClick={() => setSelectedState(i)}
-            className={`text-xs px-2.5 py-1 rounded-lg transition ${
+            className={`text-sm px-2.5 py-1 rounded-lg transition ${
               selectedState === i
                 ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
                 : 'bg-gray-800 text-gray-500 hover:text-gray-300'
@@ -70,9 +70,9 @@ export default function TimeDomain() {
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
           <XAxis dataKey="t" stroke="#9ca3af" type="number" domain={['auto', 'auto']}
             tickFormatter={(v) => v.toFixed(2)}
-            label={{ value: 'Time [s]', position: 'bottom', offset: 5, fill: '#9ca3af', fontSize: 11 }} />
+            label={{ value: 'Time [s]', position: 'bottom', offset: 5, fill: '#9ca3af', fontSize: 14 }} />
           <YAxis stroke="#9ca3af"
-            label={{ value: label, angle: -90, position: 'insideLeft', fill: '#9ca3af', fontSize: 11 }} />
+            label={{ value: label, angle: -90, position: 'insideLeft', fill: '#9ca3af', fontSize: 14 }} />
           <Tooltip
             contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 8 }}
             formatter={(val: any, name: any) => [val != null ? Number(val).toFixed(4) : '—', name]}

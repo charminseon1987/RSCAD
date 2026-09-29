@@ -43,16 +43,16 @@ export default function OperatingPoints({ computeResults }: Props) {
   return (
     <div>
       <h3 className="text-sm font-semibold text-purple-400 mb-1">Operating Points</h3>
-      <p className="text-xs text-gray-500 mb-3">δ, margin, V_dc, V_od by SCR</p>
+      <p className="text-sm text-gray-500 mb-3">δ, margin, V_dc, V_od by SCR</p>
       <ResponsiveContainer width="100%" height={300}>
         <ComposedChart data={chartData} margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
           <XAxis dataKey="SCR" stroke="#9ca3af" reversed
-            label={{ value: 'SCR', position: 'bottom', offset: 5, fill: '#9ca3af', fontSize: 11 }} />
+            label={{ value: 'SCR', position: 'bottom', offset: 5, fill: '#9ca3af', fontSize: 14 }} />
           <YAxis yAxisId="deg" stroke="#f59e0b" domain={[0, 90]}
-            label={{ value: 'δ [deg]', angle: -90, position: 'insideLeft', fill: '#f59e0b', fontSize: 11 }} />
+            label={{ value: 'δ [deg]', angle: -90, position: 'insideLeft', fill: '#f59e0b', fontSize: 14 }} />
           <YAxis yAxisId="volt" orientation="right" stroke="#06b6d4"
-            label={{ value: 'V [V]', angle: 90, position: 'insideRight', fill: '#06b6d4', fontSize: 11 }} />
+            label={{ value: 'V [V]', angle: 90, position: 'insideRight', fill: '#06b6d4', fontSize: 14 }} />
           <ReferenceLine yAxisId="deg" y={90} stroke="#ef4444" strokeDasharray="6 3" />
           <Tooltip
             contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 8 }}

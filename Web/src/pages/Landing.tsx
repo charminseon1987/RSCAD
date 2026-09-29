@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Cpu, Grid3x3, Crosshair, Zap, Bot, Activity,
   ArrowRight, ExternalLink, ChevronRight, X, Save, RotateCcw,
@@ -209,7 +209,7 @@ function FeatureConfigPanel({
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm truncate" style={{ color: 'var(--on-surface)' }}>{feature.title}</h3>
-            <p className="text-body-sm truncate" style={{ color: 'var(--outline)', fontSize: 11 }}>{feature.desc}</p>
+            <p className="text-body-sm truncate" style={{ color: 'var(--outline)', fontSize: 15 }}>{feature.desc}</p>
           </div>
           <button
             onClick={onClose}
@@ -225,12 +225,12 @@ function FeatureConfigPanel({
           {feature.params.map(p => (
             <div key={p.key}>
               <label className="flex items-baseline gap-2 mb-1.5">
-                <span className="text-body-sm font-medium" style={{ color: 'var(--on-surface)', fontSize: 13 }}>{p.label}</span>
-                {p.unit && <span className="mono-label" style={{ color: 'var(--outline)', fontSize: 10 }}>({p.unit})</span>}
+                <span className="text-body-sm font-medium" style={{ color: 'var(--on-surface)', fontSize: 16 }}>{p.label}</span>
+                {p.unit && <span className="mono-label" style={{ color: 'var(--outline)', fontSize: 14 }}>({p.unit})</span>}
               </label>
 
               {p.help && (
-                <p style={{ color: 'var(--outline)', fontSize: 11 }} className="mb-1.5 leading-relaxed">{p.help}</p>
+                <p style={{ color: 'var(--outline)', fontSize: 15 }} className="mb-1.5 leading-relaxed">{p.help}</p>
               )}
 
               {p.type === 'number' && (
@@ -242,7 +242,7 @@ function FeatureConfigPanel({
                     className="mc-input"
                   />
                   {p.min != null && p.max != null && (
-                    <span className="mono-label whitespace-nowrap" style={{ color: 'var(--outline-variant)', fontSize: 10 }}>
+                    <span className="mono-label whitespace-nowrap" style={{ color: 'var(--outline-variant)', fontSize: 14 }}>
                       {p.min}–{p.max}
                     </span>
                   )}
@@ -302,7 +302,7 @@ function FeatureConfigPanel({
 
         {/* Footer */}
         <div className="px-6 py-4 flex items-center gap-3" style={{ borderTop: '1px solid var(--border)' }}>
-          <button onClick={handleReset} className="mc-btn-secondary flex items-center gap-1.5" style={{ fontSize: 12 }}>
+          <button onClick={handleReset} className="mc-btn-secondary flex items-center gap-1.5" style={{ fontSize: 15 }}>
             <RotateCcw size={13} />
             Reset
           </button>
@@ -325,6 +325,130 @@ function FeatureConfigPanel({
 /* ------------------------------------------------------------------ */
 /*  Main Landing Component                                             */
 /* ------------------------------------------------------------------ */
+/* ── 홈 콘솔 — 볼트 검색과 에이전트 명령.
+   구 Dashboard 에서 유일하게 살아 있던 기능(/api/command)을 여기로 옮겼다. ── */
+function HomeConsole() {
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<'search' | 'agent'>('search');
+
+  const [q, setQ] = useState('');
+  const [hits, setHits] = useState<any[] | null>(null);
+  const [searching, setSearching] = useState(false);
+
+  const [cmd, setCmd] = useState('');
+  const [log, setLog] = useState<{ who: string; text: string }[]>([]);
+  const [busy, setBusy] = useState(false);
+
+  const runSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (q.trim().length < 2) return;
+    setSearching(true);
+    fetchJSON('/vault/search?q=' + encodeURIComponent(q.trim()))
+      .then(d => setHits(d.hits || []))
+      .catch(() => setHits([]))
+      .finally(() => setSearching(false));
+  };
+
+  const runCommand = async () => {
+    if (!cmd.trim() || busy) return;
+    const c = cmd.trim();
+    setCmd('');
+    setLog(p => [...p, { who: '나', text: c }]);
+    setBusy(true);
+    try {
+      const d = await postJSON('/command', { command: c });
+      setLog(p => [...p, {
+        who: `${d.agent_emoji || '🧭'} ${d.agent_name || '에이전트'}`,
+        text: d.conclusion || d.error || '(응답 없음)',
+      }]);
+    } catch {
+      setLog(p => [...p, { who: '⚠️', text: '실행 실패 — Ollama 가 로컬에 떠 있어야 합니다.' }]);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="px-8 pb-6">
+      <div className="max-w-[1600px] mx-auto glass-card" style={{ padding: 20 }}>
+        <div className="flex items-center gap-2 mb-3">
+          {([['search', '볼트 검색'], ['agent', '에이전트 명령']] as const).map(([k, label]) => (
+            <button key={k} onClick={() => setTab(k)}
+              className="mono-label px-3 py-1.5 rounded-lg transition-all duration-200"
+              style={{
+                fontSize: 15,
+                color: tab === k ? 'var(--primary)' : 'var(--outline)',
+                background: tab === k ? 'var(--surface-container)' : 'transparent',
+                border: tab === k ? '1px solid var(--border)' : '1px solid transparent',
+              }}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'search' ? (
+          <>
+            <form onSubmit={runSearch} className="flex gap-2">
+              <input className="mc-input flex-1" style={{ fontSize: 17, padding: '10px 14px' }}
+                value={q} onChange={e => setQ(e.target.value)}
+                placeholder="볼트 전문 검색 — 노트 86개 본문에서 찾습니다 (예: 커플링, 야코비안, PSO)" />
+              <button type="submit" className="mc-btn-primary mono-label" style={{ fontSize: 15, padding: '10px 20px' }}>
+                {searching ? '검색 중' : '검색'}
+              </button>
+            </form>
+            {hits && (
+              <div className="mt-3 space-y-1.5" style={{ maxHeight: 280, overflowY: 'auto' }}>
+                <p className="mono-clock" style={{ fontSize: 15, color: 'var(--outline)' }}>{hits.length}건</p>
+                {hits.map(h => (
+                  <button key={h.path} onClick={() => navigate('/research/knowledge?note=' + encodeURIComponent(h.path))}
+                    className="w-full text-left p-3 rounded-xl"
+                    style={{ background: 'var(--surface-container-low)', border: '1px solid var(--border)' }}>
+                    <div className="text-body-sm truncate" style={{ fontSize: 17, color: 'var(--on-surface)' }}>{h.title}</div>
+                    <div className="mono-clock truncate mt-0.5" style={{ fontSize: 15, color: 'var(--outline)' }}>
+                      {h.folder} · {h.count}회
+                    </div>
+                    {h.snippet && (
+                      <div className="mono-clock truncate mt-1" style={{ fontSize: 15, color: 'var(--on-surface-variant)' }}>…{h.snippet}…</div>
+                    )}
+                  </button>
+                ))}
+                {!hits.length && <p className="mono-clock" style={{ fontSize: 16, color: 'var(--outline)' }}>결과 없음</p>}
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            {log.length > 0 && (
+              <div className="mb-3 space-y-2" style={{ maxHeight: 240, overflowY: 'auto' }}>
+                {log.map((l, i) => (
+                  <div key={i}>
+                    <span className="mono-label" style={{ fontSize: 15, color: 'var(--primary)' }}>{l.who}</span>
+                    <p className="text-body-sm mt-0.5 whitespace-pre-wrap" style={{ fontSize: 17, color: 'var(--on-surface-variant)' }}>{l.text}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input className="mc-input flex-1" style={{ fontSize: 17, padding: '10px 14px' }}
+                value={cmd} onChange={e => setCmd(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && runCommand()}
+                disabled={busy}
+                placeholder="에이전트에게 명령 — 예: SCR 1.5에서 안정도 분석해줘" />
+              <button onClick={runCommand} disabled={busy}
+                className="mc-btn-primary mono-label" style={{ fontSize: 15, padding: '10px 20px' }}>
+                {busy ? '실행 중' : '전송'}
+              </button>
+            </div>
+            <p className="mono-clock mt-2" style={{ fontSize: 15, color: 'var(--outline)' }}>
+              로컬에서만 동작합니다 — Ollama(:11434)가 필요합니다. 배포본에서는 실패합니다.
+            </p>
+          </>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export default function Landing() {
   const [health, setHealth] = useState<HealthData | null>(null);
   const [healthError, setHealthError] = useState(false);
@@ -366,7 +490,7 @@ export default function Landing() {
       {/* ============================================================ */}
       <section
         className="relative flex items-center px-8"
-        style={{ minHeight: 'calc(100vh - 56px)' }}
+        style={{ minHeight: '100vh' }}
       >
         {/* Background: dot grid + floating orbs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -416,7 +540,7 @@ export default function Landing() {
             {/* Badge */}
             <div
               className="glass-badge mono-label inline-flex items-center gap-2 px-4 py-1.5 mb-8"
-              style={{ color: 'var(--outline)', fontSize: 11 }}
+              style={{ color: 'var(--outline)', fontSize: 15 }}
             >
               <span
                 className="w-1.5 h-1.5 rounded-full"
@@ -441,12 +565,12 @@ export default function Landing() {
 
             {/* CTAs */}
             <div className="flex flex-wrap gap-3">
-              <Link to="/dashboard" className="mc-btn-primary group inline-flex items-center gap-2">
-                Open Dashboard
+              <Link to="/" className="mc-btn-primary group inline-flex items-center gap-2">
+                메인 대시보드 열기
                 <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
-                to="/lab"
+                to="/lab/gfm"
                 className="group inline-flex items-center gap-2 glass-badge px-6 py-2.5 font-medium text-sm transition-all duration-200 hover:scale-[1.02]"
                 style={{ color: 'var(--on-surface)', borderRadius: 'var(--radius-lg)' }}
               >
@@ -472,9 +596,9 @@ export default function Landing() {
                 className="glass-card glass-card-hover flex flex-col gap-1 cursor-default"
                 style={{ animation: `fade-in-up 0.5s ease-out ${0.3 + i * 0.1}s both` }}
               >
-                <span className="mono-label" style={{ color: 'var(--outline)', fontSize: 10 }}>{m.label}</span>
+                <span className="mono-label" style={{ color: 'var(--outline)', fontSize: 14 }}>{m.label}</span>
                 <span className="mono-metric" style={{ color: 'var(--primary)' }}>{m.value}</span>
-                <span className="mono-clock" style={{ color: 'var(--outline)', fontSize: 12 }}>{m.sub}</span>
+                <span className="mono-clock" style={{ color: 'var(--outline)', fontSize: 15 }}>{m.sub}</span>
               </div>
             ))}
           </div>
@@ -485,10 +609,15 @@ export default function Landing() {
           className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
           style={{ animation: 'fade-in-up 0.8s ease-out 0.8s both' }}
         >
-          <span className="mono-label" style={{ color: 'var(--outline-variant)', fontSize: 10 }}>SCROLL</span>
+          <span className="mono-label" style={{ color: 'var(--outline-variant)', fontSize: 14 }}>SCROLL</span>
           <div className="w-px h-6" style={{ background: 'linear-gradient(var(--outline-variant), transparent)' }} />
         </div>
       </section>
+
+      {/* ============================================================ */}
+      {/*  홈 콘솔 — 볼트 검색 · 에이전트 명령                            */}
+      {/* ============================================================ */}
+      <HomeConsole />
 
       {/* ============================================================ */}
       {/*  LIVE STATUS BAR                                              */}
@@ -572,12 +701,12 @@ export default function Landing() {
                     <Icon size={18} style={{ color: 'var(--primary)' }} />
                   </div>
                   <h3 className="font-semibold text-sm mb-2" style={{ color: 'var(--on-surface)' }}>{f.title}</h3>
-                  <p className="text-body-sm leading-relaxed mb-3" style={{ color: 'var(--on-surface-variant)', fontSize: 13 }}>
+                  <p className="text-body-sm leading-relaxed mb-3" style={{ color: 'var(--on-surface-variant)', fontSize: 16 }}>
                     {f.desc}
                   </p>
                   <span
                     className="mono-label inline-flex items-center gap-1.5 group-hover:gap-2 transition-all"
-                    style={{ color: 'var(--outline)', fontSize: 10 }}
+                    style={{ color: 'var(--outline)', fontSize: 14 }}
                   >
                     <span className="w-1 h-1 rounded-full" style={{ background: 'var(--secondary-container)' }} />
                     {f.params.length} PARAMS
@@ -636,13 +765,13 @@ export default function Landing() {
                     <span
                       className="mono-label mt-2.5"
                       style={{
-                        fontSize: 11,
+                        fontSize: 15,
                         color: isComplete ? 'var(--primary)' : isActive ? 'var(--secondary)' : 'var(--outline)',
                       }}
                     >
                       {p.label}
                     </span>
-                    <span className="mono-clock" style={{ color: 'var(--outline-variant)', fontSize: 10 }}>{p.short}</span>
+                    <span className="mono-clock" style={{ color: 'var(--outline-variant)', fontSize: 14 }}>{p.short}</span>
                   </div>
                   {i < PHASES.length - 1 && (
                     <div
@@ -692,13 +821,13 @@ export default function Landing() {
                     <span
                       className="mono-label"
                       style={{
-                        fontSize: 11,
+                        fontSize: 15,
                         color: isComplete ? 'var(--primary)' : isActive ? 'var(--secondary)' : 'var(--outline)',
                       }}
                     >
                       PHASE {p.id}: {p.label}
                     </span>
-                    <span className="mono-clock ml-2" style={{ color: 'var(--outline-variant)', fontSize: 10 }}>{p.short}</span>
+                    <span className="mono-clock ml-2" style={{ color: 'var(--outline-variant)', fontSize: 14 }}>{p.short}</span>
                   </div>
                 </div>
               );
@@ -730,13 +859,13 @@ export default function Landing() {
               >
                 <div className="text-3xl mb-3">{a.emoji}</div>
                 <div className="font-semibold text-sm mb-0.5" style={{ color: 'var(--on-surface)' }}>{a.name}</div>
-                <div className="mono-clock mb-3" style={{ color: 'var(--outline)', fontSize: 11 }}>{a.role}</div>
+                <div className="mono-clock mb-3" style={{ color: 'var(--outline)', fontSize: 15 }}>{a.role}</div>
                 <div className="flex items-center justify-center gap-1.5">
                   <span
                     className="w-1.5 h-1.5 rounded-full"
                     style={{ background: '#16a34a', animation: 'online-blink 2.5s ease-in-out infinite' }}
                   />
-                  <span className="mono-label" style={{ color: '#16a34a', fontSize: 10 }}>ONLINE</span>
+                  <span className="mono-label" style={{ color: '#16a34a', fontSize: 14 }}>ONLINE</span>
                 </div>
               </div>
             ))}
@@ -756,7 +885,7 @@ export default function Landing() {
             <span className="hidden sm:inline" style={{ color: 'var(--outline-variant)' }}>&middot;</span>
             <span>IEEE Access Target</span>
           </div>
-          <div className="flex items-center gap-4 mono-clock" style={{ color: 'var(--outline-variant)', fontSize: 12 }}>
+          <div className="flex items-center gap-4 mono-clock" style={{ color: 'var(--outline-variant)', fontSize: 15 }}>
             <span>React + Flask + Firebase</span>
             <a href="#" className="flex items-center gap-1 transition-colors" style={{ color: 'var(--outline)' }}>
               GitHub <ExternalLink size={12} />
@@ -764,6 +893,18 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* 발표 순서 — Landing → RscadFX. 클릭 한 번으로 넘어간다 */}
+      <Link to="/present/rscad-fx"
+        className="fixed bottom-6 right-6 z-[90] flex items-center gap-2 px-4 py-2.5 rounded-full mono-label transition-all duration-200"
+        style={{
+          fontSize: 15,
+          background: 'var(--primary)',
+          color: 'var(--on-primary)',
+          boxShadow: 'var(--shadow-ambient)',
+        }}>
+        다음 — RscadFX <ArrowRight size={13} />
+      </Link>
 
       {/* Feature Config Panel */}
       {selectedFeature && (

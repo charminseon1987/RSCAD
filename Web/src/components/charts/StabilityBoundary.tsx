@@ -53,14 +53,14 @@ export default function StabilityBoundary({ computeResults }: Props) {
   return (
     <div>
       <h3 className="text-sm font-semibold text-amber-400 mb-1">Damping by SCR</h3>
-      <p className="text-xs text-gray-500 mb-3">Band-separated ζ / dashed = target</p>
+      <p className="text-sm text-gray-500 mb-3">Band-separated ζ / dashed = target</p>
       <ResponsiveContainer width="100%" height={340}>
         <ComposedChart data={chartData} margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
           <XAxis dataKey="SCR" stroke="#9ca3af" reversed
-            label={{ value: 'SCR', position: 'bottom', offset: 5, fill: '#9ca3af', fontSize: 11 }} />
+            label={{ value: 'SCR', position: 'bottom', offset: 5, fill: '#9ca3af', fontSize: 14 }} />
           <YAxis stroke="#9ca3af" domain={[0, 'auto']}
-            label={{ value: 'ζ', angle: -90, position: 'insideLeft', fill: '#9ca3af', fontSize: 11 }} />
+            label={{ value: 'ζ', angle: -90, position: 'insideLeft', fill: '#9ca3af', fontSize: 14 }} />
           <ReferenceLine y={zetaTarget} stroke="#ef4444" strokeDasharray="6 3" strokeWidth={1.5} />
           <Tooltip
             contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 8 }}

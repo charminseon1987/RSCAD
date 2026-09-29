@@ -52,14 +52,14 @@ export default function EigenvalueLocus({ computeResults }: Props) {
   return (
     <div>
       <h3 className="text-sm font-semibold text-cyan-400 mb-1">Eigenvalue Locus</h3>
-      <p className="text-xs text-gray-500 mb-3">Complex plane / SCR color-coded</p>
+      <p className="text-sm text-gray-500 mb-3">Complex plane / SCR color-coded</p>
       <ResponsiveContainer width="100%" height={340}>
         <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
           <XAxis type="number" dataKey="re" name="Re(λ)" stroke="#9ca3af"
-            label={{ value: 'Re(λ) [1/s]', position: 'bottom', offset: 5, fill: '#9ca3af', fontSize: 11 }} />
+            label={{ value: 'Re(λ) [1/s]', position: 'bottom', offset: 5, fill: '#9ca3af', fontSize: 14 }} />
           <YAxis type="number" dataKey="im" name="Im(λ)" stroke="#9ca3af"
-            label={{ value: 'Im(λ) [rad/s]', angle: -90, position: 'insideLeft', fill: '#9ca3af', fontSize: 11 }} />
+            label={{ value: 'Im(λ) [rad/s]', angle: -90, position: 'insideLeft', fill: '#9ca3af', fontSize: 14 }} />
           <ReferenceLine x={0} stroke="#ef4444" strokeDasharray="4 4" strokeWidth={1.5} />
           <ReferenceLine y={0} stroke="#4b5563" strokeDasharray="2 2" />
           <Tooltip

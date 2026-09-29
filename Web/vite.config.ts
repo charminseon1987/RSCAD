@@ -9,6 +9,8 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:5000',
       '/results': 'http://localhost:5000',
+      '/docs': 'http://localhost:5000',
+      '/scholar': 'http://localhost:5000',
     },
   },
 });
