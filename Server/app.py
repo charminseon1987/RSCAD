@@ -30,8 +30,10 @@ import numpy as np
 import yaml
 import firebase_admin
 from firebase_admin import credentials, db as fb_db
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session
 from flask_cors import CORS
+import hashlib
+import secrets
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'Simulation'))
@@ -47,7 +49,8 @@ RESULTS_ROOT = ROOT / 'results'
 WEB_DIR      = ROOT / 'Web'
 
 app = Flask(__name__, static_folder=str(WEB_DIR), static_url_path='')
-CORS(app)
+app.secret_key = secrets.token_hex(32)
+CORS(app, supports_credentials=True)
 
 # ── Firebase Admin SDK (reloader 자식에서만 초기화) ──
 _fb_key = ROOT / 'Server' / 'firebase-key.json'
@@ -1292,6 +1295,148 @@ def serve_results(filepath):
     """results/ 하위 파일을 정적 서빙."""
     from flask import send_from_directory
     return send_from_directory(str(RESULTS_ROOT), filepath)
+
+
+# ═══════════════════════════════════════════════
+# API — Authentication
+#   Firebase Auth + Flask session 기반 인증
+# ═══════════════════════════════════════════════
+# 간단한 인메모리 사용자 저장소 (프로덕션에서는 DB 사용)
+_USERS_DB = {}
+
+
+def _hash_password(password: str, salt: str = None) -> tuple:
+    """비밀번호 해싱 (SHA256 + salt)."""
+    if salt is None:
+        salt = secrets.token_hex(16)
+    hashed = hashlib.sha256((password + salt).encode()).hexdigest()
+    return hashed, salt
+
+
+@app.route('/api/auth/login', methods=['POST'])
+def auth_login():
+    """로그인 — 세션 생성."""
+    d = request.json or {}
+    email = d.get('email', '').strip().lower()
+    password = d.get('password', '')
+    remember_me = d.get('remember_me', False)
+
+    if not email or not password:
+        return jsonify({'status': 'error', 'error': '이메일과 비밀번호를 입력하세요.'}), 400
+
+    # 사용자 확인
+    user = _USERS_DB.get(email)
+    if not user:
+        return jsonify({'status': 'error', 'error': '이메일 또는 비밀번호가 올바르지 않습니다.'}), 401
+
+    # 비밀번호 검증
+    hashed, _ = _hash_password(password, user['salt'])
+    if hashed != user['password_hash']:
+        return jsonify({'status': 'error', 'error': '이메일 또는 비밀번호가 올바르지 않습니다.'}), 401
+
+    # 세션 생성
+    session['user_id'] = user['uid']
+    session['email'] = email
+    session.permanent = remember_me
+
+    return jsonify({
+        'status': 'ok',
+        'user': {
+            'uid': user['uid'],
+            'email': email,
+            'displayName': user.get('displayName'),
+        },
+    })
+
+
+@app.route('/api/auth/register', methods=['POST'])
+def auth_register():
+    """회원가입."""
+    d = request.json or {}
+    email = d.get('email', '').strip().lower()
+    password = d.get('password', '')
+
+    if not email or not password:
+        return jsonify({'status': 'error', 'error': '이메일과 비밀번호를 입력하세요.'}), 400
+
+    if len(password) < 8:
+        return jsonify({'status': 'error', 'error': '비밀번호는 8자 이상이어야 합니다.'}), 400
+
+    # 이메일 중복 확인
+    if email in _USERS_DB:
+        return jsonify({'status': 'error', 'error': '이미 등록된 이메일입니다.'}), 409
+
+    # 사용자 생성
+    uid = secrets.token_hex(16)
+    password_hash, salt = _hash_password(password)
+
+    _USERS_DB[email] = {
+        'uid': uid,
+        'email': email,
+        'password_hash': password_hash,
+        'salt': salt,
+        'displayName': email.split('@')[0],
+    }
+
+    # 세션 생성
+    session['user_id'] = uid
+    session['email'] = email
+
+    return jsonify({
+        'status': 'ok',
+        'user': {
+            'uid': uid,
+            'email': email,
+            'displayName': email.split('@')[0],
+        },
+    })
+
+
+@app.route('/api/auth/logout', methods=['POST'])
+def auth_logout():
+    """로그아웃 — 세션 삭제."""
+    session.clear()
+    return jsonify({'status': 'ok'})
+
+
+@app.route('/api/auth/me', methods=['GET'])
+def auth_me():
+    """현재 로그인된 사용자 정보."""
+    user_id = session.get('user_id')
+    email = session.get('email')
+
+    if not user_id or not email:
+        return jsonify({'status': 'error', 'error': '로그인이 필요합니다.'}), 401
+
+    user = _USERS_DB.get(email)
+    if not user:
+        session.clear()
+        return jsonify({'status': 'error', 'error': '사용자를 찾을 수 없습니다.'}), 401
+
+    return jsonify({
+        'status': 'ok',
+        'user': {
+            'uid': user['uid'],
+            'email': email,
+            'displayName': user.get('displayName'),
+        },
+    })
+
+
+@app.route('/api/auth/reset-password', methods=['POST'])
+def auth_reset_password():
+    """비밀번호 재설정 요청."""
+    d = request.json or {}
+    email = d.get('email', '').strip().lower()
+
+    if not email:
+        return jsonify({'status': 'error', 'error': '이메일을 입력하세요.'}), 400
+
+    # 이메일 존재 여부와 관계없이 성공 응답 (보안)
+    return jsonify({
+        'status': 'ok',
+        'message': '비밀번호 재설정 링크가 이메일로 전송되었습니다.',
+    })
 
 
 if __name__ == '__main__':

@@ -10,6 +10,8 @@ import ExperimentLog from './pages/ExperimentLog';
 import Archify from './pages/Archify';
 import Landing from './pages/Landing';
 import RscadFX from './pages/RscadFX';
+import Login from './pages/Login';
+import GfmControlLoop from './pages/GfmControlLoop';
 
 /* ── 좌측 사이드바 ──
    그룹과 하위 화면을 한 번에 펼쳐 보여준다. 상단 2단 nav 와 달리 화면이 더 늘어나도 안정적이다. */
@@ -38,6 +40,7 @@ const NAV: (Leaf | Group)[] = [
     label: '실험', base: '/lab',
     children: [
       { to: '/lab/gfm', label: 'GFM 실험실' },
+      { to: '/lab/control-loop', label: 'GFM 제어루프' },
       { to: '/lab/verification', label: '검증' },
       { to: '/lab/log', label: '실험기록' },
     ],
@@ -104,6 +107,7 @@ function PresentShell({ children }: { children: React.ReactNode }) {
 export default function App() {
   const location = useLocation();
   const isPresent = location.pathname.startsWith('/present/');
+  const isAuth = location.pathname === '/login';
   const [collapsed, setCollapsed] = useState(false);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
@@ -116,11 +120,13 @@ export default function App() {
       <Route path="/research/knowledge" element={<Knowledge />} />
       <Route path="/research/my-paper" element={<MyPaper />} />
       <Route path="/lab/gfm" element={<GfmLab />} />
+      <Route path="/lab/control-loop" element={<GfmControlLoop />} />
       <Route path="/lab/verification" element={<Verification />} />
       <Route path="/lab/log" element={<ExperimentLog />} />
       <Route path="/archify" element={<Archify />} />
       <Route path="/present/landing" element={<Landing />} />
       <Route path="/present/rscad-fx" element={<RscadFX />} />
+      <Route path="/login" element={<Login />} />
       {/* 옛 경로 — 북마크가 깨지지 않게 */}
       <Route path="/dashboard" element={<Navigate to="/" replace />} />
       <Route path="/simulation" element={<Navigate to="/lab/gfm" replace />} />
@@ -133,6 +139,9 @@ export default function App() {
 
   // 발표 경로는 앱 껍데기를 벗는다 — 고정 nav 가 풀스크린 시연을 막던 원인이었다
   if (isPresent) return <PresentShell>{pages}</PresentShell>;
+
+  // 로그인 페이지는 사이드바 없이 풀스크린 — 자체 네비게이션 포함
+  if (isAuth) return <>{pages}</>;
 
   const w = collapsed ? SIDEBAR_W_MIN : SIDEBAR_W;
 
