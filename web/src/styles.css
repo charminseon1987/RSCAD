@@ -38,7 +38,7 @@
   --shadow:       0 24px 60px rgba(0,0,0,.45);
   --blur:         blur(22px) saturate(160%);
   --on-solid:     #0B0E19;  /* 주 버튼 글자 */
-  --field:        rgba(7,9,18,.4);
+  --field:        rgba(7,9,18,.72);   /* .4 는 배경이 비쳐 회색으로 보였다 */
   --field-focus:  0 0 0 4px rgba(154,166,255,.2);
   --scrim:        radial-gradient(60% 70% at 30% 40%, rgba(7,9,18,.78), transparent 70%);
 
@@ -113,7 +113,7 @@
   --edge-soft:    rgba(20,26,46,.08);
   --shadow:       0 20px 50px rgba(40,50,100,.14), 0 2px 6px rgba(40,50,100,.08);
   --on-solid:     #FFFFFF;
-  --field:        rgba(255,255,255,.7);
+  --field:        rgba(255,255,255,.92);
   --field-focus:  0 0 0 4px rgba(85,102,232,.18);
   --scrim:        radial-gradient(60% 70% at 30% 40%, rgba(242,244,250,.82), transparent 70%);
 
@@ -1194,36 +1194,14 @@ body { word-break: keep-all; }
   pointer-events: none;
 }
 
-/* ── §부록 정적 블롭 ── 작업 화면은 유체 대신 이것을 쓴다 (집중을 해치지 않게) */
-.ls-blobs {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-.ls-blobs i {
-  position: absolute;
-  display: block;
-  width: 46vmax; height: 46vmax;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: .30;
-  animation: ls-drift 40s ease-in-out infinite alternate;
-}
-.ls-blobs i:nth-child(1) { background: var(--accent); top: -12%; left: -8%; }
-.ls-blobs i:nth-child(2) { background: var(--teal);   bottom: -16%; right: -10%; animation-delay: -13s; }
-.ls-blobs i:nth-child(3) { background: var(--amber);  top: 34%; right: 22%; opacity: .18; animation-delay: -26s; }
-@keyframes ls-drift {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to   { transform: translate3d(4%, -5%, 0) scale(1.12); }
-}
+/* §부록의 정적 블롭은 쓰지 않는다.
+   46vmax 색 덩어리 3개(opacity .30)가 화면을 덮고 그 위에 반투명 유리가 겹치니
+   배경이 탁해졌다. 단색 배경 위의 유리가 더 깨끗하다. */
 
 /* ── §8 접근성 · 성능 ── */
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ls-blobs i { animation: none; }
   .glass-card-hover:hover, .btn:hover, .link-card:hover { transform: none; }
   * { transition-duration: .01ms !important; }
 }
@@ -1237,7 +1215,6 @@ body { word-break: keep-all; }
     -webkit-backdrop-filter: none !important;
   }
   .glass::before, .glass-card::before { display: none; }
-  .ls-blobs { display: none; }
 }
 
 /* backdrop-filter 미지원 → 더 진한 유리로 (스펙 §8) */
@@ -1301,13 +1278,9 @@ body { word-break: keep-all; }
   color: var(--on-solid);
 }
 
-/* 리퀴드 — 작업 화면의 정적 블롭만 끈다.
-   로그인의 유체는 라이트에서도 살린다 (마우스 따라오는 효과가 그 화면의 요점).
-   라이트에서는 BLOOM·SUNRAYS 가 꺼지고 dyeScale 이 0.11 로 올라가므로
-   빛번짐 없이 옅게 흐른다 — lib/theme.ts 의 applyTheme 참고. */
-:root[data-theme="light"] .ls-blobs {
-  display: none !important;
-}
+/* 로그인의 유체는 라이트에서도 살린다 (마우스 따라오는 효과가 그 화면의 요점).
+   라이트에서는 BLOOM·SUNRAYS 가 꺼지고 dyeScale 이 0.11 로 올라가 옅게 흐른다
+   — lib/theme.ts 의 applyTheme 참고. */
 /* 유체가 빠진 자리 — 평면 배경 */
 :root[data-theme="light"] body {
   background: var(--bg);

@@ -4,18 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GMF Labs</title>
-  <!-- 테마 깜빡임 방지 — 렌더 전에 data-theme 을 확정한다 (docs/DESIGN_PROMPT.md §2).
-       다크가 기본이고, 저장된 선택이 없으면 prefers-color-scheme 을 따른다.
+  <!-- 테마 깜빡임 방지 — 렌더 전에 data-theme 을 확정한다.
+       라이트가 기본이다. 저장된 선택이 있으면 그것을 따른다.
+       스펙(docs/DESIGN_PROMPT.md §2)은 다크 기본이지만, 작업 화면에서는 라이트가
+       더 깨끗하다고 판단해 기본을 뒤집었다. 다크는 토글로 쓴다.
        Vite 라 Next.js 의 app/layout.tsx 대신 여기에 둔다. -->
   <script>
     (function () {
+      var t = 'light';
       try {
-        var t = localStorage.getItem('ls-theme');
-        if (t !== 'light' && t !== 'dark') {
-          t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-        }
-        if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
-      } catch (e) { /* 프라이빗 모드 등 — 다크 기본으로 진행 */ }
+        var v = localStorage.getItem('ls-theme');
+        if (v === 'dark' || v === 'light') t = v;
+      } catch (e) { /* 프라이빗 모드 등 — 라이트로 진행 */ }
+      document.documentElement.setAttribute('data-theme', t);
     })();
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />

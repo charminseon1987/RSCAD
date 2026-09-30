@@ -4,17 +4,16 @@
    단일 클래스만 쓰면 .btn 의 padding 에 밀려 아이콘 폭이 0 이 된다(스펙 §5-3 경고). */
 
 import { useEffect, useState } from 'react';
-import { applyTheme, getTheme, toggleTheme, watchSystemTheme, type Theme } from '../lib/theme';
+import { applyTheme, getTheme, toggleTheme, type Theme } from '../lib/theme';
 
 export default function ThemeToggle({ className = '' }: { className?: string }) {
-  const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
     // index.html 의 인라인 스크립트가 이미 정한 값을 읽어 온다
     const t = getTheme();
     setTheme(t);
     applyTheme(t, false);          // 유체 배율·BACK_COLOR 를 현재 테마에 맞춘다
-    return watchSystemTheme();
   }, []);
 
   return (

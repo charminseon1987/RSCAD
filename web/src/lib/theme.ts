@@ -23,8 +23,8 @@ interface FluidHook {
 }
 
 export function getTheme(): Theme {
-  const el = document.documentElement;
-  return el.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  // 라이트가 기본 — index.html 의 인라인 스크립트가 렌더 전에 속성을 심는다
+  return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
 }
 
 /** 저장된 선택이 있는가 — 없으면 시스템 설정을 따르는 상태다 */
@@ -36,9 +36,8 @@ export function hasStoredTheme(): boolean {
 }
 
 export function applyTheme(theme: Theme, persist = true): void {
-  const el = document.documentElement;
-  if (theme === 'light') el.setAttribute('data-theme', 'light');
-  else el.removeAttribute('data-theme');
+  // 항상 명시한다 — 속성을 지우면 :root 의 다크 값이 드러난다
+  document.documentElement.setAttribute('data-theme', theme);
 
   if (persist) {
     try { localStorage.setItem(KEY, theme); } catch { /* 프라이빗 모드 */ }
@@ -57,18 +56,7 @@ export function applyTheme(theme: Theme, persist = true): void {
 }
 
 export function toggleTheme(): Theme {
-  const next: Theme = getTheme() === 'light' ? 'dark' : 'light';
+  const next: Theme = getTheme() === 'dark' ? 'light' : 'dark';
   applyTheme(next);
   return next;
-}
-
-/** 저장된 선택이 없을 때만 시스템 변경을 따라간다 */
-export function watchSystemTheme(): () => void {
-  const mq = window.matchMedia('(prefers-color-scheme: light)');
-  const onChange = (e: MediaQueryListEvent) => {
-    if (hasStoredTheme()) return;
-    applyTheme(e.matches ? 'light' : 'dark', false);
-  };
-  mq.addEventListener('change', onChange);
-  return () => mq.removeEventListener('change', onChange);
 }
