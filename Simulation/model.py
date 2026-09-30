@@ -15,6 +15,7 @@ model.py - 22차 2단 PV+ESS GFM 인버터 소신호 모델 (심볼릭)
 조연호 · 연세대 스마트그리드 연구실
 """
 
+import console_utf8  # noqa: F401 — 콘솔을 UTF-8 로 (cp949 에서 이모지 print 가 죽는다)
 import sympy as sp
 
 # ══════════════════════════════════════════════
