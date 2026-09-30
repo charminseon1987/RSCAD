@@ -17,6 +17,7 @@ core.py — 에이전트 공용 뼈대
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -25,6 +26,19 @@ from pathlib import Path
 from typing import Any, Callable
 
 OLLAMA = 'http://localhost:11434/api/chat'
+
+# 기본 모델 — 한 곳에서만 정한다 (예전에는 7개 파일에 'qwen3:8b' 가 흩어져 있었다).
+#
+# qwen3:8b(5.2 GB)는 16 GB 기기에서 웹 개발 서버(Vite + esbuild)·Flask 와 함께 쓰면
+# 메모리가 모자라 서로를 죽인다. 실제로 이 저장소 작업 중 개발 서버가 네 번 종료됐다.
+# qwen3:4b 는 같은 계열이라 프롬프트 거동이 비슷하면서 절반 이하다.
+#
+# 더 작은 모델(1.7b 급)로 더 내리지 않은 이유: 이 에이전트는 도구 호출(tools)에
+# 의존하는데, 그 크기에서는 도구 인자를 자주 틀린다.
+#
+# 바꾸려면 코드를 고치지 말고 환경변수를 쓴다:
+#   GFM_AGENT_MODEL=qwen3:8b python agent/orchestrator.py ...
+DEFAULT_MODEL = os.environ.get('GFM_AGENT_MODEL', 'qwen3:4b')
 
 
 # ══════════════════════════════════════════════
@@ -95,9 +109,9 @@ class Ollama:
     도구 호출에는 그 과정이 크게 도움이 되지 않으므로 기본적으로 끈다.
     """
 
-    def __init__(self, model='qwen3:8b', url=OLLAMA, temperature=0.2,
+    def __init__(self, model=None, url=OLLAMA, temperature=0.2,
                  timeout=900, think=False, num_ctx=8192):
-        self.model, self.url = model, url
+        self.model, self.url = model or DEFAULT_MODEL, url
         self.temperature, self.timeout = temperature, timeout
         self.think, self.num_ctx = think, num_ctx
 

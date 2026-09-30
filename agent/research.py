@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from core import Agent, Ollama, Registry, check_ollama  # noqa: E402
+from core import Agent, Ollama, Registry, check_ollama  # noqa: E402, DEFAULT_MODEL
 
 ROOT = Path(__file__).resolve().parent.parent
 RAG = ROOT / 'GFM_Research' / '00_Knowledge' / 'rag'
@@ -220,7 +220,7 @@ SYSTEM = """너는 논문 검색을 수행하는 조수다. 사용자의 질문�
 def main():
     ap = argparse.ArgumentParser(description='검색 에이전트')
     ap.add_argument('goal', nargs='*')
-    ap.add_argument('--model', default='qwen3:8b')
+    ap.add_argument('--model', default=DEFAULT_MODEL)
     ap.add_argument('--steps', type=int, default=10)
     ap.add_argument('--timeout', type=int, default=900,
                     help='LLM 응답 대기 초. CPU 추론이면 넉넉히')

@@ -27,6 +27,8 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+from core import DEFAULT_MODEL   # 기본 모델은 core 한 곳에서만 정한다
+
 ROOT = Path(__file__).resolve().parent.parent
 
 # ══════════════════════════════════════════════
@@ -83,7 +85,7 @@ def detect_agent(command: str) -> str:
 # 에이전트 실행
 # ══════════════════════════════════════════════
 
-def run_agent(agent_id: str, command: str, model: str = 'qwen3:8b',
+def run_agent(agent_id: str, command: str, model: str | None = None,
               auto: bool = True, timeout: int = 900) -> dict:
     """에이전트를 subprocess로 실행하고 결과를 반환한다."""
     info = AGENT_MAP.get(agent_id)
@@ -214,7 +216,7 @@ tags: [experiment, auto-generated, {result['agent']}]
 # ══════════════════════════════════════════════
 
 def dispatch(command: str, agent_id: str | None = None,
-             model: str = 'qwen3:8b', auto: bool = True) -> dict:
+             model: str | None = None, auto: bool = True) -> dict:
     """명령을 받아 에이전트를 선택·실행하고, 일지 노트를 생성한다.
 
     반환: {ok, agent, conclusion, note_path, elapsed, ...}
@@ -243,7 +245,7 @@ def main():
     ap.add_argument('command', nargs='+', help='자연어 명령')
     ap.add_argument('--agent', choices=list(AGENT_MAP), default=None,
                     help='에이전트 직접 지정 (생략 시 자동 감지)')
-    ap.add_argument('--model', default='qwen3:8b')
+    ap.add_argument('--model', default=DEFAULT_MODEL)
     ap.add_argument('--no-note', action='store_true', help='일지 노트 생성 생략')
     args = ap.parse_args()
 

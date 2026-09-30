@@ -1191,7 +1191,7 @@ def run_command():
     result = orchestrator.dispatch(
         command,
         agent_id=d.get('agent'),
-        model=d.get('model', 'qwen3:8b'),
+        model=d.get('model') or os.environ.get('GFM_AGENT_MODEL', 'qwen3:4b'),
         auto=True,
     )
 

@@ -28,6 +28,8 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+from core import DEFAULT_MODEL   # 기본 모델은 core 한 곳에서만 정한다
+
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / 'Scripts'
 RAG_DIR = ROOT / 'GFM_Research' / '00_Knowledge' / 'rag'
@@ -288,7 +290,7 @@ def main():
                     default=None, help='액션 직접 지정')
     ap.add_argument('--strategy', default='section')
     ap.add_argument('--rerank', action='store_true')
-    ap.add_argument('--model', default='qwen3:8b', help='(호환용, 미사용)')
+    ap.add_argument('--model', default=DEFAULT_MODEL, help='(호환용, 미사용)')
     ap.add_argument('--auto', default='', nargs='?', help='(호환용)')
     args = ap.parse_args()
 
