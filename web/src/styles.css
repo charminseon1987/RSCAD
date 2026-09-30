@@ -617,37 +617,35 @@ th, td { padding-top: 7px; padding-bottom: 7px; }
    ══════════════════════════════════════════════════════ */
 
 .theme-login {
-  color-scheme: dark;
+  /* 전역 Lab Scholar 토큰을 그대로 따른다.
+     예전에는 여기에 다크 값을 고정하고 color-scheme:dark 까지 박아 뒀다. 그래서
+     라이트로 바꾸면 흰 글자(--login-ink #F1F3FA)가 밝은 배경에 얹혀 안 보이고,
+     입력칸 배경(--login-input-bg 남색 40%)이 회색 판으로 남았다.
+     아래는 이름만 남기는 별칭이라 기존 .login-* 규칙은 그대로 동작한다. */
+  --login-bg:           var(--bg);
+  --login-ink:          var(--ink);
+  --login-ink-2:        var(--ink-2);
+  --login-ink-3:        var(--ink-3);
 
-  /* Background */
-  --login-bg: #070912;
-  --login-ink: #F1F3FA;
-  --login-ink-2: #BCC3D8;
-  --login-ink-3: #8089A3;
+  --login-accent:       var(--accent);
+  --login-teal:         var(--teal);
+  --login-amber:        var(--amber);
+  --login-violet:       var(--violet);
 
-  /* Accent colors */
-  --login-accent: #9AA6FF;
-  --login-teal: #5ED3CF;
-  --login-amber: #F1B86A;
-  --login-violet: #B69CFF;
+  --login-glass:        var(--glass);
+  --login-glass-strong: var(--glass-strong);
+  --login-edge:         var(--edge);
+  --login-edge-soft:    var(--edge-soft);
+  --login-shadow:       var(--shadow);
+  --login-blur:         var(--blur);
 
-  /* Glass effects */
-  --login-glass: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.035));
-  --login-glass-strong: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.06));
-  --login-edge: rgba(255,255,255,.22);
-  --login-edge-soft: rgba(255,255,255,.08);
-  --login-shadow: 0 24px 60px rgba(0,0,0,.45);
-  --login-blur: blur(22px) saturate(160%);
+  --login-sans:         var(--sans);
+  --login-mono:         var(--mono);
 
-  /* Typography */
-  --login-sans: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
-  --login-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
-
-  /* Input states */
-  --login-input-bg: rgba(7,9,18,.4);
-  --login-input-focus: 0 0 0 4px rgba(154,166,255,.2);
-  --login-error: #F2839A;
-  --login-success: #5ED3CF;
+  --login-input-bg:     var(--field);
+  --login-input-focus:  var(--field-focus);
+  --login-error:        var(--rose);
+  --login-success:      var(--teal);
 }
 
 /* WebGL Canvas */
@@ -698,7 +696,7 @@ th, td { padding-top: 7px; padding-bottom: 7px; }
   border: 1px solid var(--login-edge-soft);
   border-radius: 30px;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.14),
+    inset 0 1px 0 var(--edge),
     var(--login-shadow);
   padding: 30px 28px 24px;
 }
@@ -843,14 +841,16 @@ th, td { padding-top: 7px; padding-bottom: 7px; }
   border-radius: 999px;
   font: 600 15px var(--login-sans);
   background: var(--login-ink);
-  color: #0B0E19;
+  color: var(--on-solid);   /* 다크 #0B0E19 / 라이트 #FFFFFF — 배경이 --ink 라 반전된다 */
   border: none;
   cursor: pointer;
   transition: transform .15s, background .2s;
 }
 .login-btn-primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  background: #fff;
+  /* 배경이 --login-ink(=--ink) 이므로 흰색 고정이면 라이트에서 버튼이 사라진다.
+     --ink 쪽으로 한 단계 더 밀어 대비를 유지한다. */
+  background: color-mix(in srgb, var(--ink) 88%, var(--on-solid));
 }
 .login-btn-primary:disabled {
   opacity: 0.6;
@@ -887,8 +887,9 @@ th, td { padding-top: 7px; padding-bottom: 7px; }
 .login-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(11,14,25,.25);
-  border-top-color: #0B0E19;
+  /* 주 버튼 위에 얹히므로 버튼 글자색을 따라야 한다 */
+  border: 2px solid color-mix(in srgb, var(--on-solid) 25%, transparent);
+  border-top-color: var(--on-solid);
   border-radius: 50%;
   animation: login-spin .8s linear infinite;
 }
@@ -1300,17 +1301,19 @@ body { word-break: keep-all; }
   color: var(--on-solid);
 }
 
-/* 리퀴드 — 정적 블롭과 유체 캔버스를 라이트에서는 쓰지 않는다 */
-:root[data-theme="light"] .ls-blobs,
-:root[data-theme="light"] .login-fluid-canvas {
+/* 리퀴드 — 작업 화면의 정적 블롭만 끈다.
+   로그인의 유체는 라이트에서도 살린다 (마우스 따라오는 효과가 그 화면의 요점).
+   라이트에서는 BLOOM·SUNRAYS 가 꺼지고 dyeScale 이 0.11 로 올라가므로
+   빛번짐 없이 옅게 흐른다 — lib/theme.ts 의 applyTheme 참고. */
+:root[data-theme="light"] .ls-blobs {
   display: none !important;
 }
 /* 유체가 빠진 자리 — 평면 배경 */
 :root[data-theme="light"] body {
   background: var(--bg);
 }
-/* 유체 위 가독성을 위한 scrim·veil 도 불필요해진다 */
-:root[data-theme="light"] .ls-scrim::before,
-:root[data-theme="light"] .login-veil {
+/* 작업 화면에는 유체가 없으니 scrim 이 불필요하다.
+   로그인의 veil 은 유체가 살아 있으므로 그대로 둔다 (글자 가독성). */
+:root[data-theme="light"] .ls-scrim::before {
   display: none;
 }

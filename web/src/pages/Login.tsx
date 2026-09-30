@@ -126,9 +126,10 @@ export default function Login() {
         className="fixed top-4 left-4 z-20 opacity-40 hover:opacity-100 transition-opacity duration-200"
         style={{
           fontSize: 14,
-          background: 'rgba(0,0,0,.55)',
-          color: '#fff',
-          border: '1px solid rgba(255,255,255,.25)',
+          background: 'var(--glass-strong)',
+          color: 'var(--ink)',
+          border: '1px solid var(--edge-soft)',
+          backdropFilter: 'var(--blur)',
           padding: '8px 16px',
           borderRadius: 8,
           fontFamily: 'var(--login-mono)',
