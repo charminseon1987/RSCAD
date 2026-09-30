@@ -95,7 +95,7 @@
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --bg:          #F2F4FA;
+  --bg:          #F7F9FD;   /* 스펙값 #F2F4FA 보다 한 단계 밝게. 순백(#FFF)은 §9 금지 */
   --ink:         #141A2E;
   --ink-2:       #434C66;
   --ink-3:       #6E7690;
@@ -117,10 +117,10 @@
   --field-focus:  0 0 0 4px rgba(85,102,232,.18);
   --scrim:        radial-gradient(60% 70% at 30% 40%, rgba(242,244,250,.82), transparent 70%);
 
-  --surface-container-low:     rgba(20,26,46,.035);
-  --surface-container:         rgba(20,26,46,.055);
-  --surface-container-high:    rgba(20,26,46,.08);
-  --surface-container-highest: rgba(20,26,46,.11);
+  --surface-container-low:     rgba(20,26,46,.025);
+  --surface-container:         rgba(20,26,46,.042);
+  --surface-container-high:    rgba(20,26,46,.062);
+  --surface-container-highest: rgba(20,26,46,.085);
   --primary-container:   rgba(85,102,232,.12);
   --secondary-container: rgba(194,117,19,.16);
   --error-container:     rgba(214,69,95,.14);
