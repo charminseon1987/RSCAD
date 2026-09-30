@@ -268,7 +268,7 @@ export default function ControlLoop() {
         {loadErr && <div className="cl-banner">모델 불러오기 실패: {loadErr}</div>}
 
         <div className="cl-card cl-diagram">
-          <BlockDiagram ref={dgRef} />
+          <BlockDiagram ref={dgRef} nStates={nStates} />
         </div>
 
         <div className="cl-card cl-scopes">
@@ -340,6 +340,10 @@ export default function ControlLoop() {
 
         <div className="cl-notes">
           모델 <b>{specName || '—'}</b> · 상태 {nStates}개 · 파라미터 {nParams}개
+          {' · '}
+          <span title="블록도는 모델 구조에 맞춰 바뀝니다">
+            블록도 {nStates >= 22 ? 'DC단 포함' : 'AC 전용'}
+          </span>
           {verify && (verify.ok
             ? <span className="cl-ok"> · 검증 ✓ (최대 상대오차 {verify.err.toExponential(1)})</span>
             : <span className="cl-bad"> · 검증 ✗ (오차 {verify.err.toExponential(1)}) — 이 화면의 숫자를 믿지 마세요</span>

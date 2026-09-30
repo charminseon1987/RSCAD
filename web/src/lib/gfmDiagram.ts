@@ -94,7 +94,8 @@ const wcLabel = (): Label => [
   { t: 'ω' }, { t: 'c', sub: true }, { t: ' / (s+ω' }, { t: 'c', sub: true }, { t: ')' },
 ];
 
-export function buildDiagram(): Diagram {
+/** 14차 교육용 모델의 AC 제어 구조. 22차 블록도도 이것을 아래로 밀어 재사용한다. */
+export function buildDiagram14(): Diagram {
   const tiers: Tier[] = [];
   const blocks: Block[] = [];
   const sums: Sum[] = [];
@@ -214,4 +215,108 @@ export function buildDiagram(): Diagram {
   wires.push(wire([[710, 586], [760, 586]], c => c.S.pe, { noChip: true }));
 
   return { viewBox: '0 0 1000 640', tiers, blocks, sums, syms, wires };
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   22차 연구 모델 — DC단을 얹은 블록도
+
+   22차는 14차(AC 14개) 위에 DC 8개가 더 있다 (Simulation/model.py):
+     PV 부스트  v_pv · i_Lpv · ∫e_vpv · ∫e_ipv     — 2단 캐스케이드 PI
+     DC링크/ESS v_dc · i_Less · ∫e_vdc · ∫e_iess   — 2단 캐스케이드 PI
+   결합은 양방향이다 — DC→AC 는 인버터 출력전압이 v_dc 에 비례하고,
+   AC→DC 는 DC링크가 i_inv = 1.5(v_od·i_ld + v_oq·i_lq)/v_dc 만큼 유출된다.
+
+   AC 부분은 buildDiagram14() 를 그대로 아래로 밀어 쓴다. 좌표를 손으로 다시
+   적으면 두 곳이 어긋나기 때문이다.
+
+   DC단 안쪽 되먹임 루프는 그리지 않았다. spec 이 내보내는 DC 신호가
+   vpv · ipv · vdc · ibat 넷뿐이어서, PI 중간값을 그리면 없는 값을 있는 것처럼
+   보이게 된다 (AC 단은 신호가 다 있어 루프를 그린다).
+   ═══════════════════════════════════════════════════════════════════ */
+
+/** DC 티어 높이 — AC 부분을 이만큼 아래로 민다 */
+const DC_H = 150;
+
+/** 도형 전체를 y 방향으로 옮긴다 (좌표를 다시 적지 않기 위해) */
+function shiftY(d: Diagram, dy: number): Diagram {
+  return {
+    viewBox: d.viewBox,
+    tiers: d.tiers.map(t => ({ ...t, y: t.y + dy })),
+    blocks: d.blocks.map(b => ({ ...b, y: b.y + dy })),
+    sums: d.sums.map(s => ({ ...s, cy: s.cy + dy })),
+    syms: d.syms.map(s => ({ ...s, y: s.y + dy })),
+    wires: d.wires.map(w => ({
+      ...w,
+      pts: w.pts.map(([x, y]) => [x, y + dy] as [number, number]),
+    })),
+  };
+}
+
+function dcSection(): Omit<Diagram, 'viewBox'> {
+  const tiers: Tier[] = [{
+    x: 8, y: 8, w: 984, h: DC_H - 16,
+    label: '⓪ DC단 — PV 부스트 · DC 링크 · ESS (22차 전용)',
+    accent: true,
+  }];
+  const blocks: Block[] = [];
+  const syms: Sym[] = [];
+  const wires: Wire[] = [];
+
+  /* ── PV 부스트 (상단 행) ── */
+  blocks.push({ x: 28, y: 40, w: 92, h: 44, label: 'PV 어레이', sub: 'v_pv 500 V', accent: true });
+  wires.push(wire([[120, 62], [176, 62]], c => c.S.vpv, { nom: 1, fmt: v => v.toFixed(3) + ' pu' }));
+  blocks.push({ x: 176, y: 40, w: 104, h: 44, label: 'PI · PI', sub: 'k_vpv → k_ipv', accent: true });
+  wires.push(wire([[280, 62], [336, 62]], c => c.S.ipv, { nom: 1.2, fmt: v => v.toFixed(3) + ' pu' }));
+  blocks.push({
+    x: 336, y: 40, w: 96, h: 44,
+    label: [{ t: 'L' }, { t: 'pv', sub: true }],
+    sub: '부스트 2 mH', accent: true,
+  });
+  wires.push(wire([[432, 62], [492, 62]], c => c.S.ipv, { nom: 1.2, noChip: true }));
+
+  /* ── DC 링크 (가운데, 두 행에 걸친다) ── */
+  blocks.push({
+    x: 492, y: 34, w: 118, h: 58,
+    label: [{ t: 'C' }, { t: 'dc', sub: true }],
+    sub: 'v_dc 800 V', accent: true,
+  });
+
+  /* ── ESS 조절 (하단 행) — DC링크 전압을 받아 배터리 전류를 만든다 ── */
+  wires.push(wire([[610, 62], [664, 62]], c => c.S.vdc, { nom: 1, fmt: v => v.toFixed(3) + ' pu' }));
+  blocks.push({ x: 664, y: 40, w: 104, h: 44, label: 'PI · PI', sub: 'k_vdc → k_iess', accent: true });
+  wires.push(wire([[768, 62], [824, 62]], c => c.S.ibat, { nom: 0.3, fmt: v => v.toFixed(3) + ' pu' }));
+  blocks.push({
+    x: 824, y: 34, w: 104, h: 58,
+    label: [{ t: 'L' }, { t: 'ess', sub: true }, { t: ' · ESS' }],
+    sub: '충·방전', accent: true,
+  });
+
+  /* ── DC ↔ AC 결합 ──
+     오른쪽: DC링크 전압이 인버터 출력전압을 정한다 (아래 ④ PWM·VSI 로)
+     왼쪽:  인버터가 소비하는 전류가 DC링크로 되돌아온다 */
+  syms.push({ x: 551, y: 112, label: [{ t: 'v' }, { t: 'dc', sub: true }, { t: ' → PWM 진폭' }] });
+  wires.push(wire([[551, 92], [551, 128]], c => c.S.vdc, { nom: 1, fmt: v => 'v_dc ' + v.toFixed(3) }));
+  syms.push({ x: 300, y: 128, label: 'i_inv = 1.5(v_od·i_ld + v_oq·i_lq) / v_dc', anchor: 'start' });
+  wires.push(wire([[292, 124], [292, 92], [492, 92]], c => c.S.pe, { nom: 1, noChip: true }));
+
+  return { tiers, blocks, sums: [], syms, wires };
+}
+
+/** 22차 연구 모델용 — DC 티어 + 아래로 밀린 AC 구조 */
+export function buildDiagram22(): Diagram {
+  const ac = shiftY(buildDiagram14(), DC_H);
+  const dc = dcSection();
+  return {
+    viewBox: `0 0 1000 ${640 + DC_H}`,
+    tiers: [...dc.tiers, ...ac.tiers],
+    blocks: [...dc.blocks, ...ac.blocks],
+    sums: [...dc.sums, ...ac.sums],
+    syms: [...dc.syms, ...ac.syms],
+    wires: [...dc.wires, ...ac.wires],
+  };
+}
+
+/** 상태 개수로 블록도를 고른다. 22차에는 DC단이 있어 구조가 다르다. */
+export function buildDiagramFor(nStates: number): Diagram {
+  return nStates >= 22 ? buildDiagram22() : buildDiagram14();
 }

@@ -5,7 +5,7 @@
    구조(티어·블록·배선·칩)를 소유하고, update() 가 그 안의 노드만 갱신한다. */
 
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
-import { buildDiagram, type Diagram, type Label, type SigCtx } from '../../lib/gfmDiagram';
+import { buildDiagramFor, type Diagram, type Label, type SigCtx } from '../../lib/gfmDiagram';
 
 /** 점 간격 (px, viewBox 기준) — 원본과 같은 34 */
 const GAP = 34;
@@ -32,10 +32,14 @@ function renderLabel(label: Label) {
   );
 }
 
-interface Props { className?: string }
+interface Props {
+  className?: string;
+  /** 모델의 상태 개수 — 22차에는 DC단이 있어 블록도 구조가 다르다 */
+  nStates?: number;
+}
 
-const BlockDiagram = forwardRef<DiagramHandle, Props>(function BlockDiagram({ className }, ref) {
-  const dg: Diagram = useMemo(() => buildDiagram(), []);
+const BlockDiagram = forwardRef<DiagramHandle, Props>(function BlockDiagram({ className, nStates = 14 }, ref) {
+  const dg: Diagram = useMemo(() => buildDiagramFor(nStates), [nStates]);
 
   const svgRef = useRef<SVGSVGElement>(null);
   const pathRefs = useRef<(SVGPathElement | null)[]>([]);
