@@ -1,6 +1,6 @@
 /* 실험기록 — 무엇을 언제 돌렸는지의 연대기.
    구 Main(Dashboard) 의 실험 결과 그리드와 연구 일지를 여기로 모았다.
-   "맞는지 분석"은 검증 화면(Verification.tsx)이 맡는다. */
+   "맞는지 분석"은 안정도 화면(Stability.tsx)이 맡는다. */
 import { useEffect, useState } from 'react';
 import { fetchJSON } from '../lib/api';
 

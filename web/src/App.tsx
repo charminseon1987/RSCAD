@@ -5,7 +5,7 @@ import Papers from './pages/Papers';
 import Knowledge from './pages/Knowledge';
 import MyPaper from './pages/MyPaper';
 import GfmLab from './pages/GfmLab';
-import Verification from './pages/Verification';
+import Stability from './pages/Stability';
 import ExperimentLog from './pages/ExperimentLog';
 import Archify from './pages/Archify';
 import ControlLoop from './pages/ControlLoop';
@@ -122,7 +122,7 @@ export default function App() {
       <Route path="/research/my-paper" element={<MyPaper />} />
       <Route path="/lab/gfm" element={<GfmLab />} />
       <Route path="/lab/control-loop" element={<ControlLoop />} />
-      <Route path="/lab/verification" element={<Verification />} />
+      <Route path="/lab/verification" element={<Stability />} />
       <Route path="/lab/log" element={<ExperimentLog />} />
       <Route path="/archify" element={<Archify />} />
       <Route path="/present/landing" element={<Landing />} />
