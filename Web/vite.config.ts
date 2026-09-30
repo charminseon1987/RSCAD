@@ -11,6 +11,7 @@ export default defineConfig({
       '/results': 'http://localhost:5000',
       '/docs': 'http://localhost:5000',
       '/scholar': 'http://localhost:5000',
+      '/gfm-viewer': 'http://localhost:5000',
     },
   },
 });

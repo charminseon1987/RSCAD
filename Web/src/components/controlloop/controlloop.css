@@ -1,0 +1,132 @@
+/* GFM 제어루프 뷰어 — landing 디자인 팔레트.
+
+   앱 전역 토큰(--surface/--primary/…)은 라이트 전용이라 이 화면의 다크 계열과 섞이면
+   깨진다. 그래서 팔레트를 .cl 스코프 안에 가둔다. 테마 토글은 .cl--light 로 바꾼다. */
+
+.cl {
+  --bg: #0E1220;
+  --panel: #151A2B;
+  --panel-2: #1C2236;
+  --line: #2A3149;
+  --ink: #E7EAF4;
+  --ink-2: #AEB5CB;
+  --ink-3: #7A829C;
+  --accent: #7C8CF8;
+  --pos: #7C8CF8;
+  --neg: #F2A65A;
+  --ok: #63D2A1;
+  --bad: #F2677A;
+  --wire: #39415C;
+  --blockfill: #161C2E;
+  --cl-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100%;
+}
+
+.cl--light {
+  --bg: #F3F5FA;
+  --panel: #FFFFFF;
+  --panel-2: #F0F2F8;
+  --line: #DCE1EC;
+  --ink: #161B2C;
+  --ink-2: #465068;
+  --ink-3: #7A829C;
+  --accent: #5563D6;
+  --pos: #5563D6;
+  --neg: #D9822B;
+  --ok: #1F9B67;
+  --bad: #D83A52;
+  --wire: #C3C9D9;
+  --blockfill: #FFFFFF;
+}
+
+.cl-header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding: 18px 22px 6px; }
+.cl-header h1 { margin: 0; font-size: 19px; letter-spacing: -.01em; }
+.cl-header p { margin: 0; color: var(--ink-3); font-size: 13px; }
+
+.cl-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 1fr);
+  gap: 14px;
+  padding: 10px 22px 22px;
+}
+.cl-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.cl-diagram { padding: 6px; min-width: 0; }
+.cl-diagram svg { display: block; width: 100%; height: auto; }
+
+.cl-scopes { display: flex; flex-direction: column; gap: 10px; padding: 12px; }
+.cl-scope h3 {
+  margin: 0 0 4px; font-size: 12.5px; font-weight: 600; color: var(--ink-2);
+  display: flex; justify-content: space-between; gap: 8px;
+}
+.cl-scope h3 .cl-readout { font-family: var(--cl-mono); font-weight: 400; color: var(--ink-3); }
+.cl-scope canvas {
+  width: 100%; height: 180px; display: block;
+  background: var(--panel-2); border-radius: 8px;
+}
+
+.cl-controls {
+  grid-column: 1 / -1;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px 18px; padding: 14px 18px;
+}
+.cl-ctl label {
+  display: flex; justify-content: space-between;
+  font-size: 12.5px; color: var(--ink-2); margin-bottom: 2px;
+}
+.cl-ctl label b { font-family: var(--cl-mono); font-weight: 500; color: var(--ink); }
+.cl input[type=range] { width: 100%; accent-color: var(--accent); }
+
+.cl-btns { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cl button {
+  font: inherit; font-size: 13px;
+  border: 1px solid var(--line); background: var(--panel-2); color: var(--ink);
+  border-radius: 999px; padding: 7px 14px; cursor: pointer;
+}
+.cl button:hover { border-color: var(--ink-3); }
+.cl button.cl-on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.cl-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.cl-seg button { border: 0; border-radius: 0; padding: 7px 12px; }
+.cl-status { margin-left: auto; font-family: var(--cl-mono); font-size: 12.5px; color: var(--ink-3); }
+
+.cl-banner {
+  grid-column: 1 / -1; padding: 10px 16px; border-radius: 12px;
+  border: 1px solid var(--bad); color: var(--bad);
+  background: color-mix(in srgb, var(--bad) 10%, transparent);
+}
+.cl-notes { grid-column: 1 / -1; font-size: 12.5px; color: var(--ink-3); padding: 0 4px; line-height: 1.8; }
+.cl-notes b { color: var(--ink-2); }
+.cl-ok { color: var(--ok); }
+.cl-bad { color: var(--bad); }
+
+/* ── SVG ── */
+.cl-tier { fill: none; stroke: var(--line); stroke-dasharray: 5 4; }
+.cl-tier.cl-t1 { stroke: var(--accent); }
+.cl-tt { font: 600 12.5px var(--sans, system-ui); fill: var(--ink-2); }
+.cl-tt.cl-t1 { fill: var(--accent); }
+.cl-blk { fill: var(--blockfill); stroke: var(--ink-3); stroke-width: 1.2; }
+.cl-blk.cl-t1 { stroke: var(--accent); }
+.cl-bl { font: italic 14px "Times New Roman", serif; fill: var(--ink); text-anchor: middle; }
+.cl-bs { font: 12px var(--sans, system-ui); fill: var(--ink-2); text-anchor: middle; }
+.cl-sj { fill: var(--blockfill); stroke: var(--ink-3); stroke-width: 1.2; }
+.cl-sg { font: bold 10px var(--sans, system-ui); fill: var(--ink-2); }
+.cl-wire { fill: none; stroke: var(--wire); stroke-width: 1.6; }
+.cl-sym { font: italic 13.5px "Times New Roman", serif; fill: var(--ink-2); }
+.cl-chip rect { fill: var(--panel-2); stroke: var(--line); }
+.cl-chip text { font: 500 10.5px var(--cl-mono); fill: var(--ink); text-anchor: middle; }
+.cl-dot { pointer-events: none; }
+.cl-src { fill: var(--blockfill); stroke: var(--ink-3); }
+.cl-sine { fill: none; stroke: var(--ink-2); }
+.cl-arrow { fill: var(--ink-3); }
+
+@media (max-width: 980px) {
+  .cl-wrap { grid-template-columns: 1fr; padding: 8px 10px 18px; }
+  .cl-header { padding: 14px 12px 4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cl-dot { display: none; }
+}
