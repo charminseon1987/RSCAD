@@ -4,11 +4,9 @@ import { NavLink, Route, Routes, Navigate, useLocation, useNavigate } from 'reac
 import Papers from './pages/Papers';
 import Knowledge from './pages/Knowledge';
 import MyPaper from './pages/MyPaper';
-import GfmLab from './pages/GfmLab';
-import Stability from './pages/Stability';
 import ExperimentLog from './pages/ExperimentLog';
 import Archify from './pages/Archify';
-import ControlLoop from './pages/ControlLoop';
+import Lab from './pages/Lab';
 import ThemeToggle from './components/ThemeToggle';
 import Landing from './pages/Landing';
 import RscadFX from './pages/RscadFX';
@@ -40,9 +38,8 @@ const NAV: (Leaf | Group)[] = [
   {
     label: '실험', base: '/lab',
     children: [
-      { to: '/lab/gfm', label: 'GFM 실험실' },
-      { to: '/lab/control-loop', label: 'GFM 제어루프' },
-      { to: '/lab/verification', label: '검증' },
+      /* 실행·제어루프·검증은 /lab/gfm 안의 탭 3개로 합쳤다 */
+      { to: '/lab/gfm', label: 'GFM 실험' },
       { to: '/lab/log', label: '실험기록' },
     ],
   },
@@ -121,9 +118,10 @@ export default function App() {
       <Route path="/research/papers" element={<Navigate to="/research/scholar/flow" replace />} />
       <Route path="/research/knowledge" element={<Knowledge />} />
       <Route path="/research/my-paper" element={<MyPaper />} />
-      <Route path="/lab/gfm" element={<GfmLab />} />
-      <Route path="/lab/control-loop" element={<ControlLoop />} />
-      <Route path="/lab/verification" element={<Stability />} />
+      {/* 실험 세 화면은 Lab 의 탭이다 — 경로를 유지해 북마크·딥링크가 살아 있다 */}
+      <Route path="/lab/gfm" element={<Lab />} />
+      <Route path="/lab/control-loop" element={<Lab />} />
+      <Route path="/lab/verification" element={<Lab />} />
       <Route path="/lab/log" element={<ExperimentLog />} />
       <Route path="/archify" element={<Archify />} />
       <Route path="/present/landing" element={<Landing />} />
@@ -132,7 +130,7 @@ export default function App() {
       {/* 옛 경로 — 북마크가 깨지지 않게 */}
       <Route path="/dashboard" element={<Navigate to="/" replace />} />
       <Route path="/simulation" element={<Navigate to="/lab/gfm" replace />} />
-      <Route path="/lab" element={<Navigate to="/lab/verification" replace />} />
+      <Route path="/lab" element={<Navigate to="/lab/gfm" replace />} />
       <Route path="/paper" element={<Navigate to="/research/my-paper" replace />} />
       <Route path="/rscad-fx" element={<Navigate to="/present/rscad-fx" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />

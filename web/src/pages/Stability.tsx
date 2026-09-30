@@ -24,7 +24,12 @@ const MAX_GAUGE = 1.3;
 
 interface Selected { xr: number; scr: number; sigma: number }
 
-export default function Stability() {
+interface Props {
+  /** 값이 바뀌면 결과를 다시 읽는다. 실행 탭에서 계산이 저장되면 Lab.tsx 가 올린다. */
+  reloadKey?: number;
+}
+
+export default function Stability({ reloadKey = 0 }: Props) {
   const [d, setD] = useState<DashData>({ ...DEFAULT });
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState('');
@@ -83,7 +88,7 @@ export default function Stability() {
       setD(nd);
       setLoading(false);
     })();
-  }, []);
+  }, [reloadKey]);
 
   /* ── 파일 업로드 ── */
   const handleFiles = useCallback(async (files: FileList) => {

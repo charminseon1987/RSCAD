@@ -175,7 +175,12 @@ function Modal({ open, onClose, title, children }: {
 }
 
 /* ── Main ── */
-export default function GfmLab() {
+interface Props {
+  /** 계산이 results/ 에 저장됐을 때 호출한다. 검증 탭이 다시 읽는 신호다. */
+  onRunSaved?: () => void;
+}
+
+export default function GfmLab({ onRunSaved }: Props) {
   const [ctrl, setCtrl] = useState<Record<string, number>>({ ...ALL_DEFAULTS });
   const [scrInput, setScrInput] = useState('3.0, 2.0, 1.5, 1.0');
   const [xr, setXr] = useState(1.0);
@@ -241,6 +246,8 @@ export default function GfmLab() {
       setLastRunCtrl({ ...ctrl });
       setRunResult(d); upStep('runner', { status: 'done', msg: `${d.persisted ? 'SAVED' : 'preview'} — ${dt}ms`, ms: dt });
       addLog(`runner.py 완료: ${dt}ms`);
+      // 저장된 실행만 알린다 — preview 는 LATEST.json 을 바꾸지 않으므로 검증 탭이 볼 것이 없다
+      if (d.persisted) onRunSaved?.();
       setSaveTitle(`SCR=[${scrList.join(',')}] XR=${xr} — σ_min=${d.meta?.sigma_min_all?.toFixed(4) ?? '?'}`);
     } catch (e: any) { upStep('runner', { status: 'error', msg: e.message }); addLog(`ERROR: ${e.message}`); setRunning(false); return; }
 

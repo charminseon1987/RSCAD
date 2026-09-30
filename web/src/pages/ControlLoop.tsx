@@ -45,7 +45,13 @@ function inputSliders(u: Inputs): InputSlider[] {
 
 interface Verify { ok: boolean; err: number }
 
-export default function ControlLoop() {
+interface Props {
+  /** 탭이 활성일 때만 적분한다. 비활성에서 돌리면 CPU 를 낭비한다
+      (프레임당 약 833 스텝 × 22차 rhs 4회). Lab.tsx 가 넘긴다. */
+  active?: boolean;
+}
+
+export default function ControlLoop({ active = true }: Props) {
   const dgRef = useRef<DiagramHandle>(null);
   const scF = useRef<ScopeHandle>(null);
   const scP = useRef<ScopeHandle>(null);
@@ -59,6 +65,7 @@ export default function ControlLoop() {
   const lastRec = useRef(0);
   const lastRec3 = useRef(0);
   const pausedRef = useRef(false);
+  const activeRef = useRef(active);
   const speedRef = useRef(1);
 
   const [specList, setSpecList] = useState<SpecMeta[]>([]);
@@ -125,6 +132,8 @@ export default function ControlLoop() {
     }
   }, [loadSpec]);
 
+  useEffect(() => { activeRef.current = active; }, [active]);
+
   /* ── RAF 루프 ── */
   useEffect(() => {
     let raf = 0;
@@ -138,6 +147,9 @@ export default function ControlLoop() {
 
       const dtReal = Math.min((now - last) / 1000, 0.05);
       last = now;
+
+      // 다른 탭을 보고 있으면 적분도 그리기도 하지 않는다 — 다음 프레임에 시간만 흘린다
+      if (!activeRef.current) return;
 
       if (!pausedRef.current && !sim.diverged) {
         const sp = speedRef.current;
