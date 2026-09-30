@@ -1245,3 +1245,72 @@ body { word-break: keep-all; }
     background: var(--glass-strong);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   라이트 테마 — 유리·리퀴드 효과 제거
+
+   다크에서는 유리(반투명 + backdrop blur + 림 하이라이트)와 유체/블롭이
+   깊이를 만들지만, 밝은 배경에서는 대비만 깎고 글자를 읽기 어렵게 만든다.
+   라이트에서는 불투명 패널과 평면 배경으로 간다.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root[data-theme="light"] .glass,
+:root[data-theme="light"] .glass-card,
+:root[data-theme="light"] .glass-nav,
+:root[data-theme="light"] .glass-nav-pill,
+:root[data-theme="light"] .glass-status,
+:root[data-theme="light"] .glass-panel,
+:root[data-theme="light"] .glass-station,
+:root[data-theme="light"] .glass-badge,
+:root[data-theme="light"] .btn,
+:root[data-theme="light"] .tag {
+  background: var(--opaque);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: 0 1px 3px rgba(20, 26, 46, .06);
+}
+
+/* 림 하이라이트 제거 — 흰 배경 위에서는 테두리만 지저분해진다 */
+:root[data-theme="light"] .glass::before,
+:root[data-theme="light"] .glass-card::before {
+  display: none;
+}
+
+:root[data-theme="light"] .glass,
+:root[data-theme="light"] .glass-card,
+:root[data-theme="light"] .glass-status,
+:root[data-theme="light"] .glass-station,
+:root[data-theme="light"] .glass-badge,
+:root[data-theme="light"] .btn,
+:root[data-theme="light"] .tag {
+  border-color: var(--edge-soft);
+}
+
+:root[data-theme="light"] .glass-card-hover:hover {
+  background: var(--opaque);
+  border-color: var(--ink-3);
+  box-shadow: 0 4px 12px rgba(20, 26, 46, .10);
+}
+:root[data-theme="light"] .btn:hover,
+:root[data-theme="light"] .link-card:hover {
+  background: var(--surface-container-low);
+}
+:root[data-theme="light"] .btn.solid {
+  background: var(--accent);
+  color: var(--on-solid);
+}
+
+/* 리퀴드 — 정적 블롭과 유체 캔버스를 라이트에서는 쓰지 않는다 */
+:root[data-theme="light"] .ls-blobs,
+:root[data-theme="light"] .login-fluid-canvas {
+  display: none !important;
+}
+/* 유체가 빠진 자리 — 평면 배경 */
+:root[data-theme="light"] body {
+  background: var(--bg);
+}
+/* 유체 위 가독성을 위한 scrim·veil 도 불필요해진다 */
+:root[data-theme="light"] .ls-scrim::before,
+:root[data-theme="light"] .login-veil {
+  display: none;
+}

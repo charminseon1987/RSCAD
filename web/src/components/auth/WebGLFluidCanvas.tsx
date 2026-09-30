@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { initFluid, FluidInstance } from '../../lib/webgl-fluid';
+import { THEME_EVENT, fluidEnabled, getTheme } from '../../lib/theme';
 
 interface WebGLFluidCanvasProps {
   className?: string;
@@ -9,8 +10,18 @@ export default function WebGLFluidCanvas({ className = '' }: WebGLFluidCanvasPro
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fluidRef = useRef<FluidInstance | null>(null);
   const [webglSupported, setWebglSupported] = useState(true);
+  const [live, setLive] = useState(() => fluidEnabled());
+
+  /* 라이트 테마에서는 유체를 띄우지 않는다 (사용자 요청).
+     CSS 로 숨기기만 하면 시뮬레이션이 뒤에서 계속 돌며 GPU 를 쓴다. */
+  useEffect(() => {
+    const onTheme = () => setLive(fluidEnabled(getTheme()));
+    window.addEventListener(THEME_EVENT, onTheme);
+    return () => window.removeEventListener(THEME_EVENT, onTheme);
+  }, []);
 
   useEffect(() => {
+    if (!live) return;
     if (!canvasRef.current) return;
 
     // Initialize fluid simulation with custom config for login page
@@ -83,7 +94,7 @@ export default function WebGLFluidCanvas({ className = '' }: WebGLFluidCanvasPro
         fluidRef.current = null;
       }
     };
-  }, []);
+  }, [live]);
 
   // Expose fluid instance for external puff effects
   useEffect(() => {
@@ -97,7 +108,7 @@ export default function WebGLFluidCanvas({ className = '' }: WebGLFluidCanvasPro
     };
   }, []);
 
-  if (!webglSupported) {
+  if (!live || !webglSupported) {
     return (
       <div
         className={`login-fallback ${className}`}

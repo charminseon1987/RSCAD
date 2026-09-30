@@ -114,3 +114,12 @@
 @media (prefers-reduced-motion: reduce) {
   .cl-dot { display: none; }
 }
+
+/* 라이트에서는 유리를 쓰지 않는다 — 전역 규칙과 같은 방향 */
+:root[data-theme="light"] .cl {
+  --panel: var(--opaque);
+  --panel-2: var(--surface-container-low);
+}
+:root[data-theme="light"] .cl-card {
+  box-shadow: 0 1px 3px rgba(20, 26, 46, .06);
+}

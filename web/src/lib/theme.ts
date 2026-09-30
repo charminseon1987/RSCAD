@@ -54,6 +54,17 @@ export function applyTheme(theme: Theme, persist = true): void {
     fluid.config.BLOOM = !light;     // 밝은 배경에선 빛번짐이 화면을 하얗게 만든다
     fluid.config.SUNRAYS = !light;
   }
+
+  // 유체 캔버스가 붙었다 떨어지게 하려면 알려 줘야 한다 — 라이트에서는 아예 띄우지 않는다
+  window.dispatchEvent(new CustomEvent(THEME_EVENT, { detail: theme }));
+}
+
+/** 테마가 바뀔 때 발생 — detail 에 'dark' | 'light' */
+export const THEME_EVENT = 'ls-theme-change';
+
+/** 유체를 띄울 테마인가. 라이트에서는 리퀴드 효과를 쓰지 않는다. */
+export function fluidEnabled(theme: Theme = getTheme()): boolean {
+  return theme === 'dark';
 }
 
 export function toggleTheme(): Theme {
