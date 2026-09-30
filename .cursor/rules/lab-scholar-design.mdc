@@ -1,0 +1,17 @@
+---
+description: Lab Scholar UI 디자인 시스템 (Liquid Glass × WebGL Fluid, dark/light). UI·CSS·컴포넌트 작업 시 적용.
+globs: ["web/**/*.tsx", "web/**/*.ts", "web/**/*.css", "**/*.html"]
+alwaysApply: false
+---
+# Lab Scholar 디자인 규칙
+- 정답: `docs/design/lab-scholar-design/styles/lab-scholar.css`, `reference/landing.html`. 새로 디자인하지 말고 옮길 것.
+- 테마: `<html data-theme="dark|light">`, 기본 dark, `localStorage["ls-theme"]`, head 인라인 스크립트로 깜빡임 방지.
+- 색은 CSS 변수만 사용 (`--bg --ink --ink-2 --ink-3 --accent --teal --amber --violet --glass --glass-strong --edge --edge-soft --shadow --blur --on-solid --field`). hex 직접 기입 금지.
+- 패널은 `.glass` (+ `::before` 145° 림). `.glass` 요소는 `position:relative` 필수. `all:unset` 버튼에 붙일 때 position·background·blur 재지정.
+- 반경: 패널 24 · 로그인 카드 30 · 캡슐 999 · 입력칸 14. 이 외 값 금지.
+- 폰트: IBM Plex Sans KR / IBM Plex Mono(숫자·킥커). 전역 `word-break: keep-all`.
+- 아이콘 전용 버튼은 복합 선택자(`.btn.theme`)로 padding 0, svg `flex:none`.
+- 표기: ▸(teal)=논문 사실, ※(amber)=연구자 해석, [n]=출처(accent, Mono).
+- 유체(`lib/fluid.js`, MIT 표기 유지)는 랜딩/로그인에만. 다크 dyeScale 0.07·BLOOM/SUNRAYS on, 라이트 0.11·off, BACK_COLOR = --bg.
+- 필수: prefers-reduced-motion, prefers-reduced-transparency, backdrop-filter 폴백, focus ring 2px accent, aria-label.
+- 금지: 무지개/네온, 유리 3중첩, 순수 #000/#FFF 배경, 라이트에서 BLOOM.
