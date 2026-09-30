@@ -1,49 +1,31 @@
 /* GFM 제어루프 뷰어 — landing 디자인 팔레트.
 
    앱 전역 토큰(--surface/--primary/…)과 섞이면 깨지므로 팔레트를 .cl 스코프 안에 가둔다.
-   기본은 라이트(앱 전역과 같은 방향), 테마 버튼이 .cl--dark 를 얹는다. */
+   테마는 전역 data-theme 하나로 결정된다 — 이 화면에 자체 토글을 두지 않는다. */
 
 .cl {
-  /* 기본은 라이트 — 앱 전역이 color-scheme: light 이므로 여기서 갑자기 어두워지지 않게 한다 */
-  --bg: #F3F5FA;
-  --panel: #FFFFFF;
-  --panel-2: #F0F2F8;
-  --line: #DCE1EC;
-  --ink: #161B2C;
-  --ink-2: #465068;
-  --ink-3: #7A829C;
-  --accent: #5563D6;
-  --pos: #5563D6;
-  --neg: #D9822B;
-  --ok: #1F9B67;
-  --bad: #D83A52;
-  --wire: #C3C9D9;
-  --blockfill: #FFFFFF;
-  --cl-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  /* 전역 Lab Scholar 토큰을 그대로 쓴다 (docs/DESIGN_PROMPT.md 부록).
+     예전에는 .cl 안에 자체 팔레트를 가둬 두고 자체 테마 버튼으로 전환했는데,
+     전역 테마가 생긴 뒤로는 사이드바 토글 하나만 있으면 된다.
+     이름만 남기는 별칭이라 아래 .cl-* 규칙은 그대로 동작한다. */
+  --bg-cl: var(--bg);
+  --panel: var(--glass);
+  --panel-2: var(--surface-container);
+  --line: var(--edge-soft);
+  --ink-cl: var(--ink);
+  --pos: var(--accent);
+  --neg: var(--amber);
+  --ok: var(--teal);
+  --bad: var(--rose);
+  --wire: var(--ink-3);
+  --blockfill: var(--surface-container-low);
+  --cl-mono: var(--mono);
 
-  background: var(--bg);
+  background: transparent;
   color: var(--ink);
   font-size: 14px;
   line-height: 1.5;
   min-height: 100%;
-}
-
-/* 테마 버튼으로 켜는 다크 — landing 원본 팔레트 */
-.cl--dark {
-  --bg: #0E1220;
-  --panel: #151A2B;
-  --panel-2: #1C2236;
-  --line: #2A3149;
-  --ink: #E7EAF4;
-  --ink-2: #AEB5CB;
-  --ink-3: #7A829C;
-  --accent: #7C8CF8;
-  --pos: #7C8CF8;
-  --neg: #F2A65A;
-  --ok: #63D2A1;
-  --bad: #F2677A;
-  --wire: #39415C;
-  --blockfill: #161C2E;
 }
 
 .cl-header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding: 18px 22px 6px; }

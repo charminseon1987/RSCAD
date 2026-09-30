@@ -71,7 +71,6 @@ export default function ControlLoop() {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [diverged, setDiverged] = useState(false);
-  const [dark, setDark] = useState(false);   // 기본 라이트
   const [inputs, setInputs] = useState<Record<string, number>>({ Pref: 0.5, Qref: 0, SCR: 3, XR: 5 });
   const [sliders, setSliders] = useState<InputSlider[]>(() => inputSliders({ Pref: 0.5 }));
   const [paramSliders, setParamSliders] = useState<
@@ -251,7 +250,7 @@ export default function ControlLoop() {
 
   return (
     <div
-      className={'cl' + (dark ? ' cl--dark' : '')}
+      className="cl"
       onDragOver={e => e.preventDefault()}
       onDrop={e => { e.preventDefault(); onFile(e.dataTransfer.files[0]); }}
     >
@@ -319,7 +318,6 @@ export default function ControlLoop() {
               {paused ? '재생' : '일시정지'}
             </button>
             <button onClick={reset}>초기화</button>
-            <button className={dark ? 'cl-on' : ''} onClick={() => setDark(v => !v)}>테마</button>
             <button onClick={() => fileInput.current?.click()}>모델 JSON 불러오기</button>
             <input ref={fileInput} type="file" accept=".json,application/json" hidden
               onChange={e => onFile(e.target.files?.[0])} />

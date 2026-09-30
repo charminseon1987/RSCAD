@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 import { fetchJSON } from '../../lib/api';
+import { AXIS, scrColor } from '../../lib/chartColors';
 
-const SCR_COLORS: Record<string, string> = {
-  '1.0': '#ef4444', '1.3': '#ef4444', '1.4': '#f97316', '1.5': '#eab308',
-  '1.6': '#22c55e', '1.7': '#3b82f6', '2.0': '#8b5cf6',
-  '3.0': '#ec4899', '5.0': '#06b6d4',
-};
+/* 색은 lib/chartColors.ts 로 통일했다 — 무지개 팔레트는 스펙 §9 금지.
+   SCR 은 순서가 있는 값이라 강한 계통(인디고)→약한 계통(로즈) 순차 스케일을 쓴다. */
 function getColor(scr: number): string {
-  return SCR_COLORS[scr.toFixed(1)] ?? '#94a3b8';
+  return scrColor(scr);
 }
 
 interface Props {
@@ -57,14 +55,14 @@ export default function EigenvalueLocus({ computeResults }: Props) {
         <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
           <XAxis type="number" dataKey="re" name="Re(λ)" stroke="#9ca3af"
-            label={{ value: 'Re(λ) [1/s]', position: 'bottom', offset: 5, fill: '#9ca3af', fontSize: 14 }} />
+            label={{ value: 'Re(λ) [1/s]', position: 'bottom', offset: 5, fill: AXIS.label, fontSize: 14 }} />
           <YAxis type="number" dataKey="im" name="Im(λ)" stroke="#9ca3af"
-            label={{ value: 'Im(λ) [rad/s]', angle: -90, position: 'insideLeft', fill: '#9ca3af', fontSize: 14 }} />
+            label={{ value: 'Im(λ) [rad/s]', angle: -90, position: 'insideLeft', fill: AXIS.label, fontSize: 14 }} />
           <ReferenceLine x={0} stroke="#ef4444" strokeDasharray="4 4" strokeWidth={1.5} />
           <ReferenceLine y={0} stroke="#4b5563" strokeDasharray="2 2" />
           <Tooltip
-            contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 8 }}
-            labelStyle={{ color: '#9ca3af' }}
+            contentStyle={{ backgroundColor: AXIS.tooltipBg, border: `1px solid ${AXIS.tooltipBorder}`, borderRadius: 8, color: AXIS.tooltipInk }}
+            labelStyle={{ color: AXIS.label }}
             formatter={(val: any, name: any) => [Number(val).toFixed(2), name]}
             labelFormatter={(_, payload) => {
               const p = payload?.[0]?.payload;

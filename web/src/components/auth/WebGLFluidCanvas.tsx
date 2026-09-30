@@ -14,8 +14,12 @@ export default function WebGLFluidCanvas({ className = '' }: WebGLFluidCanvasPro
     if (!canvasRef.current) return;
 
     // Initialize fluid simulation with custom config for login page
+    // 시작 배경색은 현재 테마를 따른다 — 예전에는 다크로 고정돼 있었다
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
     const fluid = initFluid(canvasRef.current, {
-      BACK_COLOR: { r: 7, g: 9, b: 18 }, // #070912
+      BACK_COLOR: isLight ? { r: 242, g: 244, b: 250 } : { r: 7, g: 9, b: 18 },
+      BLOOM: !isLight,      // 밝은 배경에서 빛번짐은 화면을 하얗게 만든다 (§7)
+      SUNRAYS: !isLight,
       DENSITY_DISSIPATION: 2.2,
       BLOOM_INTENSITY: 0.25,
       BLOOM_THRESHOLD: 0.75,
@@ -32,6 +36,7 @@ export default function WebGLFluidCanvas({ className = '' }: WebGLFluidCanvasPro
     // Create ambient flow from bottom
     const ambientInterval = setInterval(() => {
       if (document.hidden || !fluidRef.current) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       fluidRef.current.splat(
         0.1 + Math.random() * 0.8,
         0.02,
@@ -40,8 +45,39 @@ export default function WebGLFluidCanvas({ className = '' }: WebGLFluidCanvasPro
       );
     }, 3600);
 
+    /* 상호작용 — docs/DESIGN_PROMPT.md §7
+       Space = 무작위 폭발, 버튼·카드 hover 시 그 자리에서 작은 splat.
+       reduced-motion 이면 둘 다 끈다. */
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== 'Space') return;
+      const t = e.target as HTMLElement | null;
+      // 입력 중이거나 버튼에 포커스가 있으면 Space 는 그쪽 몫이다
+      if (t && /^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(t.tagName)) return;
+      if (t?.isContentEditable) return;
+      e.preventDefault();
+      fluidRef.current?.burst(6);
+    };
+
+    const onHover = (e: Event) => {
+      const el = (e.target as HTMLElement | null)?.closest('button, a, .card, .link-card, .glass-card');
+      if (!el || !fluidRef.current) return;
+      const r = el.getBoundingClientRect();
+      const x = (r.left + r.width / 2) / window.innerWidth;
+      const y = 1 - (r.top + r.height / 2) / window.innerHeight;   // y 는 아래→위
+      fluidRef.current.splat(x, y, (Math.random() - 0.5) * 120, 180 + Math.random() * 140);
+    };
+
+    if (!reduced) {
+      window.addEventListener('keydown', onKey);
+      document.addEventListener('mouseover', onHover, { passive: true });
+    }
+
     return () => {
       clearInterval(ambientInterval);
+      window.removeEventListener('keydown', onKey);
+      document.removeEventListener('mouseover', onHover);
       if (fluidRef.current) {
         fluidRef.current.destroy();
         fluidRef.current = null;

@@ -4,8 +4,10 @@ import {
   ResponsiveContainer, Legend, ReferenceLine,
 } from 'recharts';
 import { fetchJSON } from '../../lib/api';
+import { AXIS, seriesColor } from '../../lib/chartColors';
 
-const SCR_COLORS = ['#3b82f6', '#22c55e', '#eab308', '#f97316', '#ef4444', '#8b5cf6', '#ec4899'];
+/* 색은 lib/chartColors.ts 로 통일 — 스펙 부록(인디고·틸·앰버·로즈) */
+const SCR_COLORS: string[] = [0, 1, 2, 3, 4, 5, 6].map(i => seriesColor(i));
 
 export default function LinearizationValidity() {
   const [data, setData] = useState<any>(null);
@@ -70,11 +72,11 @@ export default function LinearizationValidity() {
         <LineChart data={chartData} margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
           <XAxis dataKey="ratio_pct" stroke="#9ca3af"
-            label={{ value: 'Perturbation [%]', position: 'bottom', offset: 5, fill: '#9ca3af', fontSize: 14 }} />
+            label={{ value: 'Perturbation [%]', position: 'bottom', offset: 5, fill: AXIS.label, fontSize: 14 }} />
           <YAxis stroke="#9ca3af" scale="log" domain={['auto', 'auto']}
-            label={{ value: 'Normalized Error [%]', angle: -90, position: 'insideLeft', fill: '#9ca3af', fontSize: 14 }} />
+            label={{ value: 'Normalized Error [%]', angle: -90, position: 'insideLeft', fill: AXIS.label, fontSize: 14 }} />
           <ReferenceLine y={tol} stroke="#ef4444" strokeDasharray="6 3" strokeWidth={1.5}
-            label={{ value: `${tol}% tol`, fill: '#ef4444', fontSize: 14, position: 'right' }} />
+            label={{ value: `${tol}% tol`, fill: 'var(--rose)', fontSize: 14, position: 'right' }} />
           <Tooltip
             contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 8 }}
             formatter={(val: any, name: any) => [`${Number(val).toFixed(4)}%`, String(name).replace('err_', 'SCR ')]}

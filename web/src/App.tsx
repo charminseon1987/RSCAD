@@ -9,6 +9,8 @@ import Stability from './pages/Stability';
 import ExperimentLog from './pages/ExperimentLog';
 import Archify from './pages/Archify';
 import ControlLoop from './pages/ControlLoop';
+import Blobs from './components/Blobs';
+import ThemeToggle from './components/ThemeToggle';
 import Landing from './pages/Landing';
 import RscadFX from './pages/RscadFX';
 import Login from './pages/Login';
@@ -156,6 +158,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--surface)' }}>
+      {/* 부록: 작업 화면은 유체 대신 정적 블롭 — 랜딩/로그인은 자체 유체를 쓴다 */}
+      <Blobs />
       {/* ── 좌측 사이드바 ── */}
       <aside className="fixed top-0 left-0 bottom-0 z-50 flex flex-col glass-nav"
         style={{ width: w, transition: 'width .18s ease', borderRight: '1px solid var(--border)' }}>
@@ -267,6 +271,12 @@ export default function App() {
           })}
         </nav>
 
+        {/* 테마 */}
+        <div className="shrink-0 flex justify-center py-2"
+          style={{ borderTop: '1px solid var(--border)' }}>
+          <ThemeToggle />
+        </div>
+
         {/* 접기 */}
         <button onClick={() => setCollapsed(v => !v)}
           className="mono-label shrink-0"
@@ -278,7 +288,8 @@ export default function App() {
         </button>
       </aside>
 
-      <main style={{ marginLeft: w, transition: 'margin-left .18s ease' }}>{pages}</main>
+      {/* 블롭이 z-index:0 고정 요소라, 본문에 스태킹을 줘야 위로 올라온다 */}
+      <main style={{ marginLeft: w, transition: 'margin-left .18s ease', position: 'relative', zIndex: 1 }}>{pages}</main>
     </div>
   );
 }

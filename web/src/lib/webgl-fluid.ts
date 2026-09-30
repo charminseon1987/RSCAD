@@ -96,12 +96,20 @@ function HSVtoRGB(h: number, s: number, v: number): { r: number; g: number; b: n
   return { r, g, b };
 }
 
+/** 색 배율 — 다크 0.07 / 라이트 0.11 (docs/DESIGN_PROMPT.md §7).
+    테마 전환 시 lib/theme.ts 가 window.__dyeScale 을 갱신한다. */
+function dyeScale(): number {
+  const v = (window as unknown as { __dyeScale?: number }).__dyeScale;
+  return typeof v === 'number' && v > 0 ? v : 0.07;
+}
+
 function generateColor(): { r: number; g: number; b: number } {
   const h = RESEARCH_HUES[Math.floor(Math.random() * RESEARCH_HUES.length)] + (Math.random() - 0.5) * 0.04;
   const c = HSVtoRGB((h + 1) % 1, 0.85, 1.0);
-  c.r *= 0.07;
-  c.g *= 0.07;
-  c.b *= 0.07;
+  const k = dyeScale();
+  c.r *= k;
+  c.g *= k;
+  c.b *= k;
   return c;
 }
 

@@ -4,60 +4,127 @@
    Mission Control Minimalist — Design System Tokens
    ═══════════════════════════════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════════════════════════════
+   Lab Scholar 디자인 토큰 — docs/DESIGN_PROMPT.md §3
+   다크가 기본. data-theme="light" 로 전환한다.
+
+   이 파일에는 두 겹의 토큰이 있다.
+     ① 키트 토큰 (--bg --ink --accent …) — 스펙 표의 값. 새 코드는 이것만 쓴다.
+     ② 레거시 별칭 (--surface --primary --outline …) — 기존 10개 화면이 쓰던 이름을
+        ①에 매핑한 것. 화면을 하나씩 고치지 않고 전역 적용하기 위한 층이다.
+        새로 쓰지 말 것.
+   ═══════════════════════════════════════════════════════════════════ */
+
 :root {
+  color-scheme: dark;
+
+  /* ── ① 키트 토큰 (Dark) ── */
+  --bg:          #070912;
+  --ink:         #F1F3FA;
+  --ink-2:       #BCC3D8;
+  --ink-3:       #8089A3;
+
+  --accent:      #9AA6FF;   /* 인디고 — 링크·포커스·주 계열 */
+  --teal:        #5ED3CF;   /* 킥커·상태점·▸ */
+  --amber:       #F1B86A;   /* ※ 표기·주의 */
+  --violet:      #B69CFF;   /* 보조 */
+  --rose:        #F2839A;   /* 경고·불안정 */
+
+  --glass:        linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.035));
+  --glass-strong: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.06));
+  --opaque:       #141827;  /* prefers-reduced-transparency 대체 */
+  --edge:         rgba(255,255,255,.22);
+  --edge-soft:    rgba(255,255,255,.08);
+  --shadow:       0 24px 60px rgba(0,0,0,.45);
+  --blur:         blur(22px) saturate(160%);
+  --on-solid:     #0B0E19;  /* 주 버튼 글자 */
+  --field:        rgba(7,9,18,.4);
+  --field-focus:  0 0 0 4px rgba(154,166,255,.2);
+  --scrim:        radial-gradient(60% 70% at 30% 40%, rgba(7,9,18,.78), transparent 70%);
+
+  --sans: "IBM Plex Sans KR", "IBM Plex Sans", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+
+  /* ── ② 레거시 별칭 → ① ── */
+  --surface:                  var(--bg);
+  --surface-dim:              var(--bg);
+  --surface-container-lowest: var(--glass);
+  --surface-container-low:    rgba(255,255,255,.045);
+  --surface-container:        rgba(255,255,255,.07);
+  --surface-container-high:   rgba(255,255,255,.10);
+  --surface-container-highest:rgba(255,255,255,.13);
+
+  --on-surface:          var(--ink);
+  --on-surface-variant:  var(--ink-2);
+  --outline:             var(--ink-3);
+  --outline-variant:     var(--edge-soft);
+  --border:              var(--edge-soft);
+
+  --primary:              var(--accent);
+  --primary-container:    rgba(154,166,255,.16);
+  --on-primary:           var(--on-solid);
+  --on-primary-container: var(--ink-2);
+  --inverse-primary:      var(--violet);
+
+  --secondary:             var(--amber);
+  --secondary-container:   rgba(241,184,106,.22);
+  --on-secondary:          var(--on-solid);
+  --on-secondary-container:var(--amber);
+
+  --tertiary:             var(--ink);
+  --tertiary-container:   rgba(255,255,255,.07);
+  --on-tertiary-container:var(--ink-3);
+
+  --error:            var(--rose);
+  --error-container:  rgba(242,131,154,.18);
+
+  --inverse-surface:     var(--ink);
+  --inverse-on-surface:  var(--bg);
+
+  --shadow-ambient: var(--shadow);
+
+  /* ── 반경 ── 스펙 §9: 24 / 30 / 999 만, 입력칸 14 */
+  --radius-sm: 0.25rem;
+  --radius:    0.875rem;   /* 14px — 입력칸 */
+  --radius-md: 0.875rem;
+  --radius-lg: 1.5rem;     /* 24px — 패널 */
+  --radius-xl: 1.875rem;   /* 30px — 로그인 카드 */
+}
+
+/* ── ① 키트 토큰 (Light) ── 레거시 별칭은 ①을 참조하므로 자동으로 따라온다 */
+:root[data-theme="light"] {
   color-scheme: light;
 
-  /* Surface */
-  --surface:                  #f7fbf3;
-  --surface-dim:              #d7dbd4;
-  --surface-container-lowest: #ffffff;
-  --surface-container-low:    #f1f5ee;
-  --surface-container:        #ebefe8;
-  --surface-container-high:   #e5e9e2;
-  --surface-container-highest:#e0e4dd;
+  --bg:          #F2F4FA;
+  --ink:         #141A2E;
+  --ink-2:       #434C66;
+  --ink-3:       #6E7690;
 
-  /* Content */
-  --on-surface:           #181d19;
-  --on-surface-variant:   #44474d;
-  --outline:              #75777e;
-  --outline-variant:      #c5c6ce;
-  --border:               #dde1da;
+  --accent:      #5566E8;
+  --teal:        #138C89;
+  --amber:       #C27513;
+  --violet:      #7B5CE0;
+  --rose:        #D6455F;
 
-  /* Primary — Ink Navy */
-  --primary:              #05152b;
-  --primary-container:    #1b2a41;
-  --on-primary:           #ffffff;
-  --on-primary-container: #8291ad;
-  --inverse-primary:      #b8c7e5;
+  --glass:        linear-gradient(135deg, rgba(255,255,255,.62), rgba(255,255,255,.34));
+  --glass-strong: linear-gradient(135deg, rgba(255,255,255,.82), rgba(255,255,255,.58));
+  --opaque:       #FFFFFF;
+  --edge:         rgba(255,255,255,.95);
+  --edge-soft:    rgba(20,26,46,.08);
+  --shadow:       0 20px 50px rgba(40,50,100,.14), 0 2px 6px rgba(40,50,100,.08);
+  --on-solid:     #FFFFFF;
+  --field:        rgba(255,255,255,.7);
+  --field-focus:  0 0 0 4px rgba(85,102,232,.18);
+  --scrim:        radial-gradient(60% 70% at 30% 40%, rgba(242,244,250,.82), transparent 70%);
 
-  /* Secondary — Solar Amber */
-  --secondary:            #815500;
-  --secondary-container:  #ffba4e;
-  --on-secondary:         #ffffff;
-  --on-secondary-container:#724a00;
-
-  /* Tertiary */
-  --tertiary:             #131614;
-  --tertiary-container:   #282a29;
-  --on-tertiary-container:#8f918f;
-
-  /* Error */
-  --error:                #ba1a1a;
-  --error-container:      #ffdad6;
-
-  /* Inverse */
-  --inverse-surface:      #2d322d;
-  --inverse-on-surface:   #eef2eb;
-
-  /* Elevation */
-  --shadow-ambient: 0 4px 12px rgba(27,42,65,0.05);
-
-  /* Radii */
-  --radius-sm: 0.25rem;
-  --radius:    0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  --surface-container-low:     rgba(20,26,46,.035);
+  --surface-container:         rgba(20,26,46,.055);
+  --surface-container-high:    rgba(20,26,46,.08);
+  --surface-container-highest: rgba(20,26,46,.11);
+  --primary-container:   rgba(85,102,232,.12);
+  --secondary-container: rgba(194,117,19,.16);
+  --error-container:     rgba(214,69,95,.14);
+  --tertiary-container:  rgba(20,26,46,.055);
 }
 
 /* ── Base ── */
@@ -153,138 +220,98 @@ body {
   border-color: var(--outline-variant);
 }
 
-/* ── Liquid Glass (light-theme) ── */
+/* ── Liquid Glass ── 스펙 §5-1
+   하드코딩된 흰색 rgba 를 토큰으로 바꿨다. 이전에는 라이트 전용 값이 박혀 있어
+   다크에서 흰 패널이 되어 버렸다. 이제 --glass / --edge-soft / --shadow 를 따른다.
+
+   림 하이라이트(::before, 145°)가 "유리 느낌"의 핵심이다 — 빼지 말 것.
+   마스크로 1px 테두리만 남긴다. .glass 요소는 반드시 position:relative. */
+.glass,
 .glass-card {
-  background: linear-gradient(
-    135deg,
-    rgba(255,255,255,0.72) 0%,
-    rgba(255,255,255,0.48) 50%,
-    rgba(255,255,255,0.60) 100%
-  );
-  backdrop-filter: blur(20px) saturate(1.3);
-  -webkit-backdrop-filter: blur(20px) saturate(1.3);
-  border: 1px solid rgba(255,255,255,0.65);
-  border-radius: var(--radius-lg);
-  box-shadow:
-    0 8px 32px rgba(5,21,43,0.06),
-    0 1px 0 rgba(255,255,255,0.8) inset;
-  padding: 26px;
   position: relative;
-  overflow: hidden;
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--edge-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow), 0 1px 0 var(--edge-soft) inset;
 }
+.glass-card { padding: 26px; }
+
+.glass::before,
 .glass-card::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(
-    105deg,
-    transparent 38%,
-    rgba(255,255,255,0.35) 44%,
-    rgba(255,255,255,0.55) 50%,
-    rgba(255,255,255,0.35) 56%,
-    transparent 62%
-  );
-  background-size: 250% 100%;
-  opacity: 0;
-  transition: opacity 0.4s ease;
+  padding: 1px;
+  background: linear-gradient(145deg, var(--edge), transparent 42%, transparent 58%, var(--edge-soft));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
   pointer-events: none;
-}
-.glass-card:hover::before {
-  opacity: 1;
-  animation: glass-shimmer 1.8s ease-out forwards;
 }
 
 .glass-card-hover {
-  transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+  transition: box-shadow .3s ease, border-color .3s ease, transform .3s ease, background .3s ease;
 }
 .glass-card-hover:hover {
   transform: translateY(-2px);
-  box-shadow:
-    0 12px 40px rgba(5,21,43,0.08),
-    0 1px 0 rgba(255,255,255,0.9) inset;
-  border-color: rgba(255,255,255,0.8);
+  background: var(--glass-strong);
+  border-color: var(--edge);
 }
 
-/* Nav glass */
 .glass-nav {
-  background: linear-gradient(
-    180deg,
-    rgba(247,251,243,0.80) 0%,
-    rgba(247,251,243,0.65) 100%
-  );
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  border-bottom: 1px solid rgba(221,225,218,0.6);
-  box-shadow: 0 1px 12px rgba(5,21,43,0.04);
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-bottom: 1px solid var(--edge-soft);
 }
 
-/* Nav pill for active link */
 .glass-nav-pill {
-  background: rgba(255,255,255,0.65);
+  background: var(--glass-strong);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(221,225,218,0.5);
-  box-shadow: 0 1px 4px rgba(5,21,43,0.04);
+  border: 1px solid var(--edge-soft);
 }
 
-/* Status bar glass */
 .glass-status {
-  background: linear-gradient(
-    135deg,
-    rgba(255,255,255,0.55) 0%,
-    rgba(255,255,255,0.40) 100%
-  );
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  border: 1px solid rgba(221,225,218,0.5);
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--edge-soft);
   border-radius: var(--radius-lg);
-  box-shadow: 0 2px 12px rgba(5,21,43,0.03);
 }
 
-/* Config panel glass */
 .glass-panel {
-  background: linear-gradient(
-    180deg,
-    rgba(255,255,255,0.88) 0%,
-    rgba(247,251,243,0.92) 100%
-  );
-  backdrop-filter: blur(24px) saturate(1.5);
-  -webkit-backdrop-filter: blur(24px) saturate(1.5);
-  border-left: 1px solid rgba(255,255,255,0.7);
-  box-shadow:
-    -8px 0 40px rgba(5,21,43,0.08),
-    0 1px 0 rgba(255,255,255,0.6) inset;
+  background: var(--glass-strong);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-left: 1px solid var(--edge-soft);
+  box-shadow: var(--shadow);
 }
 
-/* Glass station (pipeline) */
 .glass-station {
-  background: linear-gradient(
-    135deg,
-    rgba(255,255,255,0.70) 0%,
-    rgba(255,255,255,0.50) 100%
-  );
+  background: var(--glass);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 2px solid rgba(221,225,218,0.6);
+  border: 2px solid var(--edge-soft);
   border-radius: var(--radius-lg);
-  box-shadow: 0 2px 8px rgba(5,21,43,0.04);
   width: 48px;
   height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: border-color .3s ease, box-shadow .3s ease;
 }
 
-/* Badge glass */
 .glass-badge {
-  background: rgba(255,255,255,0.50);
+  background: var(--glass);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(221,225,218,0.5);
+  border: 1px solid var(--edge-soft);
   border-radius: 9999px;
-  box-shadow: 0 1px 6px rgba(5,21,43,0.03);
 }
 
 /* ── Button ── */
@@ -1030,4 +1057,191 @@ th, td { padding-top: 7px; padding-bottom: 7px; }
   background: rgba(154, 166, 255, 0.15);
   border-color: rgba(154, 166, 255, 0.4);
   transform: translateX(4px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Lab Scholar 컴포넌트 — docs/DESIGN_PROMPT.md §4·§5·§6·§8
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── §4 타이포 ── 한글은 단어 중간에서 끊지 않는다 */
+body { word-break: keep-all; }
+
+.ls-h1 {
+  font-family: var(--sans);
+  font-size: clamp(32px, 4vw, 54px);
+  letter-spacing: -.045em;
+  line-height: 1.04;
+  font-weight: 700;
+  margin: 0;
+}
+.ls-h2 {
+  font-family: var(--sans);
+  font-size: clamp(28px, 3.6vw, 42px);
+  letter-spacing: -.035em;
+  line-height: 1.1;
+  font-weight: 600;
+  margin: 0;
+}
+/* 그라데이션 제목 */
+.ls-grad {
+  background: linear-gradient(95deg, var(--accent), var(--teal) 55%, var(--amber));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* 킥커 — Mono 대문자 */
+.kicker {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+/* ── §5-3 버튼 ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--edge-soft);
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease;
+}
+.btn:hover { transform: translateY(-1px); background: var(--glass-strong); }
+.btn:active { transform: scale(.98); }
+.btn.solid { background: var(--ink); color: var(--on-solid); border-color: transparent; }
+.btn.solid:hover { background: var(--ink); }
+.btn svg { flex: none; }
+/* 아이콘 전용 버튼 — 복합 선택자로 padding 0 을 줘야 아이콘 폭이 살아난다 (스펙 §5-3 경고) */
+.btn.icon, .btn.theme {
+  padding: 0;
+  width: 38px;
+  height: 38px;
+  justify-content: center;
+  border-radius: 999px;
+}
+
+/* ── §5-4 태그 ── 빛나는 틸 점 */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--edge-soft);
+  background: var(--glass);
+  color: var(--ink-2);
+}
+.tag::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 999px;
+  background: var(--teal);
+  box-shadow: 0 0 8px var(--teal);
+  flex: none;
+}
+
+/* ── §5-5 입력칸 ── */
+.inp {
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 15px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--edge-soft);
+  background: var(--field);
+  color: var(--ink);
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.inp::placeholder { color: var(--ink-3); }
+.inp:focus { border-color: var(--accent); box-shadow: var(--field-focus); }
+.inp[aria-invalid="true"] { border-color: var(--rose); }
+
+/* ── §5-6 기능 카드 · 표기 체계 ──
+   ▸(틸) = 논문 사실 · ※(앰버) = 연구자 해석 · [n] 출처(인디고 Mono) */
+.ex { font-size: 14.5px; line-height: 1.7; }
+.ex .fact::before   { content: '▸ '; color: var(--teal); }
+.ex .interp::before { content: '※ '; color: var(--amber); }
+.ex .src { font-family: var(--mono); color: var(--accent); }
+
+/* ── §5-7 링크 카드 ── */
+.link-card { transition: transform .22s ease, background .22s ease; }
+.link-card:hover { transform: translateY(-3px); background: var(--glass-strong); }
+
+/* ── §6 레이아웃 ── */
+.ls-container { width: min(1120px, 100% - 40px); margin-inline: auto; }
+/* 히어로 문구 뒤 scrim — 유체 위에서도 글자가 읽히게 */
+.ls-scrim { position: relative; }
+.ls-scrim::before {
+  content: '';
+  position: absolute;
+  inset: -12% -8%;
+  background: var(--scrim);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ── §부록 정적 블롭 ── 작업 화면은 유체 대신 이것을 쓴다 (집중을 해치지 않게) */
+.ls-blobs {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.ls-blobs i {
+  position: absolute;
+  display: block;
+  width: 46vmax; height: 46vmax;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: .30;
+  animation: ls-drift 40s ease-in-out infinite alternate;
+}
+.ls-blobs i:nth-child(1) { background: var(--accent); top: -12%; left: -8%; }
+.ls-blobs i:nth-child(2) { background: var(--teal);   bottom: -16%; right: -10%; animation-delay: -13s; }
+.ls-blobs i:nth-child(3) { background: var(--amber);  top: 34%; right: 22%; opacity: .18; animation-delay: -26s; }
+@keyframes ls-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(4%, -5%, 0) scale(1.12); }
+}
+
+/* ── §8 접근성 · 성능 ── */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-blobs i { animation: none; }
+  .glass-card-hover:hover, .btn:hover, .link-card:hover { transform: none; }
+  * { transition-duration: .01ms !important; }
+}
+
+/* 투명도를 줄이라고 하면 유리를 불투명으로, 블러 제거 */
+@media (prefers-reduced-transparency: reduce) {
+  .glass, .glass-card, .glass-nav, .glass-nav-pill, .glass-status,
+  .glass-panel, .glass-station, .glass-badge, .btn, .tag {
+    background: var(--opaque) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .glass::before, .glass-card::before { display: none; }
+  .ls-blobs { display: none; }
+}
+
+/* backdrop-filter 미지원 → 더 진한 유리로 (스펙 §8) */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass, .glass-card, .glass-nav, .glass-status, .glass-panel, .btn, .tag {
+    background: var(--glass-strong);
+  }
 }

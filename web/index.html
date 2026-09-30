@@ -4,8 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GMF Labs</title>
+  <!-- 테마 깜빡임 방지 — 렌더 전에 data-theme 을 확정한다 (docs/DESIGN_PROMPT.md §2).
+       다크가 기본이고, 저장된 선택이 없으면 prefers-color-scheme 을 따른다.
+       Vite 라 Next.js 의 app/layout.tsx 대신 여기에 둔다. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('ls-theme');
+        if (t !== 'light' && t !== 'dark') {
+          t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      } catch (e) { /* 프라이빗 모드 등 — 다크 기본으로 진행 */ }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 </head>
 <body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body>
 </html>
