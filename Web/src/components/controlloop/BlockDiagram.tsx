@@ -46,7 +46,7 @@ const BlockDiagram = forwardRef<DiagramHandle, Props>(function BlockDiagram({ cl
 
   /* 배선별 런타임 상태 — 길이는 마운트 후 실제 path 에서 재야 한다 */
   const rt = useRef<{ len: number; phase: number; dots: SVGCircleElement[] }[]>([]);
-  const colors = useRef({ pos: '#7C8CF8', neg: '#F2A65A' });
+  const colors = useRef({ pos: '#5563D6', neg: '#D9822B' });   // 라이트 기본값 fallback
 
   const readColors = () => {
     const el = svgRef.current;
