@@ -5,6 +5,7 @@ __pycache__/
 agent/chroma/
 *.bak.*
 firebase-key.json
+Server/.flask_secret
 node_modules/
 dist/
 debug.log

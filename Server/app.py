@@ -35,6 +35,14 @@ from flask_cors import CORS
 import hashlib
 import secrets
 
+# Windows 콘솔 기본 인코딩(cp949)은 ✅/⚠️ 를 찍지 못해 print 에서 UnicodeEncodeError 로
+# 기동이 죽는다. PYTHONIOENCODING 을 매번 붙이지 않아도 되게 여기서 UTF-8 로 맞춘다.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding='utf-8')       # type: ignore[union-attr]
+    except (AttributeError, ValueError):            # 리다이렉트된 스트림 등
+        pass
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'Simulation'))
 
@@ -51,18 +59,48 @@ RESULTS_ROOT = ROOT / 'results'
 WEB_DIR      = ROOT / 'Web'
 
 app = Flask(__name__, static_folder=str(WEB_DIR), static_url_path='')
-app.secret_key = secrets.token_hex(32)
+
+
+def _secret_key() -> str:
+    """세션 서명 키. 재시작해도 같아야 로그인이 유지된다.
+
+    매번 secrets.token_hex() 로 새로 만들면 서버를 올릴 때마다 모든 세션이 풀린다.
+    배포에서는 FLASK_SECRET_KEY 를 주고, 로컬에서는 한 번 만들어 파일에 둔다
+    (Server/.flask_secret — .gitignore 대상).
+    """
+    env = os.environ.get('FLASK_SECRET_KEY')
+    if env:
+        return env
+    f = ROOT / 'Server' / '.flask_secret'
+    if f.exists():
+        got = f.read_text(encoding='utf-8').strip()
+        if got:
+            return got
+    made = secrets.token_hex(32)
+    try:
+        f.write_text(made, encoding='utf-8')
+    except OSError as e:                             # 읽기 전용 파일시스템 등
+        print(f'  ⚠️  secret key 를 저장하지 못했습니다 ({e}) — 재시작 시 세션이 풀립니다')
+    return made
+
+
+app.secret_key = _secret_key()
 CORS(app, supports_credentials=True)
 app.register_blueprint(scholar_bp)      # /api/scholar/{stages,search,inbox,original,note,link,cite,draft,settings}
 app.register_blueprint(nblm_bp)         # /api/scholar/nblm/{status,notebook,source,generate,studio,query,to-note}
 
-# ── Firebase Admin SDK (reloader 자식에서만 초기화) ──
+# ── Firebase Admin SDK ──
+# 예전에는 WERKZEUG_RUN_MAIN == 'true' 로 걸러 리로더 자식에서만 초기화했다. 그러면
+# 리로더를 끄고 띄울 때(use_reloader=False, gunicorn 등) 아예 초기화되지 않는다.
+# 중복 초기화만 막으면 되므로 앱 등록 여부로 판단한다.
 _fb_key = ROOT / 'Server' / 'firebase-key.json'
-if _fb_key.exists() and os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
-    _cred = credentials.Certificate(str(_fb_key))
-    firebase_admin.initialize_app(_cred, {
-        'databaseURL': 'https://gfm-labs-default-rtdb.firebaseio.com'
-    })
+if _fb_key.exists():
+    try:
+        firebase_admin.get_app()                     # 이미 있으면 그대로 둔다
+    except ValueError:
+        firebase_admin.initialize_app(
+            credentials.Certificate(str(_fb_key)),
+            {'databaseURL': 'https://gfm-labs-default-rtdb.firebaseio.com'})
 
 
 # ═══════════════════════════════════════════════
@@ -1554,6 +1592,8 @@ if __name__ == '__main__':
     print(f"  model: {M.N}-state")
     print(f"  run:   {STATE['run_dir'].name if STATE['run_dir'] else 'none'}")
     print(f"  SCR:   {sorted(STATE['A'], reverse=True)}")
-    print("  http://localhost:5001")
+    print("  http://localhost:5000")
     print("=" * 62)
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    # 5000 이 이 프로젝트의 기준 포트다 — Web/vite.config.ts 프록시 5곳, 아키텍처
+    # 다이어그램 라벨(Flask :5000), GMF_Labs_설계.md 가 모두 5000 을 가리킨다.
+    app.run(host='0.0.0.0', port=5000, debug=True)
