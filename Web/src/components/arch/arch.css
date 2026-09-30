@@ -1,0 +1,107 @@
+/* archify 다이어그램 React 렌더 — 앱 전역 토큰(--surface/--primary/…)을 그대로 쓴다.
+   ControlLoop 와 달리 여기는 앱 안에 자연스럽게 얹히는 화면이므로 별도 팔레트를 두지 않는다. */
+
+.arch { display: flex; flex-direction: column; gap: 14px; }
+
+.arch > svg {
+  display: block; width: 100%; height: auto;
+  background: var(--surface-container-lowest);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 1rem);
+}
+
+/* ── 뷰 토글 ── */
+.arch-views { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.arch-views button {
+  font: inherit; font-size: 13.5px;
+  border: 1px solid var(--border); background: var(--surface-container-low);
+  color: var(--on-surface); border-radius: 999px; padding: 6px 13px; cursor: pointer;
+}
+.arch-views button:hover { border-color: var(--outline); }
+.arch-views button.arch-on {
+  background: var(--primary); border-color: var(--primary); color: var(--on-primary); font-weight: 600;
+}
+.arch-note { font-size: 13px; color: var(--outline); line-height: 1.6; }
+
+/* ── 흐리기 ── */
+.arch-dim { opacity: 0.16; }
+.arch-node, .arch-edge, .arch-region { transition: opacity .16s ease; }
+
+/* ── 경계(region) ── */
+.arch-region rect {
+  fill: none; stroke: var(--outline-variant);
+  stroke-width: 1; stroke-dasharray: 6 5;
+}
+.arch-region text {
+  font: 600 12px system-ui, sans-serif; fill: var(--outline);
+}
+
+/* ── 노드 ── */
+.arch-node { cursor: default; outline: none; }
+.arch-node rect { stroke-width: 1.4; }
+.arch-node:focus-visible rect { stroke-width: 2.4; }
+.arch-label { font: 600 14px system-ui, sans-serif; fill: var(--on-surface); }
+.arch-sub { font: 11.5px ui-monospace, Consolas, monospace; fill: var(--on-surface-variant); }
+
+.arch-n-frontend rect { fill: #e8eefc; stroke: #5563d6; }
+.arch-n-backend  rect { fill: #e6f4ee; stroke: #1f9b67; }
+.arch-n-database rect { fill: #fdf0e2; stroke: #d9822b; }
+.arch-n-external rect { fill: var(--surface-container-high); stroke: var(--outline); }
+
+/* 태그 배지 — 미구축·미확정 같은 상태 표시 */
+.arch-tagbox { fill: var(--surface-container-highest); stroke: var(--outline-variant); stroke-width: 1; }
+.arch-tag { font: 600 10.5px system-ui, sans-serif; fill: var(--on-surface-variant); }
+
+/* ── 간선 ── */
+.arch-edge path { fill: none; }
+.arch-edge text {
+  font: 500 11px ui-monospace, Consolas, monospace;
+  fill: var(--on-surface-variant); paint-order: stroke;
+  stroke: var(--surface-container-lowest); stroke-width: 3.5px; stroke-linejoin: round;
+}
+.arch-e-default  path { stroke: var(--outline); stroke-width: 1.5; }
+.arch-e-emphasis path { stroke: var(--primary); stroke-width: 2; }
+.arch-e-dashed   path { stroke: var(--outline-variant); stroke-width: 1.5; stroke-dasharray: 6 4; }
+
+.arch-ah-default  { fill: var(--outline); }
+.arch-ah-emphasis { fill: var(--primary); }
+.arch-ah-dashed   { fill: var(--outline-variant); }
+
+/* ── 카드 ── */
+.arch-cards {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;
+}
+.arch-card {
+  background: var(--surface-container-low); border: 1px solid var(--border);
+  border-radius: var(--radius-md, .75rem); padding: 14px 16px;
+}
+.arch-card-h {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 700; color: var(--on-surface); margin-bottom: 6px;
+}
+.arch-card ul { margin: 0; padding-left: 18px; list-style: disc; }
+.arch-card li { font-size: 13px; line-height: 1.75; color: var(--on-surface-variant); }
+.arch-dot { width: 9px; height: 9px; border-radius: 999px; flex-shrink: 0; }
+.arch-dot-cyan { background: #2596be; }
+.arch-dot-emerald { background: #1f9b67; }
+.arch-dot-rose { background: #d83a52; }
+
+/* ── 범례 ── */
+.arch-legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.arch-leg { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--outline); }
+.arch-swatch {
+  width: 13px; height: 10px; border-radius: 3px; display: inline-block;
+  border: 1.4px solid var(--outline);
+}
+.arch-swatch.arch-n-frontend { background: #e8eefc; border-color: #5563d6; }
+.arch-swatch.arch-n-backend { background: #e6f4ee; border-color: #1f9b67; }
+.arch-swatch.arch-n-database { background: #fdf0e2; border-color: #d9822b; }
+.arch-swatch.arch-n-external { background: var(--surface-container-high); border-color: var(--outline); }
+.arch-swatch-dashed {
+  background: transparent; border: 0; border-top: 1.5px dashed var(--outline-variant);
+  height: 0; border-radius: 0; width: 18px;
+}
+
+@media (max-width: 900px) {
+  .arch-cards { grid-template-columns: 1fr; }
+}

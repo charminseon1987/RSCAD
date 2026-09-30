@@ -1,13 +1,21 @@
 /* Archify — 다이어그램 갤러리 · 유형 참조 · 프롬프트 빌더.
    생성은 Claude Code 스킬이 하지만, 이미 만든 다이어그램은 여기서 바로 본다.
-   서버가 docs/ 를 훑어(/api/diagrams) 렌더된 HTML 을 /docs/<path> 로 내준다. */
-import { useEffect, useState } from 'react';
-import { fetchJSON } from '../lib/api';
 
-interface Diagram {
-  name: string; type: string; title: string;
-  spec: string; html: string | null; views: string[]; nodes: number; mtime: number;
-}
+   iframe 을 쓰지 않는다. archify 가 렌더한 HTML 대신, spec 과 기하 정보를 합친
+   JSON(Web/src/data/arch/*.json)을 ArchDiagram 이 React SVG 로 그린다.
+   그 JSON 은 tools/extract_arch_geometry.py 가 만든다 — 다이어그램을 새로 만들거나
+   spec 을 고쳤으면 그 스크립트를 다시 돌리고 아래 REGISTRY 에 한 줄 추가하면 된다. */
+import { useState } from 'react';
+import ArchDiagram, { type ArchSpec } from '../components/arch/ArchDiagram';
+import webIaSpec from '../data/arch/gmf-web-ia.json';
+import rscadSpec from '../data/arch/rscad-runtime.json';
+
+/* GFM 제어루프는 여기서 빼 두었다 — /lab/control-loop 에 실시간 React 화면이 있고,
+   정적 다이어그램으로 중복시키면 어느 쪽이 최신인지 알 수 없게 된다. */
+const REGISTRY: { key: string; type: string; spec: ArchSpec }[] = [
+  { key: 'gmf-web-ia', type: 'architecture', spec: webIaSpec as unknown as ArchSpec },
+  { key: 'rscad-runtime', type: 'architecture', spec: rscadSpec as unknown as ArchSpec },
+];
 
 const TYPES = [
   { key: 'architecture', ko: '아키텍처', en: 'Architecture', target: '컴포넌트, 서비스, 저장소, 경계', fields: ['범위', '핵심 컴포넌트', '주 경로'] },
@@ -18,25 +26,13 @@ const TYPES = [
 ] as const;
 
 export default function Archify() {
-  const [diagrams, setDiagrams] = useState<Diagram[]>([]);
-  const [open, setOpen] = useState<Diagram | null>(null);
-  const [err, setErr] = useState('');
+  const [openKey, setOpenKey] = useState(REGISTRY[0]?.key ?? '');
+  const open = REGISTRY.find(d => d.key === openKey) ?? REGISTRY[0] ?? null;
 
   const [sel, setSel] = useState<string>('architecture');
   const [vals, setVals] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState(false);
   const [builderOpen, setBuilderOpen] = useState(false);
-
-  useEffect(() => {
-    fetchJSON('/diagrams')
-      .then(d => {
-        const list: Diagram[] = d.diagrams || [];
-        setDiagrams(list);
-        const first = list.find(x => x.html);
-        if (first) setOpen(first);
-      })
-      .catch(() => setErr('다이어그램 목록을 불러오지 못했습니다 — Flask 가 떠 있는지 확인하세요.'));
-  }, []);
 
   const t = TYPES.find(x => x.key === sel)!;
   const prompt = [
@@ -61,16 +57,10 @@ export default function Archify() {
         <div>
           <h1 className="text-display" style={{ color: 'var(--primary)', fontSize: 28 }}>Archify</h1>
           <p className="mono-clock mt-1" style={{ color: 'var(--outline)', fontSize: 17 }}>
-            다이어그램 {diagrams.length}건 {open && `· 지금 보는 것: ${open.title}`}
+            다이어그램 {REGISTRY.length}건 {open && `· 지금 보는 것: ${open.spec.title}`}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {open?.html && (
-            <a href={`/docs/${open.html}`} target="_blank" rel="noreferrer"
-              className="mc-btn-secondary mono-label" style={{ fontSize: 15, padding: '8px 14px' }}>
-              새 탭에서 크게 보기 ↗
-            </a>
-          )}
           <button onClick={() => setBuilderOpen(v => !v)}
             className="mc-btn-secondary mono-label" style={{ fontSize: 15, padding: '8px 14px' }}>
             {builderOpen ? '빌더 닫기' : '새 다이어그램 만들기'}
@@ -78,46 +68,34 @@ export default function Archify() {
         </div>
       </div>
 
-      {err && <p className="mono-clock" style={{ color: 'var(--error)', fontSize: 17 }}>{err}</p>}
-
       {/* ── 갤러리 탭 ── */}
-      {diagrams.length > 0 && (
+      {REGISTRY.length > 1 && (
         <div className="flex flex-wrap gap-2">
-          {diagrams.map(d => (
-            <button key={d.spec} onClick={() => setOpen(d)}
+          {REGISTRY.map(d => (
+            <button key={d.key} onClick={() => setOpenKey(d.key)}
               className="glass-card glass-card-hover text-left" style={{
                 padding: '10px 14px',
-                border: open?.spec === d.spec ? '2px solid var(--primary)' : '1px solid var(--border)',
+                border: open?.key === d.key ? '2px solid var(--primary)' : '1px solid var(--border)',
               }}>
-              <div className="mono-label" style={{ fontSize: 16, color: open?.spec === d.spec ? 'var(--primary)' : 'var(--on-surface)' }}>
-                {d.title}
+              <div className="mono-label" style={{ fontSize: 16, color: open?.key === d.key ? 'var(--primary)' : 'var(--on-surface)' }}>
+                {d.spec.title}
               </div>
               <div className="mono-clock mt-0.5" style={{ fontSize: 15, color: 'var(--outline)' }}>
-                {d.type} · 노드 {d.nodes}{d.views.length ? ` · 뷰 ${d.views.length}` : ''}
-                {!d.html && ' · HTML 없음'}
+                {d.type} · 노드 {d.spec.components.length}
+                {d.spec.views.length ? ` · 뷰 ${d.spec.views.length}` : ''}
+                {' · 간선 '}{d.spec.connections.length}
               </div>
             </button>
           ))}
         </div>
       )}
 
-      {/* ── 다이어그램 본체 — 실제로 띄운다 ── */}
-      <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
-        {open?.html ? (
-          <iframe src={`/docs/${open.html}`} title={open.title}
-            style={{ width: '100%', height: 760, border: 'none', display: 'block', background: 'var(--surface)' }} />
-        ) : (
-          <p className="mono-clock" style={{ padding: 24, color: 'var(--outline)', fontSize: 17 }}>
-            {diagrams.length
-              ? '이 스펙에는 렌더된 HTML 이 없습니다. archify deliver 로 만들어 주세요.'
-              : '아직 다이어그램이 없습니다. 아래 빌더로 프롬프트를 만들어 Claude Code 에서 생성하세요.'}
-          </p>
-        )}
-      </div>
-
-      {open && open.views.length > 0 && (
-        <p className="mono-clock" style={{ color: 'var(--outline)', fontSize: 15 }}>
-          이 다이어그램의 뷰: {open.views.join(' · ')} — 위 화면 안에서 전환할 수 있습니다.
+      {/* ── 다이어그램 본체 — React SVG ── */}
+      {open ? (
+        <ArchDiagram key={open.key} spec={open.spec} />
+      ) : (
+        <p className="mono-clock" style={{ color: 'var(--outline)', fontSize: 17 }}>
+          아직 다이어그램이 없습니다. 아래 빌더로 프롬프트를 만들어 Claude Code 에서 생성하세요.
         </p>
       )}
 
@@ -170,7 +148,8 @@ export default function Archify() {
             </div>
 
             <p className="mono-clock mt-3" style={{ fontSize: 15, color: 'var(--outline)', lineHeight: 1.8 }}>
-              ① 복사 → ② Claude Code 에 붙여넣어 archify 호출 → ③ docs/ 에 저장되면 새로고침.
+              ① 복사 → ② Claude Code 에 붙여넣어 archify 호출 → ③ docs/ 에 저장 →
+              ④ <code>python tools/extract_arch_geometry.py</code> → ⑤ Archify.tsx 의 REGISTRY 에 한 줄 추가.
               <br />
               <span style={{ color: 'var(--error)' }}>이 화면은 다이어그램을 만들지 않습니다 — 생성 경로가 서버에 없습니다.</span>
             </p>
