@@ -4,6 +4,7 @@ import { NavLink, Route, Routes, Navigate, useLocation, useNavigate } from 'reac
 import Papers from './pages/Papers';
 import Knowledge from './pages/Knowledge';
 import MyPaper from './pages/MyPaper';
+import Notebook from './pages/Notebook';
 import ExperimentLog from './pages/ExperimentLog';
 import Archify from './pages/Archify';
 import Lab from './pages/Lab';
@@ -31,6 +32,7 @@ const NAV: (Leaf | Group)[] = [
           { to: '/research/scholar/library', label: '라이브러리' },
         ],
       },
+      { to: '/research/notebook', label: '노트북' },
       { to: '/research/knowledge', label: '지식화' },
       { to: '/research/my-paper', label: '내논문' },
     ],
@@ -116,6 +118,9 @@ export default function App() {
       <Route path="/research/scholar" element={<Navigate to="/research/scholar/flow" replace />} />
       <Route path="/research/scholar/search" element={<Navigate to="/research/scholar/flow" replace />} />
       <Route path="/research/papers" element={<Navigate to="/research/scholar/flow" replace />} />
+      <Route path="/research/notebook" element={<Notebook />} />
+      {/* NotebookLM 식 이름으로도 들어올 수 있게 */}
+      <Route path="/research/notebooklm" element={<Navigate to="/research/notebook" replace />} />
       <Route path="/research/knowledge" element={<Knowledge />} />
       <Route path="/research/my-paper" element={<MyPaper />} />
       {/* 실험 세 화면은 Lab 의 탭이다 — 경로를 유지해 북마크·딥링크가 살아 있다 */}
