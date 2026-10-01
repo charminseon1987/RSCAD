@@ -56,7 +56,10 @@ def main():
     col.add(ids=[r['id'] for r in rows],
             embeddings=[v.tolist() for v in vecs],
             documents=[r['text'] for r in rows],
-            metadatas=[{'doc': r['doc'], 'title': r['title'] or ''} for r in rows])
+            # page 는 인용이 '몇 쪽'을 가리키게 하는 값이다. Chroma 메타데이터는
+            # None 을 받지 않으므로 모르면 0 으로 두고, 읽는 쪽이 0 을 '모름'으로 본다.
+            metadatas=[{'doc': r['doc'], 'title': r['title'] or '',
+                        'page': r.get('page') or 0} for r in rows])
 
     print(f'  💾 {INDEX_DIR} / {name}  ({col.count()}개)')
 

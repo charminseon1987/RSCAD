@@ -12,6 +12,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { apiUrl, fetchJSON, postJSON } from '../lib/api';
 import PdfReader, { type Annot } from '../components/PdfReader';
+import AskPanel from '../components/AskPanel';
 
 /* ── 타입 ── */
 export interface Paper {
@@ -1312,13 +1313,22 @@ export default function ScholarFlow() {
                     )}
                   </div>
 
-                  {/* ── NotebookLM — 읽기 보조 ── */}
+                  {/* ── 근거 Q&A — 내 색인으로 답한다 ── */}
+                  <AskPanel
+                    docId={(attachOf(active)?.path || '').split('/').pop()?.replace(/\.pdf$/i, '') || ''}
+                    citeKey={active.key}
+                    noteReady={!!active.note_path}
+                    onJump={(_doc, page) => { setStep(4); setPdfPage(page); }} />
+
+                  {/* ── NotebookLM — 오디오 개요 전용 ── */}
                   <div style={{ marginTop: 22, paddingTop: 16, borderTop: '1px dashed var(--s-line)' }}>
                     <div className="flex items-center justify-between gap-3 flex-wrap">
                       <div>
-                        <div style={{ fontSize: 15.5, fontWeight: 700 }}>NotebookLM — 인포그래픽 · 마인드맵 · 오디오 · 리포트</div>
+                        <div style={{ fontSize: 15.5, fontWeight: 700 }}>NotebookLM — 오디오 개요 (바깥 서비스)</div>
                         <p style={{ fontSize: 14, color: 'var(--ink-2)', marginTop: 3, lineHeight: 1.8 }}>
-                          논문 하나에 노트북 하나를 만들고, 링크·서지·초록·발췌(있으면 저장된 PDF 본문)를 소스로 넣습니다.
+                          <strong>글로 묻는 것은 위 ‘근거 Q&amp;A’ 로 하세요</strong> — 색인도 모델도 이 기기 안에 있습니다.
+                          여기는 그걸로 못 만드는 것, 즉 <strong>음성 합성이 필요한 오디오 개요</strong> 때문에 남겨 둡니다.
+                          인포그래픽·마인드맵·리포트도 여기서 만들 수 있지만, 원문이 구글 서버로 올라갑니다.
                           <br />여기서 나오는 것은 <strong>전부 AI 생성물</strong>이라 노트에도 ※ 로만 적힙니다 — 인용은 원문을 본 뒤에.
                         </p>
                       </div>

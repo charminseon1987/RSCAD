@@ -45,16 +45,77 @@ SECTION_RE = re.compile(
     r'|(?:ABSTRACT|REFERENCES|APPENDIX|ACKNOWLEDGMENT)'
     r')\s*$', re.M)
 
+WS = re.compile(r'\s+')
+
 
 def read_pdf(path):
-    """페이지를 이어 붙이되, 줄바꿈으로 끊긴 단어를 되살린다."""
+    """페이지를 이어 붙이되, 줄바꿈으로 끊긴 단어를 되살린다.
+
+    쪽 경계를 함께 돌려준다. 인용이 '몇 쪽'을 가리켜야 리더에서 그 자리를
+    열 수 있는데, 한 번 이어 붙이고 나면 되찾을 수 없기 때문이다.
+    정리(하이픈·빈 줄)를 쪽마다 하므로 쪽을 걸친 하이픈 한 건은 복원되지
+    않는다 — 쪽 번호를 얻는 값에 비하면 작은 대가다.
+    """
     doc = fitz.open(path)
-    pages = [p.get_text('text') for p in doc]
+    parts, bounds, pos = [], [], 0
+    last = doc.page_count
+    for i, page in enumerate(doc, 1):
+        t = page.get_text('text')
+        t = re.sub(r'-\n(?=[a-z])', '', t)    # 하이픈 줄바꿈 복원
+        t = re.sub(r'\n{3,}', '\n\n', t)
+        parts.append(t)
+        pos += len(t) + (1 if i < last else 0)   # 이음매 '\n' 한 글자
+        bounds.append((i, pos))
     doc.close()
-    t = '\n'.join(pages)
-    t = re.sub(r'-\n(?=[a-z])', '', t)        # 하이픈 줄바꿈 복원
-    t = re.sub(r'\n{3,}', '\n\n', t)
-    return t
+    return '\n'.join(parts), bounds
+
+
+def page_of(bounds, offset):
+    """본문 위치 → 쪽 번호. 모르면 None 으로 둔다 — 지어내지 않는다."""
+    if offset is None or not bounds:
+        return None
+    for n, end in bounds:
+        if offset < end:
+            return n
+    return bounds[-1][0]
+
+
+def norm_map(text):
+    """공백을 하나로 줄인 사본과 '사본 위치 → 원문 위치' 대응표.
+
+    청크는 공백이 정리된 상태라 원문에서 그대로 찾을 수 없다. 사본에서 찾은
+    뒤 원문 위치로 되돌려야 쪽 번호를 알아낼 수 있다.
+    """
+    buf, idx, prev_ws = [], [], True
+    for i, ch in enumerate(text):
+        if ch.isspace():
+            if prev_ws:
+                continue
+            buf.append(' ')
+            idx.append(i)
+            prev_ws = True
+        else:
+            buf.append(ch)
+            idx.append(i)
+            prev_ws = False
+    return ''.join(buf), idx
+
+
+def locate(norm, idx, chunk, cursor):
+    """청크 앞머리를 사본에서 찾아 원문 위치를 돌려준다.
+
+    청크는 문서 순서대로 나오므로 cursor 부터 찾는다. 같은 문장이 여러 번
+    나오는 논문(표 머리글·반복 수식)에서 엉뚱한 쪽을 집는 것을 막는다.
+    """
+    key = WS.sub(' ', chunk[:60]).strip()
+    if not key:
+        return None, cursor
+    j = norm.find(key, cursor)
+    if j < 0:
+        j = norm.find(key)          # 순서가 어긋났으면 처음부터 다시
+    if j < 0:
+        return None, cursor
+    return idx[j], j + len(key)
 
 
 def split_section(text):
@@ -155,7 +216,9 @@ def main():
     with out_path.open('w', encoding='utf-8') as f:
         for p in pdfs:
             doc_id = p.stem
-            text = read_pdf(p)
+            text, bounds = read_pdf(p)
+            norm, idx = norm_map(text)
+            cursor = 0
 
             if args.strategy == 'section':
                 secs = split_section(text)
@@ -181,10 +244,12 @@ def main():
             n_drop += len(parts) - len(kept)
 
             for i, c in enumerate(kept):
+                off, cursor = locate(norm, idx, c['text'], cursor)
                 f.write(json.dumps({
                     'id': f'{doc_id}::{i}',
                     'doc': doc_id,
                     'title': c['title'],
+                    'page': page_of(bounds, off),   # 못 찾으면 null — 지어내지 않는다
                     'text': c['text'],
                     'n_char': len(c['text']),
                 }, ensure_ascii=False) + '\n')
@@ -205,6 +270,10 @@ def main():
         print(f'  제외      {args.min_chunk}자 미만 파편 {n_drop}개')
     if over:
         print(f'  ⚠ {args.max_chunk}자 초과 청크 {over}개 — 임베딩에서 잘릴 수 있다.')
+    no_page = sum(1 for l in out_path.read_text(encoding='utf-8').splitlines()
+                  if json.loads(l).get('page') is None)
+    if no_page:
+        print(f'  ⚠ 쪽 번호를 못 찾은 청크 {no_page}개 — 그 인용은 쪽이 비어 나간다.')
     if n_fallback:
         print(f'  ⚠ 절 인식 실패 {n_fallback}편 — 고정 길이로 대체했다.')
         print('     스캔본이거나 2단 조판이면 흔하다. 비율이 높으면 section 전략의')
