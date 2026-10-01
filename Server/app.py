@@ -1215,6 +1215,23 @@ def eigenvalue_locus():
     if err:
         return err
 
+    # modes 는 진동 모드만 담는다 (runner.analyze 가 Im > IMAG_TOL 만 모은다).
+    # 표에서는 실수극도 보여야 하므로 전체 고유값을 함께 내보낸다 — σ_min 이
+    # 실수극에서 나오는 경우가 있고, 그때 산점도에는 임계 모드가 보이지 않는다.
+    full = {}
+    for scr in sorted(STATE['results'], reverse=True):
+        r = STATE['results'][scr]
+        if not r.get('converged'):
+            continue
+        full[f'{scr:.2f}'] = {
+            'eigenvalues': r.get('eigenvalues') or [],
+            'sigma_min':   r.get('sigma_min'),
+            'zeta_min':    r.get('zeta_min'),
+            'zeta_band':   r.get('zeta_band'),
+            'n_osc_modes': r.get('n_osc_modes'),
+            'modes':       r.get('modes') or [],
+        }
+
     data = []
     for scr in sorted(STATE['results'], reverse=True):
         r = STATE['results'][scr]
@@ -1240,7 +1257,7 @@ def eigenvalue_locus():
                     'band': m['band'],
                 })
 
-    return jsonify({'status': 'ok', 'points': data, 'n_states': M.N})
+    return jsonify({'status': 'ok', 'points': data, 'n_states': M.N, 'by_SCR': full})
 
 
 @app.route('/api/linearization_validity')

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { fetchJSON, postJSON } from '../lib/api';
 import EigenvalueLocus from '../components/charts/EigenvalueLocus';
+import EigenvalueTable from '../components/charts/EigenvalueTable';
 import OperatingPoints from '../components/charts/OperatingPoints';
 import StabilityBoundary from '../components/charts/StabilityBoundary';
 import TimeDomain from '../components/charts/TimeDomain';
@@ -15,7 +16,7 @@ import {
 
 /* 실행 결과를 코랩 셀 출력처럼 순서대로 쌓는다 */
 const OUTPUTS = [
-  { key: 'locus', label: '고유값 궤적', note: '복소평면 · SCR별 색' },
+  { key: 'locus', label: '고유값 궤적', note: '복소평면 산점도 + 표(실수극 포함)' },
   { key: 'op',    label: '운전점',      note: 'δ · 여유각 · v_od · v_dc' },
   { key: 'band',  label: '안정 경계',   note: 'ζ_min · 대역별 분류' },
   { key: 'traj',  label: '시간영역',    note: '비선형 vs 선형 — 저장본 필요' },
@@ -695,7 +696,20 @@ export default function GfmLab({ onRunSaved }: Props) {
 
           {/* 셀 출력 */}
               <div style={{ padding: 16, minHeight: 320 }}>
-                {o.key === 'locus' && <EigenvalueLocus computeResults={results} />}
+                {o.key === 'locus' && (
+                  <>
+                    <EigenvalueLocus computeResults={results} />
+                    {/* 산점도는 진동 모드만 그린다 — 실수극까지 보려면 표가 필요하다 */}
+                    <div className="mt-5 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+                      <span className="mono-label" style={{ fontSize: 14, color: 'var(--primary)' }}>
+                        고유값 표 — 실수극 포함
+                      </span>
+                      <div className="mt-3">
+                        <EigenvalueTable computeResults={results} />
+                      </div>
+                    </div>
+                  </>
+                )}
                 {o.key === 'op' && <OperatingPoints computeResults={results} />}
                 {o.key === 'band' && <StabilityBoundary computeResults={results} />}
                 {o.key === 'traj' && <TimeDomain />}
