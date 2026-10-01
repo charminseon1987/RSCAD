@@ -1,6 +1,12 @@
 {
   "schema_version": "1.0",
   "paper": {
+    "bib_verification": {
+      "status": "resolved",
+      "retracted": false,
+      "registry": "crossref",
+      "checked_date": "2026-10-01"
+    },
     "id": "pawar2021gfcpv",
     "title": "Grid-Forming Control for Solar PV Systems with Power Reserves",
     "authors": ["Bandopant Pawar", "Efstratios I. Batzelis", "Saikat Chakrabarti", "Bikash C. Pal"],

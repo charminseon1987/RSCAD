@@ -565,6 +565,72 @@ th, td { padding-top: 7px; padding-bottom: 7px; }
   font-size: 13px; padding: 2px 8px; border-radius: 999px;
   background: var(--s-ok-soft); color: var(--s-ok); border: 1px solid var(--s-ok);
 }
+
+/* ══════════════════════════════════════════════════════
+   노트북 화면 — 역할 기반 위계
+   ──────────────────────────────────────────────────────
+   Notebook.tsx 가 글자 크기를 10.5 / 11 / 11.5 / 12 / 12.5 / 13 / 13.5 / 14 /
+   14.5 / 15 / 15.5 / 17 — 열두 단으로 흘려 쓰고 있었다. 이웃 단계가 0.5px 차이면
+   어느 것도 '단계' 로 읽히지 않는다. 역할 네 개로 묶는다. 크기는 역할이 정하고,
+   자리가 부족하면 글을 줄이거나 레이아웃을 고친다 — 중간 크기를 새로 만들지 않는다.
+   ══════════════════════════════════════════════════════ */
+.scholar {
+  --fs-title: 17px;   /* 화면·구역 제목 */
+  --fs-head:  15px;   /* 패널 제목 */
+  --fs-body:  14px;   /* 본문·답변·입력 */
+  --fs-meta: 12.5px;  /* 메타·보조설명 */
+  --s-danger: #C0392F;  /* .scholar 는 라이트 고정이라 --error(테마 의존)를 쓰지 않는다 */
+}
+.scholar .t-title { font-size: var(--fs-title); font-weight: 700; letter-spacing: -.01em; }
+.scholar .t-head  { font-size: var(--fs-head);  font-weight: 700; }
+.scholar .t-body  { font-size: var(--fs-body);  line-height: 1.75; }
+.scholar .t-meta  { font-size: var(--fs-meta);  color: var(--ink-3); line-height: 1.6; }
+
+/* 구역 머리 — 소스 / 대화 / 산출물 이 세 개의 다른 활동이라는 것을 보이게 한다.
+   예전에는 똑같은 패널 일곱 개가 나란히 있어 어디서 어디까지가 한 활동인지 몰랐다. */
+.scholar .s-zone {
+  display: flex; align-items: center; gap: 8px;
+  font-size: var(--fs-meta); font-weight: 700; letter-spacing: .08em;
+  color: var(--ink-3);
+  padding-bottom: 6px; border-bottom: 2px solid var(--s-line); margin-bottom: 10px;
+}
+.scholar .s-zone-n {
+  display: grid; place-items: center; width: 19px; height: 19px; border-radius: 50%;
+  background: var(--s-accent-soft); color: var(--s-accent-ink);
+  font-size: 11px; font-weight: 700; letter-spacing: 0;
+}
+/* 지금 작업하는 가운데 칼럼만 흰 바탕으로 띄운다 — 눈이 갈 곳을 하나로 만든다 */
+.scholar .s-panel-focus { background: var(--s-bg); border-color: var(--s-accent); }
+
+/* 상태 배지 — '· 확인함 · 근거번호 없음 · 끊김' 처럼 점으로 이어 붙이면 서로 다른
+   사실 네 개가 11.5px 회색 한 줄로 뭉쳐 아무것도 읽히지 않는다. 낱개로 끊는다. */
+.scholar .s-tag {
+  display: inline-flex; align-items: center;
+  font-size: 11.5px; font-weight: 600; padding: 1px 7px; border-radius: 999px;
+  border: 1px solid currentColor; white-space: nowrap;
+}
+.scholar .s-tag-ok   { color: var(--s-ok);     background: var(--s-ok-soft); }
+.scholar .s-tag-warn { color: var(--s-interp); background: var(--s-interp-soft); }
+.scholar .s-tag-mute { color: var(--ink-3);    background: var(--s-panel-2); border-color: var(--s-line); }
+
+/* 버튼 위계 — 전부 .s-chip 이면 '삭제' 와 '보기' 가 같은 무게로 보인다 */
+.scholar .s-btn {
+  font-size: var(--fs-body); font-weight: 600; padding: 8px 16px; border-radius: 9px;
+  border: 1px solid transparent; cursor: pointer;
+  background: var(--s-accent); color: #fff;
+}
+.scholar .s-btn:disabled, .scholar .s-chip:disabled { opacity: .5; cursor: not-allowed; }
+.scholar .s-chip-sm { font-size: var(--fs-meta); padding: 3px 9px; }
+.scholar .s-chip-danger {
+  color: var(--s-danger);
+  border-color: color-mix(in srgb, var(--s-danger) 40%, transparent);
+}
+/* 입력칸 — 예전엔 컴포넌트마다 inline style 객체를 따로 만들어 값이 어긋났다 */
+.scholar .s-input {
+  font-size: var(--fs-body); padding: 8px 11px; border-radius: 9px;
+  border: 1px solid var(--s-line); background: var(--s-bg); color: var(--ink); width: 100%;
+}
+
 .scholar table.s-tbl { width: 100%; border-collapse: collapse; font-size: 15px; }
 .scholar table.s-tbl th, .scholar table.s-tbl td {
   border: 1px solid var(--s-line); padding: 9px 11px; text-align: left; vertical-align: top;

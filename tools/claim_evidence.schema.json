@@ -115,6 +115,51 @@
             "none"
           ],
           "description": "PDF 확보 상태"
+        },
+        "bib_verification": {
+          "type": "object",
+          "description": "서지정보 검증 결과. claims[].verification 과 다른 것이다 — 저쪽은 주장 내용의 검증이고, 이쪽은 이 논문이 실재하며 철회되지 않았는지다. tools/ce_tool.py verify 가 채운다.",
+          "required": [
+            "status"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "enum": [
+                "unverified",
+                "resolved",
+                "unresolved",
+                "uncheckable"
+              ],
+              "description": "unverified=아직 조회 안 함 / resolved=DOI 해석됨 / unresolved=해석 안 됨(날조·오타) / uncheckable=확인 불가(네트워크). '해석 안 됨' 과 '확인 못 함' 을 합치지 않는다."
+            },
+            "retracted": {
+              "type": [
+                "boolean",
+                "null"
+              ],
+              "description": "true=철회 관련 메타데이터 있음 / false=Crossref 적중했고 표지 없음(한 번도 철회되지 않았다는 증명은 아니다) / null=확인하지 못함"
+            },
+            "registry": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "crossref",
+                "non-crossref",
+                null
+              ],
+              "description": "non-crossref 는 doi.org 로는 해석되지만 Crossref 에 서지가 없는 경우(arXiv·DataCite 등)"
+            },
+            "checked_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
         }
       }
     },
