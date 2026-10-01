@@ -1,0 +1,372 @@
+{
+  "run": "J0.50_Dp20.0_Kpv0.050_wc62.8_XR1.0_4acbf1",
+  "input": "Pref",
+  "tol": 0.05,
+  "T_mode": "auto",
+  "tau_margin": 1.5,
+  "timestamp": "2026-10-01 10:15:34",
+  "threshold_common": 0.3,
+  "threshold_common_fit": 0.39404215109196383,
+  "by_SCR": {
+    "3.0": {
+      "threshold_ratio": 0.3,
+      "threshold_fit": 0.5400874112891427,
+      "fit": {
+        "exponent": 1.9748572121808892,
+        "k": 0.1687777899202027,
+        "r2": 0.9997928953981357,
+        "n_points": 6
+      },
+      "T": 1.6151161951515545,
+      "slow_pole": -4.643628750992889,
+      "dc_gain_error_max": 0.01589,
+      "dc_gain_error_delta": 0.0017459002028588216,
+      "sweep": [
+        {
+          "ratio": 0.001,
+          "max_rel_error": 0.0,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.0,
+          "dc_gain_state": "i_Less",
+          "dc_gain_delta": {
+            "rel": 2.5187960551163215e-07,
+            "lin_deg": 0.020212944113899615,
+            "nl_deg": 0.02019851247555838
+          }
+        },
+        {
+          "ratio": 0.005,
+          "max_rel_error": 0.0,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 1e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 1.6947792048913665e-06,
+            "lin_deg": 0.1010647205694981,
+            "nl_deg": 0.10096761687385128
+          }
+        },
+        {
+          "ratio": 0.01,
+          "max_rel_error": 2e-05,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 2e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 4.47291988325783e-06,
+            "lin_deg": 0.2021294411389962,
+            "nl_deg": 0.20187316170758537
+          }
+        },
+        {
+          "ratio": 0.02,
+          "max_rel_error": 7e-05,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 8e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 1.3245479715206197e-05,
+            "lin_deg": 0.4042588822779924,
+            "nl_deg": 0.4034999721926849
+          }
+        },
+        {
+          "ratio": 0.05,
+          "max_rel_error": 0.00045,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00046,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 6.469145831094689e-05,
+            "lin_deg": 1.010647205694981,
+            "nl_deg": 1.0069406581632172
+          }
+        },
+        {
+          "ratio": 0.1,
+          "max_rel_error": 0.00179,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00182,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.00023026307125222772,
+            "lin_deg": 2.021294411389962,
+            "nl_deg": 2.008101309229489
+          }
+        },
+        {
+          "ratio": 0.2,
+          "max_rel_error": 0.00709,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00714,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.0008323769555583088,
+            "lin_deg": 4.042588822779924,
+            "nl_deg": 3.994897136262484
+          }
+        },
+        {
+          "ratio": 0.3,
+          "max_rel_error": 0.01581,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.01589,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.0017459002028588216,
+            "lin_deg": 6.063883234169884,
+            "nl_deg": 5.96385052109504
+          }
+        }
+      ]
+    },
+    "2.0": {
+      "threshold_ratio": 0.3,
+      "threshold_fit": 0.4786309037666961,
+      "fit": {
+        "exponent": 1.9064502082016939,
+        "k": 0.20371953081320604,
+        "r2": 0.9985411246212964,
+        "n_points": 7
+      },
+      "T": 2.5293154294356555,
+      "slow_pole": -2.96522921289948,
+      "dc_gain_error_max": 0.02224,
+      "dc_gain_error_delta": 0.0011962279063113257,
+      "sweep": [
+        {
+          "ratio": 0.001,
+          "max_rel_error": 0.0,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.0,
+          "dc_gain_state": "i_Less",
+          "dc_gain_delta": {
+            "rel": 3.289678030926179e-07,
+            "lin_deg": 0.029204283167892413,
+            "nl_deg": 0.029185434701179517
+          }
+        },
+        {
+          "ratio": 0.005,
+          "max_rel_error": 1e-05,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 1e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 2.0428164216042093e-06,
+            "lin_deg": 0.14602141583946204,
+            "nl_deg": 0.14590437108018411
+          }
+        },
+        {
+          "ratio": 0.01,
+          "max_rel_error": 3e-05,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 3e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 5.068479522695422e-06,
+            "lin_deg": 0.2920428316789241,
+            "nl_deg": 0.2917524291937252
+          }
+        },
+        {
+          "ratio": 0.02,
+          "max_rel_error": 0.0001,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.0001,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 1.3987916048006574e-05,
+            "lin_deg": 0.5840856633578482,
+            "nl_deg": 0.5832842148041141
+          }
+        },
+        {
+          "ratio": 0.05,
+          "max_rel_error": 0.00062,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00063,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 6.225396989550241e-05,
+            "lin_deg": 1.4602141583946204,
+            "nl_deg": 1.4566472686616736
+          }
+        },
+        {
+          "ratio": 0.1,
+          "max_rel_error": 0.00249,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.0025,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.0002049312737661818,
+            "lin_deg": 2.920428316789241,
+            "nl_deg": 2.9086866197121983
+          }
+        },
+        {
+          "ratio": 0.2,
+          "max_rel_error": 0.00991,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00993,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.0006542166667583282,
+            "lin_deg": 5.840856633578482,
+            "nl_deg": 5.8033727796861125
+          }
+        },
+        {
+          "ratio": 0.3,
+          "max_rel_error": 0.02221,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.02224,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.0011962279063113257,
+            "lin_deg": 8.761284950367722,
+            "nl_deg": 8.692746140000313
+          }
+        }
+      ]
+    },
+    "1.5": {
+      "threshold_ratio": 0.3,
+      "threshold_fit": 0.39404215109196383,
+      "fit": {
+        "exponent": 1.9831582276278912,
+        "k": 0.31700992819200724,
+        "r2": 0.9992603178992537,
+        "n_points": 7
+      },
+      "T": 3.466243412983685,
+      "slow_pole": -2.1637257129452787,
+      "dc_gain_error_max": 0.03006,
+      "dc_gain_error_delta": 0.0019479547752807302,
+      "sweep": [
+        {
+          "ratio": 0.001,
+          "max_rel_error": 0.0,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.0,
+          "dc_gain_state": "i_Less",
+          "dc_gain_delta": {
+            "rel": 3.909750213693759e-07,
+            "lin_deg": 0.03856583561527262,
+            "nl_deg": 0.038543434396653115
+          }
+        },
+        {
+          "ratio": 0.005,
+          "max_rel_error": 1e-05,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 1e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 1.8404008529926408e-06,
+            "lin_deg": 0.19282917807636307,
+            "nl_deg": 0.19272373087487432
+          }
+        },
+        {
+          "ratio": 0.01,
+          "max_rel_error": 3e-05,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 3e-05,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 3.369006671527508e-06,
+            "lin_deg": 0.38565835615272615,
+            "nl_deg": 0.3854653262892962
+          }
+        },
+        {
+          "ratio": 0.02,
+          "max_rel_error": 0.00013,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00013,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 5.319923869095966e-06,
+            "lin_deg": 0.7713167123054523,
+            "nl_deg": 0.7710119031204222
+          }
+        },
+        {
+          "ratio": 0.05,
+          "max_rel_error": 0.00082,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.00082,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 7.621510499308815e-07,
+            "lin_deg": 1.9282917807636313,
+            "nl_deg": 1.9283354488021436
+          }
+        },
+        {
+          "ratio": 0.1,
+          "max_rel_error": 0.00329,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.0033,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 7.138903312252365e-05,
+            "lin_deg": 3.8565835615272626,
+            "nl_deg": 3.8606738518287025
+          }
+        },
+        {
+          "ratio": 0.2,
+          "max_rel_error": 0.01325,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.01325,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.0005982146658403964,
+            "lin_deg": 7.713167123054525,
+            "nl_deg": 7.747442298650008
+          }
+        },
+        {
+          "ratio": 0.3,
+          "max_rel_error": 0.03005,
+          "pass": true,
+          "worst_state": "Qf",
+          "dc_gain_error": 0.03006,
+          "dc_gain_state": "Qf",
+          "dc_gain_delta": {
+            "rel": 0.0019479547752807302,
+            "lin_deg": 11.569750684581786,
+            "nl_deg": 11.681360271887726
+          }
+        }
+      ]
+    }
+  }
+}
