@@ -1,7 +1,7 @@
 {
  "format": "gfm-live-flow/spec@1",
  "name": "model",
- "exported_at": "2026-09-29T17:03:35",
+ "exported_at": "2026-10-01T10:06:03",
  "states": [
   {
    "name": "v_pv",
@@ -255,7 +255,13 @@
   "vdc": "0.00125*v_dc",
   "vpv": "0.002*v_pv",
   "ipv": "0.04875*i_Lpv",
-  "ibat": "0.04875*i_Less"
+  "ibat": "0.04875*i_Less",
+  "evpv": "0.002*v_pv - 0.002*v_pv_ref",
+  "ilpvr": "0.04875*Ki_vpv*x_vpv + 0.04875*Kp_vpv*(v_pv - v_pv_ref)",
+  "dpv": "Ki_ipv*x_ipv + Kp_ipv*(Ki_vpv*x_vpv + Kp_vpv*(v_pv - v_pv_ref) - i_Lpv)",
+  "evdc": "-0.00125*v_dc + 0.00125*v_dc_ref",
+  "ilessr": "0.04875*Ki_vdc*x_vdc + 0.04875*Kp_vdc*(-v_dc + v_dc_ref)",
+  "dess": "Ki_iess*x_iess + Kp_iess*(Ki_vdc*x_vdc + Kp_vdc*(-v_dc + v_dc_ref) - i_Less)"
  },
  "x0": [
   500.0,

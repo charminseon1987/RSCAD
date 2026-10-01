@@ -18,7 +18,11 @@ from sympy.printing.jscode import jscode
 SIGNAL_SLOTS = ["w", "dw", "Pf", "Qf", "pe", "qe", "eP", "eQ", "dV", "Vref", "vod", "voq", "iod", "ioq",
                 "ild", "ilq", "evd", "evq", "pvd", "pvq", "cvd", "cvq", "ildr", "ilqr", "ecd", "ecq",
                 "pcd", "pcq", "ccd", "ccq", "vid", "viq"]
-OPTIONAL_SLOTS = ["vdc", "ipv", "vpv", "ibat"]   # DC 단 표시용 (있으면 뷰어 DC 블록에 표시)
+OPTIONAL_SLOTS = ["vdc", "ipv", "vpv", "ibat",
+                  # DC 2단 캐스케이드 PI 의 중간량 — 블록도에서 각 단의 출력을 숫자로 보여준다.
+                  # 없으면 그림에 라벨만 남고 값이 비어 '구조는 보이는데 숫자가 없는' 상태가 된다.
+                  "evpv", "ilpvr", "dpv",      # PV:  전압오차 → 전류지령 → 듀티
+                  "evdc", "ilessr", "dess"]    # ESS: 전압오차 → 전류지령 → 듀티
 REQUIRED_STATES = ["w", "dl"]                    # 뷰어가 θ 적분·발산 감지에 사용
 
 
@@ -123,6 +127,15 @@ def _load_research(m) -> dict:
         # DC 단 — 2단 구성이라 뷰어의 선택 슬롯이 여기서 살아난다
         'vdc': pu(m.v_dc, O.FIXED['v_dc_ref']), 'vpv': pu(m.v_pv, O.INP['v_pv_ref']),
         'ipv': pu(m.i_Lpv, Ib), 'ibat': pu(m.i_Less, Ib),
+        # DC 2단 PI 의 중간량 — 모델의 식을 그대로 가져온다 (다시 쓰지 않는다).
+        # PV 는 오차가 (측정 − 지령)이다. 전류를 더 끌면 PV 전압이 내려가므로
+        # 그 반전을 오차 부호가 흡수한다 — ESS 의 (지령 − 측정)과 순서가 다르다.
+        'evpv':   pu(m.e_vpv, O.INP['v_pv_ref']),
+        'ilpvr':  pu(m.i_Lpv_rf, Ib),
+        'dpv':    T(m.d_pv),                     # 듀티는 무차원 — 정격으로 나누지 않는다
+        'evdc':   pu(m.e_vdc, O.FIXED['v_dc_ref']),
+        'ilessr': pu(m.i_Less_rf, Ib),
+        'dess':   T(m.d_ess),
     }
 
     # ── 동작점: fsolve 를 여기서 직접 돌리지 않고 검증된 op.solve_op 을 쓴다 ──

@@ -259,47 +259,69 @@ function dcSection(): Omit<Diagram, 'viewBox'> {
     accent: true,
   }];
   const blocks: Block[] = [];
+  const sums: Sum[] = [];
   const syms: Sym[] = [];
   const wires: Wire[] = [];
 
-  /* ── PV 부스트 (상단 행) ── */
-  blocks.push({ x: 28, y: 40, w: 92, h: 44, label: 'PV 어레이', sub: 'v_pv 500 V', accent: true });
-  wires.push(wire([[120, 62], [176, 62]], c => c.S.vpv, { nom: 1, fmt: v => v.toFixed(3) + ' pu' }));
-  blocks.push({ x: 176, y: 40, w: 104, h: 44, label: 'PI · PI', sub: 'k_vpv → k_ipv', accent: true });
-  wires.push(wire([[280, 62], [336, 62]], c => c.S.ipv, { nom: 1.2, fmt: v => v.toFixed(3) + ' pu' }));
-  blocks.push({
-    x: 336, y: 40, w: 96, h: 44,
-    label: [{ t: 'L' }, { t: 'pv', sub: true }],
-    sub: '부스트 2 mH', accent: true,
-  });
-  wires.push(wire([[432, 62], [492, 62]], c => c.S.ipv, { nom: 1.2, noChip: true }));
+  /* ── PV 부스트 (상단 행 y=46) — 2단 캐스케이드 PI ──
+     model.py:68  e_vpv    = v_pv − v_pv_ref        ← (측정 − 지령) 순서
+     model.py:69  i_Lpv_rf = Kp_vpv·e_vpv + Ki_vpv·x_vpv
+     model.py:70  e_ipv    = i_Lpv_rf − i_Lpv
+     model.py:71  d_pv     = Kp_ipv·e_ipv + Ki_ipv·x_ipv   ← 부스트 듀티
 
-  /* ── DC 링크 (가운데, 두 행에 걸친다) ── */
+     PV 만 오차가 (측정 − 지령)이다. 전류를 더 끌면 PV 전압이 내려가므로
+     그 반전을 오차 부호가 흡수한다 — 합산점 부호를 ESS 와 다르게 적는 이유다. */
+  blocks.push({ x: 24, y: 24, w: 84, h: 44, label: 'PV 어레이', sub: 'v_pv', accent: true });
+  wires.push(wire([[108, 46], [140, 46]], c => c.S.vpv, { nom: 1, fmt: v => v.toFixed(3) + ' pu' }));
+  // 합산점 — 위에서 지령이 들어오고, 왼쪽이 측정값. PV 는 (측정 − 지령)
+  sums.push({ cx: 154, cy: 46, signs: { l: '+', t: '−' } });
+  syms.push({ x: 154, y: 20, label: [{ t: 'v' }, { t: 'pv,ref', sub: true }] });
+  wires.push(wire([[167, 46], [196, 46]], c => c.S.evpv, { nom: 0.05, fmt: v => v.toFixed(4) }));
+  blocks.push({ x: 196, y: 28, w: 76, h: 36, label: 'PI', sub: 'k_vpv', accent: true });
+  // 외측 PI 출력 = 인덕터 전류 지령
+  wires.push(wire([[272, 46], [312, 46]], c => c.S.ilpvr, { nom: 1.2, fmt: v => v.toFixed(3) + ' pu' }));
+  syms.push({ x: 292, y: 22, label: [{ t: 'i' }, { t: 'Lpv,ref', sub: true }] });
+  sums.push({ cx: 326, cy: 46, signs: { l: '+', b: '−' } });
+  wires.push(wire([[339, 46], [368, 46]], c => c.S.ilpvr, { noChip: true }));
+  blocks.push({ x: 368, y: 28, w: 76, h: 36, label: 'PI', sub: 'k_ipv', accent: true });
+  // 내측 PI 출력 = 듀티
+  wires.push(wire([[444, 46], [492, 46]], c => c.S.dpv, { nom: 0.5, fmt: v => 'd ' + v.toFixed(3) }));
+  // 전류 되먹임 — 인덕터 전류가 내측 합산점으로 돌아온다
+  wires.push(wire([[470, 76], [326, 76], [326, 59]], c => c.S.ipv, { nom: 1.2, noChip: true }));
+  syms.push({ x: 478, y: 80, label: [{ t: 'i' }, { t: 'Lpv', sub: true }], anchor: 'start' });
+
+  /* ── DC 링크 ── */
   blocks.push({
-    x: 492, y: 34, w: 118, h: 58,
+    x: 492, y: 24, w: 104, h: 44,
     label: [{ t: 'C' }, { t: 'dc', sub: true }],
-    sub: 'v_dc 800 V', accent: true,
+    sub: 'v_dc', accent: true,
   });
 
-  /* ── ESS 조절 (하단 행) — DC링크 전압을 받아 배터리 전류를 만든다 ── */
-  wires.push(wire([[610, 62], [664, 62]], c => c.S.vdc, { nom: 1, fmt: v => v.toFixed(3) + ' pu' }));
-  blocks.push({ x: 664, y: 40, w: 104, h: 44, label: 'PI · PI', sub: 'k_vdc → k_iess', accent: true });
-  wires.push(wire([[768, 62], [824, 62]], c => c.S.ibat, { nom: 0.3, fmt: v => v.toFixed(3) + ' pu' }));
-  blocks.push({
-    x: 824, y: 34, w: 104, h: 58,
-    label: [{ t: 'L' }, { t: 'ess', sub: true }, { t: ' · ESS' }],
-    sub: '충·방전', accent: true,
-  });
+  /* ── ESS (하단 행 y=112) — 같은 2단 구성, 오차는 (지령 − 측정) ──
+     model.py:74  e_vdc     = v_dc_ref − v_dc
+     model.py:77  d_ess     = Kp_iess·e_iess + Ki_iess·x_iess */
+  wires.push(wire([[544, 68], [544, 112], [580, 112]], c => c.S.vdc,
+    { nom: 1, fmt: v => v.toFixed(3) + ' pu' }));
+  sums.push({ cx: 594, cy: 112, signs: { l: '−', t: '+' } });
+  syms.push({ x: 594, y: 90, label: [{ t: 'v' }, { t: 'dc,ref', sub: true }] });
+  wires.push(wire([[607, 112], [636, 112]], c => c.S.evdc, { nom: 0.05, fmt: v => v.toFixed(4) }));
+  blocks.push({ x: 636, y: 94, w: 76, h: 36, label: 'PI', sub: 'k_vdc', accent: true });
+  wires.push(wire([[712, 112], [752, 112]], c => c.S.ilessr, { nom: 0.4, fmt: v => v.toFixed(3) + ' pu' }));
+  syms.push({ x: 732, y: 88, label: [{ t: 'i' }, { t: 'Less,ref', sub: true }] });
+  sums.push({ cx: 766, cy: 112, signs: { l: '+', b: '−' } });
+  wires.push(wire([[779, 112], [808, 112]], c => c.S.ilessr, { noChip: true }));
+  blocks.push({ x: 808, y: 94, w: 76, h: 36, label: 'PI', sub: 'k_iess', accent: true });
+  wires.push(wire([[884, 112], [928, 112]], c => c.S.dess, { nom: 0.6, fmt: v => 'd ' + v.toFixed(3) }));
+  blocks.push({ x: 928, y: 94, w: 56, h: 36, label: 'ESS', sub: 'i_bat', accent: true });
+  // ESS 전류 되먹임
+  wires.push(wire([[956, 94], [956, 76], [766, 76], [766, 125]], c => c.S.ibat, { nom: 0.4, noChip: true }));
 
   /* ── DC ↔ AC 결합 ──
-     오른쪽: DC링크 전압이 인버터 출력전압을 정한다 (아래 ④ PWM·VSI 로)
-     왼쪽:  인버터가 소비하는 전류가 DC링크로 되돌아온다 */
-  syms.push({ x: 551, y: 112, label: [{ t: 'v' }, { t: 'dc', sub: true }, { t: ' → PWM 진폭' }] });
-  wires.push(wire([[551, 92], [551, 128]], c => c.S.vdc, { nom: 1, fmt: v => 'v_dc ' + v.toFixed(3) }));
-  syms.push({ x: 300, y: 128, label: 'i_inv = 1.5(v_od·i_ld + v_oq·i_lq) / v_dc', anchor: 'start' });
-  wires.push(wire([[292, 124], [292, 92], [492, 92]], c => c.S.pe, { nom: 1, noChip: true }));
+     model.py:116  f[v_dc] = ((1−d_pv)·i_Lpv + (1−d_ess)·i_Less − i_inv) / C_dc */
+  wires.push(wire([[544, 68], [544, 128]], c => c.S.vdc, { noChip: true }));
+  syms.push({ x: 300, y: 134, label: 'v_dc → PWM 진폭 · i_inv = 1.5(v_od·i_ld + v_oq·i_lq)/v_dc', anchor: 'start' });
 
-  return { tiers, blocks, sums: [], syms, wires };
+  return { tiers, blocks, sums, syms, wires };
 }
 
 /** 22차 연구 모델용 — DC 티어 + 아래로 밀린 AC 구조 */
