@@ -314,7 +314,7 @@ export default function Papers() {
                           석사 주제(공공건축물 ZEB 등급 · PV/BIPV 최적용량 · 경제성)는 연구 계획에는 있지만
                           <strong> 아직 볼트에 노트가 없습니다.</strong> ZEB · BIPV · 자립률 · 경제성 검색 결과가
                           전부 lab-scholar 기획 문서 안의 언급뿐입니다.
-                          <br />문헌을 모으기 시작하면 <strong>수집 워크플로</strong>대로 Zotero → Obsidian 으로
+                          <br />문헌을 모으기 시작하면 <strong>수집 워크플로</strong> 7단계로
                           넣어 주세요. 제목이나 경로에 ZEB · BIPV 가 들어가면 여기 자동으로 잡힙니다.
                         </p>
                       ) : (

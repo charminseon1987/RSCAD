@@ -238,6 +238,26 @@ phases:
       - {id: P6-A3, name: "SNR 사전 측정", state: deferred}
       - {id: P6-A5, name: "1포인트당 소요시간 파일럿", state: deferred}
       - {id: P6-A6, name: "스윕 격자 확정", state: deferred}
+      # ── 2026-10-01 신설 — A8 하드웨어 검토 게이트 기록 ──
+      - id: P6-A7
+        name: "A8 하드웨어 적합성 검토 — GO/NO-GO 판정 (hw_review.md)"
+        state: deferred
+        evidence: null
+        requested_on: 2026-10-01
+        revisit_on: "2026-11"
+        requires: [P0-A1, P6-A2]
+        note: >
+          2026-10-01 하드웨어 검토 요청이 있었으나 INPUT 부재로 수행 불가.
+          a8-gate 의 INPUT 두 건이 모두 존재하지 않는다:
+          dsp_fw_spec.md (A6 델피노 산출물), chil_if_spec.md (A7 브릿지 산출물).
+          지정 경로 GFM_Research/RSCAD/03_실험/P6-rtds/specs/ 는 생성되어 있으나 비어 있다.
+          저장소 전체에 핀맵·ADC 채널·스케일링 상수·타이밍 예산을 담은 설계 문서가
+          없어 a8-gate 규칙(추정으로 채우지 않는다)상 판정이 성립하지 않는다.
+          RSCAD_RTDS_CHIL_연결구조.md 는 CHIL 개념·실습 안내 문서이므로 검토 대상이 아니다.
+          판단: Tier 2 경로(P5 SIL/EMT)를 우선한다. 2026-11 에 R6 에 따라 P0-A1
+          재확인 결과와 함께 재활성화 여부를 판단한다.
+          R6 단서 — 8월차(2026-12) 이후 확인 시에는 재활성화하지 않는다(착수해도 완료 불가).
+          선행 순서: P0-A1 확인 → A6/A7 명세 작성 → A8 판정. 역순 불가.
 
   # ────────────────────────────────────────────────────────
   - id: P8

@@ -125,3 +125,6 @@ CC BY 4.0 오픈액세스.
   - **[162] Xin et al. (2025), IEEE TPWRS** — 필요한 GFM 용량비 산정. 서론 논거
   - **[122] Pan et al. (2020), JESTPE** — 4종 GFM 제어의 설계지향 과도 안정도 비교
   - **[171] Rosso et al. (2021), IEEE TIA** — 영국 GFM 사양 초안의 정량 요구조건 출처
+
+## 🔗 연결 노트
+- [[zhan2024industrial]]

@@ -62,6 +62,7 @@ tags: [literature, Chen2024, PSO, 21-state, GFM, reference]
 ---
 
 ## 🔗 본 연구 연결
+- [[qu2025industrial]]
 
 | 항목 | Chen 2024 | 본 연구 |
 |---|---|---|

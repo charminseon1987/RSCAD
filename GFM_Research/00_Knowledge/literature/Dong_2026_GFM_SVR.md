@@ -71,6 +71,7 @@ W. Dong, Y. Cheng, Y. Yang, F. Zhang, B. Wang, G. Wang, "Small-signal stability 
 ---
 
 ## 🔗 Knowledge Connections
+- [[qu2025industrial]]
 
 * **Related Topics:** GFM-SmallSignal, CSCR, PSO-SVR, Online-Stability
 * **Projects/Contexts:** PV-GFM-Thesis
@@ -110,6 +111,7 @@ W. Dong, Y. Cheng, Y. Yang, F. Zhang, B. Wang, G. Wang, "Small-signal stability 
 ---
 
 ## 🔗 연결 노트
+- [[zhan2024industrial]]
 
 - [[DC-AC 커플링]] — 12차 이상적 DC의 한계 근거
 - [[야코비안 행렬]] — 21차 vs 12차 구조 비교

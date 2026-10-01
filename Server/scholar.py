@@ -7,14 +7,14 @@ Server/scholar.py — 연구실 스콜라 7단계 워크플로 백엔드
 
     ① 검색      외부 DB(OpenAlex·S2·arXiv) + 내 볼트를 한 번에
     ② 선별      점수·중복 제거 후 수집함에 담기
-    ③ 원본 확보 OA PDF → 지정 폴더 저장 · BibTeX 적립 · Zotero 커넥터 전송
-    ④ 하이라이트 5색 규칙으로 발췌 분류 (색 = 분류)
+    ③ 원본 확보 OA PDF → 지정 폴더에 cite_key.pdf 로 보관 · BibTeX 적립
+    ④ 하이라이트 내장 PDF 리더에서 5색으로 칠한다 (색 = 분류)
     ⑤ 노트화    literature 템플릿(▸/※)대로 .md 생성, 저장 폴더 지정
     ⑥ 연결      볼트의 기존 노트와 [[위키링크]]
     ⑦ 인용·초안 IEEE 인용문 · [@citekey] · 초안 파일에 삽입
 
   원칙(app.py 와 동일): 값을 날조하지 않는다.
-    - 외부 API 가 주지 않은 서지 필드는 '미확인' 으로 남긴다.
+    - 외부 API 가 주지 않은 서지 필드는 '미명시' 로 남긴다.
     - 초록만 읽었으면 extraction_depth=abstract 이고, 수치 필드는 채우지 않는다
       (obsidian-note-template 리젝 규칙 R1).
 """
@@ -26,11 +26,13 @@ import json
 import math
 import re
 import time
+import uuid
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import requests
-from flask import Blueprint, jsonify, request
+import yaml
+from flask import Blueprint, jsonify, request, send_file
 
 ROOT = Path(__file__).resolve().parent.parent
 VAULT = ROOT / 'GFM_Research'
@@ -59,12 +61,12 @@ STAGES = [
      'desc': '중복을 지우고 점수를 매긴 뒤, 쓸 논문만 수집함에 담는다.',
      'needs': 'search'},
     {'n': 3, 'key': 'original', 'title': '원본 확보',
-     'tool': 'Unpaywall · Zotero 커넥터 · BibTeX',
-     'desc': '오픈액세스 PDF를 지정 폴더에 cite_key 이름으로 저장하고 Zotero에도 넣는다.',
+     'tool': 'Unpaywall · BibTeX · 첨부 보관',
+     'desc': '오픈액세스 PDF를 지정 폴더에 cite_key 이름으로 보관한다. 이게 첨부 저장소다.',
      'needs': 'screen'},
     {'n': 4, 'key': 'highlight', 'title': '정독 · 하이라이트',
-     'tool': '5색 규칙 = 분류',
-     'desc': '발췌를 색으로 나눈다. 색이 그대로 노트의 섹션이 된다.',
+     'tool': '내장 PDF 리더 · 5색 규칙 = 분류',
+     'desc': '보관한 PDF를 이 화면에서 읽고 끌어서 칠한다. 색이 그대로 노트의 섹션이 된다.',
      'needs': 'screen'},
     {'n': 5, 'key': 'note', 'title': '노트화',
      'tool': 'literature 템플릿 · ▸/※ · frontmatter 전체 키',
@@ -93,8 +95,6 @@ DEFAULT_SETTINGS = {
     'note_dir': '00_Knowledge/literature',   # 문헌 노트
     'draft_path': '00_Knowledge/mine/초안.md',
     'bib_path': '00_Knowledge/references.bib',
-    'zotero_enabled': True,
-    'zotero_url': 'http://127.0.0.1:23119',
     'highlights': [
         {'color': '#e03131', 'callout': 'danger', 'mean': '핵심 · 논쟁 지점', 'section': 'core'},
         {'color': '#f59f00', 'callout': 'warning', 'mean': '인용 후보', 'section': 'quote'},
@@ -156,11 +156,18 @@ def _ua(email: str) -> dict:
     return {'User-Agent': f'lab-scholar/1.0 (mailto:{email or "unknown"})'}
 
 
-def http_get(url, params=None, as_json=True, email='', wait=0.2, tries=3, timeout=25):
-    """실패는 None. 예외를 밖으로 던지지 않는다 — 한 소스가 죽어도 나머지는 살린다."""
+def http_get(url, params=None, as_json=True, email='', wait=0.2, tries=3, timeout=25,
+             sink=None):
+    """실패는 None. 예외를 밖으로 던지지 않는다 — 한 소스가 죽어도 나머지는 살린다.
+
+    sink 에 dict 를 주면 마지막 상태코드를 담아 둔다. 호출자가 429(속도 제한)와
+    400(요청이 틀림)을 구분해 안내해야 하므로 — 추측으로 원인을 말하면 안 된다.
+    """
     for i in range(tries):
         try:
             r = requests.get(url, params=params, headers=_ua(email), timeout=timeout)
+            if sink is not None:
+                sink['status'] = r.status_code
             if r.status_code == 200:
                 time.sleep(wait)
                 return r.json() if as_json else r
@@ -168,7 +175,9 @@ def http_get(url, params=None, as_json=True, email='', wait=0.2, tries=3, timeou
                 time.sleep(1.5 * (i + 1))
                 continue
             return None
-        except requests.RequestException:
+        except requests.RequestException as e:
+            if sink is not None:
+                sink['status'] = type(e).__name__
             time.sleep(1.0 * (i + 1))
     return None
 
@@ -223,6 +232,22 @@ def existing_cite_keys() -> set:
     return keys
 
 
+def stamp_keys(recs: list) -> list:
+    """후보마다 cite_key 를 매기고 볼트·수집함에 이미 있는지 표시한다.
+
+    검색(①)과 식별자 추가(②)가 같은 규칙으로 키를 매겨야 한다 — 경로에 따라
+    키가 달라지면 같은 논문이 두 키로 들어온다.
+    """
+    taken = existing_cite_keys()
+    inbox_keys = {i['key'] for i in load_inbox()}
+    for r in recs:
+        base = cite_key(r)
+        r['cite_key'] = base
+        r['in_vault'] = base in taken
+        r['in_inbox'] = base in inbox_keys
+    return recs
+
+
 def safe_vault_path(rel: str) -> Path:
     """볼트 밖으로 나가는 경로를 막는다."""
     p = (VAULT / rel).resolve()
@@ -264,21 +289,22 @@ def from_openalex(w: dict, source: str) -> dict:
     return r
 
 
-def search_openalex(q, y, n, email):
+def search_openalex(q, y, n, email, sink=None):
     d = http_get(f'{OPENALEX}/works', {
-        'search': q, 'filter': f'from_publication_year:{y}',
-        'sort': 'relevance_score:desc', 'per-page': min(n, 50), 'mailto': email}, email=email)
+        'search': q, 'filter': f'publication_year:>{int(y) - 1}',
+        'sort': 'relevance_score:desc', 'per-page': min(n, 50), 'mailto': email},
+        email=email, sink=sink)
     if d is None:
         return None
     return [from_openalex(w, 'openalex') for w in d.get('results', [])]
 
 
-def search_s2(q, y, n, email):
+def search_s2(q, y, n, email, sink=None):
     d = http_get(f'{S2}/paper/search', {
         'query': q, 'year': f'{y}-', 'limit': min(n, 30),
         'fields': ('title,year,venue,externalIds,citationCount,abstract,'
                    'openAccessPdf,authors,fieldsOfStudy'),
-    }, email=email, wait=1.0)
+    }, email=email, wait=1.0, sink=sink)
     if d is None:
         return None
     out = []
@@ -295,7 +321,7 @@ def search_s2(q, y, n, email):
     return out
 
 
-def search_arxiv(q, y, n, email):
+def search_arxiv(q, y, n, email, sink=None):
     resp = http_get(ARXIV, {'search_query': 'all:' + ' AND all:'.join(q.split()[:6]),
                             'max_results': min(n, 25), 'sortBy': 'relevance'},
                     as_json=False, email=email, wait=1.0)
@@ -355,16 +381,18 @@ def api_search():
     top = int(d.get('top') or s['top'])
     sources = d.get('sources') or s['sources']
 
-    pool, failed, counts = [], [], {}
+    pool, failed, counts, codes = [], [], {}, {}
     runners = {'openalex': search_openalex, 's2': search_s2, 'arxiv': search_arxiv}
     for name in sources:
         fn = runners.get(name)
         if not fn:
             continue
-        got = fn(q, year, max(top, 20), email)
+        sink = {}
+        got = fn(q, year, max(top, 20), email, sink=sink)
         if got is None:
             failed.append(name)
             counts[name] = None
+            codes[name] = sink.get('status')
             continue
         counts[name] = len(got)
         pool += got
@@ -379,27 +407,30 @@ def api_search():
         r['score'] = score(r, terms)
     papers = sorted(uniq.values(), key=lambda r: -r['score'])[:top]
 
-    taken = existing_cite_keys()
-    inbox_keys = {i['key'] for i in load_inbox()}
-    for r in papers:
-        base = cite_key(r)
-        r['cite_key'] = base
-        r['in_vault'] = base in taken
-        r['in_inbox'] = base in inbox_keys
+    stamp_keys(papers)
 
     # 실패는 숨기지 않는다 — 어느 소스가 빠졌는지 알아야 결과를 믿을지 판단할 수 있다
+    label = {'openalex': 'OpenAlex', 's2': 'Semantic Scholar', 'arxiv': 'arXiv'}
     hints = []
-    if 'openalex' in failed:
-        hints.append('OpenAlex 실패' + (' — ⚙ 설정에 연락 메일을 넣으면 속도 제한(429)을 피할 수 있습니다'
-                                        if not email else ' — 잠시 후 다시 시도하세요'))
-    if 's2' in failed:
-        hints.append('Semantic Scholar 실패 — 무료 공용 풀이라 429 가 잦습니다. 잠시 후 재시도')
-    if 'arxiv' in failed:
-        hints.append('arXiv 실패 — 네트워크를 확인하세요')
+    for name in failed:
+        c = codes.get(name)
+        if c == 429:
+            why = '속도 제한(429) — 잠시 후 재시도'
+            if name == 'openalex' and not email:
+                why += ' · ⚙ 설정에 연락 메일을 넣으면 완화됩니다'
+        elif c == 400:
+            why = '요청이 거부됨(400) — 검색 조건을 확인하세요'
+        elif isinstance(c, int):
+            why = f'HTTP {c}'
+        elif c:
+            why = f'네트워크 오류({c})'
+        else:
+            why = '응답 없음 — 네트워크를 확인하세요'
+        hints.append(f'{label.get(name, name)} 실패 — {why}')
 
     return jsonify({
         'status': 'ok', 'query': q, 'papers': papers,
-        'counts': counts, 'failed': failed,
+        'counts': counts, 'failed': failed, 'codes': codes,
         'note': ' · '.join(hints),
     })
 
@@ -443,11 +474,149 @@ def api_inbox_add():
             'note_path': '',
             'links': [],
             'cited': False,
+            # 라이브러리 축 — 컬렉션은 여러 개 동시 소속이 되어야 해서 목록이다
+            'collections': [],
+            'tags': [],
+            'starred': False,
             'added': datetime.datetime.now().isoformat(timespec='seconds'),
         })
         added.append(key)
     save_inbox(items)
     return jsonify({'status': 'ok', 'added': added, 'items': items})
+
+
+# ═══════════════════════════════════════════════
+# ② 식별자로 바로 추가 — DOI · arXiv ID · URL · 제목
+#   아는 논문을 검색 단계를 거치지 않고 꽂는다. 받은 필드만 채운다 —
+#   Crossref·arXiv 가 주지 않은 값은 비워 두고 '미명시' 로 흘러가게 한다.
+#   제목으로 찾은 것은 한 건으로 확정하지 않는다. 후보를 돌려주고 사람이 고른다 —
+#   단정하면 엉뚱한 논문이 cite_key 를 차지한다.
+# ═══════════════════════════════════════════════
+DOI_RE = re.compile(r'10\.\d{4,9}/[-._;()/:A-Za-z0-9]+')
+ARXIV_RE = re.compile(r'(?:arxiv[:\s/]*|abs/|pdf/)(\d{4}\.\d{4,5})(?:v\d+)?', re.I)
+ARXIV_BARE = re.compile(r'^(\d{4}\.\d{4,5})(?:v\d+)?$')
+ARXIV_NS = {'a': 'http://www.w3.org/2005/Atom', 'x': 'http://arxiv.org/schemas/atom'}
+
+
+def _cr_authors(lst) -> str:
+    out = []
+    for a in lst or []:
+        nm = ' '.join(x for x in [(a.get('given') or '').strip(),
+                                  (a.get('family') or '').strip()] if x)
+        if nm:
+            out.append(nm)
+    return ', '.join(out[:6])
+
+
+def from_crossref(m: dict) -> dict:
+    """Crossref 레코드 → 내부 서지. 날짜가 없으면 year 는 None 으로 둔다."""
+    r = empty_rec()
+    parts = ((m.get('published-print') or m.get('published-online')
+              or m.get('issued') or {}).get('date-parts') or [[None]])[0]
+    r.update(
+        title=(m.get('title') or [''])[0],
+        year=parts[0] if parts and parts[0] else None,
+        venue=(m.get('container-title') or [''])[0],
+        volume=m.get('volume') or '', issue=m.get('issue') or '',
+        pages=m.get('page') or '', doi=(m.get('DOI') or '').lower(),
+        cited_by=m.get('is-referenced-by-count') or 0,
+        authors=_cr_authors(m.get('author')),
+        # Crossref 초록은 JATS 태그가 섞여 온다
+        abstract=' '.join(re.sub(r'<[^>]+>', ' ', m.get('abstract') or '').split()),
+        landing=m.get('URL') or '', source='crossref',
+    )
+    return r
+
+
+def openalex_by_doi(doi: str, email: str):
+    d = http_get(f'{OPENALEX}/works/https://doi.org/{doi}', {'mailto': email}, email=email)
+    return from_openalex(d, 'openalex') if d else None
+
+
+def arxiv_by_id(aid: str, email: str):
+    """arXiv ID 하나로 받는다. 없는 ID 면 arXiv 가 'Error' 항목을 주므로 걸러낸다."""
+    resp = http_get(ARXIV, {'id_list': aid, 'max_results': 1},
+                    as_json=False, email=email, wait=0)
+    if resp is None:
+        return None
+    try:
+        e = ET.fromstring(resp.content).find('a:entry', ARXIV_NS)
+    except ET.ParseError:
+        return None
+    if e is None or '/api/errors' in e.findtext('a:id', '', ARXIV_NS):
+        return None
+    title = ' '.join(e.findtext('a:title', '', ARXIV_NS).split())
+    if not title:
+        return None
+    r = empty_rec()
+    try:
+        yr = int(e.findtext('a:published', '0000', ARXIV_NS)[:4]) or None
+    except ValueError:
+        yr = None
+    jref = ' '.join((e.findtext('x:journal_ref', '', ARXIV_NS) or '').split())
+    r.update(title=title, year=yr, venue=jref or 'arXiv (preprint)',
+             doi=(e.findtext('x:doi', '', ARXIV_NS) or '').lower(),
+             authors=', '.join(a.findtext('a:name', '', ARXIV_NS)
+                               for a in e.findall('a:author', ARXIV_NS)[:6]),
+             abstract=' '.join(e.findtext('a:summary', '', ARXIV_NS).split()),
+             pdf_url=f'https://arxiv.org/pdf/{aid}',
+             landing=f'https://arxiv.org/abs/{aid}', source='arxiv')
+    return r
+
+
+def parse_identifier(text: str) -> tuple:
+    """붙여 넣은 문자열에서 식별자를 뽑는다. ('doi'|'arxiv'|'title', 값)."""
+    t = text.strip()
+    m = DOI_RE.search(t)
+    if m:
+        return 'doi', m.group(0).rstrip('.,;)]>').lower()
+    m = ARXIV_BARE.match(t) or ARXIV_RE.search(t)
+    if m:
+        return 'arxiv', m.group(1)
+    return 'title', t
+
+
+@bp.route('/identify', methods=['POST'])
+def api_identify():
+    """② 식별자·제목으로 서지를 찾는다. 못 찾으면 못 찾았다고 말한다."""
+    d = request.json or {}
+    text = (d.get('text') or '').strip()
+    if len(text) < 4:
+        return jsonify({'status': 'error', 'error': '네 글자 이상 입력하세요'}), 400
+    email = load_settings()['contact_email']
+    kind, val = parse_identifier(text)
+
+    if kind == 'title':
+        got = search_openalex(val, 1900, 5, email)
+        if got is None:
+            return jsonify({'status': 'error',
+                            'error': 'OpenAlex 응답이 없습니다 — 잠시 후 다시 시도하세요'}), 502
+        cands = [r for r in got if r.get('title')]
+        for r in cands:
+            r['score'] = 0.0
+        return jsonify({'status': 'ok', 'mode': 'candidates',
+                        'candidates': stamp_keys(cands),
+                        'how': f'OpenAlex 제목 검색 — 후보 {len(cands)}건',
+                        'note': '제목 검색은 같은 논문이라고 단정하지 않습니다. 직접 고르세요.'})
+
+    if kind == 'doi':
+        j = http_get(f'{CROSSREF}/{val}', {'mailto': email}, email=email)
+        msg = (j or {}).get('message')
+        rec = from_crossref(msg) if msg else openalex_by_doi(val, email)
+        how = f'Crossref · {val}' if msg else (f'OpenAlex · {val}' if rec else '')
+        if not rec or not rec.get('title'):
+            return jsonify({'status': 'error',
+                            'error': f'{val} 를 Crossref·OpenAlex 에서 찾지 못했습니다'}), 404
+    else:
+        rec = arxiv_by_id(val, email)
+        if not rec:
+            return jsonify({'status': 'error',
+                            'error': f'arXiv {val} 를 찾지 못했습니다 — ID 를 확인하세요'}), 404
+        how = f'arXiv · {val}'
+
+    rec['score'] = 0.0
+    stamp_keys([rec])
+    return jsonify({'status': 'ok', 'mode': 'exact', 'paper': rec, 'how': how})
 
 
 @bp.route('/inbox/<key>', methods=['PATCH'])
@@ -457,8 +626,9 @@ def api_inbox_patch(key):
     if not it:
         return jsonify({'status': 'error', 'error': f'수집함에 없습니다: {key}'}), 404
     d = request.json or {}
-    for f in ('highlights', 'links', 'note_path', 'cited', 'stage', 'memo',
-              'extraction_depth', 'section', 'paper_type', 'target_system'):
+    # EDITABLE 을 공유해 프리뷰가 반영하는 필드와 저장되는 필드가 갈리지 않게 한다
+    for f in EDITABLE + ('links', 'note_path', 'cited', 'stage', 'memo',
+                         'collections', 'tags', 'starred'):
         if f in d:
             it[f] = d[f]
     save_inbox(items)
@@ -473,7 +643,7 @@ def api_inbox_delete(key):
 
 
 # ═══════════════════════════════════════════════
-# ③ 원본 확보 — PDF · BibTeX · Zotero
+# ③ 원본 확보 — PDF 첨부 보관 · BibTeX
 # ═══════════════════════════════════════════════
 def unpaywall_pdf(doi: str, email: str) -> str:
     if not doi or not email:
@@ -496,47 +666,14 @@ def bibtex_entry(key: str, p: dict) -> str:
             f'  doi = {{{f(p.get("doi"))}}}\n}}\n\n')
 
 
-def zotero_save(p: dict, pdf_url: str, s: dict) -> dict:
-    """로컬 Zotero 커넥터로 항목을 보낸다. Zotero 가 꺼져 있으면 그렇다고 말한다."""
-    creators = []
-    for name in [a.strip() for a in (p.get('authors') or '').split(',') if a.strip()]:
-        parts = name.split()
-        creators.append({'creatorType': 'author',
-                         'firstName': ' '.join(parts[:-1]), 'lastName': parts[-1]})
-    item = {
-        'itemType': 'preprint' if 'arxiv' in (p.get('venue') or '').lower() else 'journalArticle',
-        'title': p.get('title') or '',
-        'creators': creators,
-        'date': str(p.get('year') or ''),
-        'publicationTitle': p.get('venue') or '',
-        'volume': str(p.get('volume') or ''),
-        'issue': str(p.get('issue') or ''),
-        'pages': str(p.get('pages') or ''),
-        'DOI': p.get('doi') or '',
-        'url': p.get('landing') or '',
-        'abstractNote': (p.get('abstract') or '')[:4000],
-        'attachments': ([{'title': 'Full Text PDF', 'url': pdf_url,
-                          'mimeType': 'application/pdf'}] if pdf_url else []),
-        'tags': [{'tag': t} for t in (p.get('topics') or [])[:6]],
-    }
-    try:
-        r = requests.post(
-            s['zotero_url'].rstrip('/') + '/connector/saveItems',
-            json={'items': [item], 'uri': p.get('landing') or p.get('pdf_url') or ''},
-            headers={'Content-Type': 'application/json',
-                     'zotero-connector-api-version': '2',
-                     'User-Agent': 'lab-scholar/1.0'},
-            timeout=20)
-        if r.status_code in (200, 201):
-            return {'ok': True, 'msg': 'Zotero 라이브러리에 저장했습니다'}
-        return {'ok': False, 'msg': f'Zotero 응답 {r.status_code} — 저장되지 않았습니다'}
-    except requests.RequestException:
-        return {'ok': False, 'msg': 'Zotero 가 실행 중이 아닙니다 (커넥터 23119 응답 없음)'}
-
 
 @bp.route('/original', methods=['POST'])
 def api_original():
-    """③ OA PDF → 지정 폴더 · BibTeX 적립 · Zotero 전송. 채널별 결과를 따로 돌려준다."""
+    """③ OA PDF → 지정 폴더 · BibTeX 적립. 채널별 결과를 따로 돌려준다.
+
+    PDF 는 cite_key.pdf 로 고정해 보관한다 — ④ 리더와 노트의 #page 앵커가
+    같은 이름을 찾기 때문이다. 유료 논문은 사용자가 같은 이름으로 넣으면 물린다.
+    """
     d = request.json or {}
     items = load_inbox()
     it = find_item(items, d.get('key'))
@@ -547,7 +684,7 @@ def api_original():
     p = it['paper']
     key = it['key']
     email = s['contact_email']
-    want = d.get('channels') or ['pdf', 'bib', 'zotero']
+    want = d.get('channels') or ['pdf', 'bib']
     out = dict(it.get('original') or {})
 
     # ── PDF ──
@@ -590,17 +727,178 @@ def api_original():
             out['bib'] = {'ok': True, 'path': bib.relative_to(VAULT).as_posix(),
                           'msg': 'BibTeX 에 추가했습니다'}
 
-    # ── Zotero ──
-    if 'zotero' in want:
-        if s.get('zotero_enabled'):
-            out['zotero'] = zotero_save(p, p.get('pdf_url') or '', s)
-        else:
-            out['zotero'] = {'ok': False, 'msg': '설정에서 Zotero 연동이 꺼져 있습니다'}
-
     it['original'] = out
     it['stage'] = max(it.get('stage', 2), 3)
     save_inbox(items)
     return jsonify({'status': 'ok', 'original': out, 'item': it})
+
+
+# ═══════════════════════════════════════════════
+# ③ 첨부 — 보관한 PDF 를 브라우저로 내보낸다
+#   Zotero 의 storage 자리. 파일 이름은 cite_key.pdf 로 고정한다 —
+#   ④ 리더와 노트의 [[key.pdf#page=N]] 앵커가 같은 이름을 찾기 때문이다.
+# ═══════════════════════════════════════════════
+def attach_path(it: dict, s: dict = None):
+    """보관한 PDF 의 실제 경로. 없으면 None — 있다고 지어내지 않는다."""
+    s = s or load_settings()
+    cands = [f'{s["pdf_dir"]}/{it["key"]}.pdf']
+    rec = (it.get('original') or {}).get('pdf') or {}
+    if rec.get('path'):
+        cands.append(rec['path'])
+    for rel in cands:
+        try:
+            fp = safe_vault_path(rel)
+        except ValueError:
+            continue
+        if fp.is_file():
+            return fp
+    return None
+
+
+@bp.route('/pdf/<key>')
+def api_pdf(key):
+    """④ 내장 리더가 읽을 PDF. Range 요청을 받아야 pdf.js 가 점진적으로 읽는다."""
+    it = find_item(load_inbox(), key)
+    if not it:
+        return jsonify({'status': 'error', 'error': f'수집함에 없습니다: {key}'}), 404
+    fp = attach_path(it)
+    if not fp:
+        return jsonify({'status': 'error',
+                        'error': '보관된 PDF 가 없습니다 — ③에서 받거나 직접 올리세요'}), 404
+    return send_file(fp, mimetype='application/pdf', conditional=True)
+
+
+@bp.route('/attachments')
+def api_attachments():
+    """항목별 첨부 유무. 라이브러리 표가 '원문 있음' 을 표시하는 근거다."""
+    s = load_settings()
+    out = {}
+    for it in load_inbox():
+        fp = attach_path(it, s)
+        out[it['key']] = ({'ok': True, 'path': fp.relative_to(VAULT).as_posix(),
+                           'bytes': fp.stat().st_size} if fp
+                          else {'ok': False, 'msg': '보관된 PDF 없음'})
+    return jsonify({'status': 'ok', 'attachments': out})
+
+
+@bp.route('/attach/<key>', methods=['POST'])
+def api_attach(key):
+    """유료 논문용 — 브라우저에서 올려 cite_key.pdf 로 보관한다.
+
+    ③의 자동 수집이 못 가져오는 논문이 대부분이다. 올리는 길이 없으면
+    사용자가 파일 탐색기로 직접 넣어야 하고, 이름을 틀리면 ④가 못 찾는다.
+    """
+    items = load_inbox()
+    it = find_item(items, key)
+    if not it:
+        return jsonify({'status': 'error', 'error': f'수집함에 없습니다: {key}'}), 404
+    f = request.files.get('file')
+    if not f:
+        return jsonify({'status': 'error', 'error': 'file 이 필요합니다'}), 400
+    blob = f.read()
+    if blob[:4] != b'%PDF':
+        return jsonify({'status': 'error',
+                        'error': 'PDF 가 아닙니다 (%PDF 머리말이 없습니다)'}), 400
+    s = load_settings()
+    try:
+        d = safe_vault_path(s['pdf_dir'])
+    except ValueError:
+        return jsonify({'status': 'error', 'error': '볼트 밖 경로'}), 403
+    d.mkdir(parents=True, exist_ok=True)
+    fp = d / f'{key}.pdf'
+    fp.write_bytes(blob)
+    rel = fp.relative_to(VAULT).as_posix()
+    it['original'] = dict(it.get('original') or {},
+                          pdf={'ok': True, 'path': rel, 'bytes': len(blob),
+                               'msg': '직접 올린 원본입니다'})
+    it['stage'] = max(it.get('stage', 2), 3)
+    save_inbox(items)
+    return jsonify({'status': 'ok', 'path': rel, 'bytes': len(blob), 'item': it})
+
+
+# ═══════════════════════════════════════════════
+# ④ 주석 — 수집함 highlights 를 PDF 좌표까지 확장한다
+#   같은 배열에 그대로 쌓는다. 노트 렌더(_by_section·bullets)는 text·page 만
+#   읽으므로 rects·color 가 늘어도 노트 모양은 바뀌지 않는다.
+#   rects 는 페이지 크기로 나눈 0~1 좌표다 — 확대율이 달라도 같은 자리에 뜬다.
+# ═══════════════════════════════════════════════
+ANNOT_KEEP = ('section', 'text', 'page', 'color', 'rects', 'note')
+
+
+def _clean_rects(v) -> list:
+    """좌표만 남긴다. 숫자가 아니면 버린다 — 깨진 값이 노트까지 가면 안 된다."""
+    out = []
+    for r in v or []:
+        try:
+            out.append({k: round(float(r[k]), 6) for k in ('x', 'y', 'w', 'h')})
+        except (KeyError, TypeError, ValueError):
+            continue
+    return out[:60]
+
+
+def _find_annot(hs: list, aid: str):
+    """id 로 찾고, 없으면 순번으로도 찾는다 — id 없던 옛 발췌도 지울 수 있어야 한다."""
+    idx = next((i for i, h in enumerate(hs) if h.get('id') == aid), None)
+    if idx is None and aid.isdigit() and int(aid) < len(hs):
+        idx = int(aid)
+    return idx
+
+
+@bp.route('/annot', methods=['POST'])
+def api_annot_add():
+    """하이라이트 하나를 붙인다. 서버가 id 를 매겨 나중에 지우고 고칠 수 있게 한다."""
+    d = request.json or {}
+    items = load_inbox()
+    it = find_item(items, d.get('key'))
+    if not it:
+        return jsonify({'status': 'error', 'error': f'수집함에 없습니다: {d.get("key")}'}), 404
+    a = d.get('annot') or {}
+    text = (a.get('text') or '').strip()
+    if not text:
+        return jsonify({'status': 'error', 'error': '발췌가 비었습니다'}), 400
+    s = load_settings()
+    rules = {h['section']: h for h in s['highlights']}
+    sec = a.get('section') if a.get('section') in rules else 'background'
+    page = str(a.get('page') or '').strip()
+    annot = {
+        'id': uuid.uuid4().hex[:10],
+        'section': sec,
+        'text': text[:2000],
+        'page': page,
+        # 색은 규칙에서 가져온다 — 섹션과 색이 갈리면 노트와 리더가 달라 보인다
+        'color': a.get('color') or rules[sec]['color'],
+        'rects': _clean_rects(a.get('rects')),
+        'note': (a.get('note') or '').strip()[:500],
+        'created': datetime.datetime.now().isoformat(timespec='seconds'),
+    }
+    it['highlights'] = (it.get('highlights') or []) + [annot]
+    it['extraction_depth'] = 'full'              # 칠했다는 건 원문을 봤다는 뜻
+    it['stage'] = max(it.get('stage', 2), 4)
+    save_inbox(items)
+    return jsonify({'status': 'ok', 'annot': annot, 'item': it})
+
+
+@bp.route('/annot/<key>/<aid>', methods=['PATCH', 'DELETE'])
+def api_annot_edit(key, aid):
+    """주석 하나를 고치거나 지운다."""
+    items = load_inbox()
+    it = find_item(items, key)
+    if not it:
+        return jsonify({'status': 'error', 'error': f'수집함에 없습니다: {key}'}), 404
+    hs = list(it.get('highlights') or [])
+    idx = _find_annot(hs, aid)
+    if idx is None:
+        return jsonify({'status': 'error', 'error': f'주석이 없습니다: {aid}'}), 404
+    if request.method == 'DELETE':
+        hs.pop(idx)
+    else:
+        d = request.json or {}
+        for f in ANNOT_KEEP:
+            if f in d:
+                hs[idx][f] = _clean_rects(d[f]) if f == 'rects' else d[f]
+    it['highlights'] = hs
+    save_inbox(items)
+    return jsonify({'status': 'ok', 'item': it})
 
 
 # ═══════════════════════════════════════════════
@@ -619,12 +917,13 @@ def render_note(key: str, it: dict, links: list) -> str:
 
     ▸ 는 원문에 있는 것만. 외부 API 에서 받은 건 서지·초록뿐이므로 사용자가
     '정독함'을 표시하기 전까지 extraction_depth 는 abstract 고, 수치 필드
-    (model_order 등)는 리젝 규칙 R1 에 따라 '미확인' 으로 남긴다.
+    (model_order 등)는 리젝 규칙 R1 에 따라 '미명시' 로 남긴다.
     """
     p = it['paper']
     hs = _by_section(it.get('highlights'))
     depth = it.get('extraction_depth') or 'abstract'
-    unknown = '미확인'                      # 내가 아직 원문을 못 봄
+    # 볼트·ce_tool 과 같은 표기여야 00_MOC.md 의 GROUP BY 가 한 버킷으로 모인다
+    unknown = '미명시'                      # 내가 아직 원문을 못 봄
     pdf = (it.get('original') or {}).get('pdf') or {}
     pdf_link = f'"[[{key}.pdf]]"' if pdf.get('ok') else '""'
     pdf_status = 'have' if pdf.get('ok') else ('oa-available' if p.get('pdf_url') else 'none')
@@ -634,8 +933,30 @@ def render_note(key: str, it: dict, links: list) -> str:
     def esc(v):
         return str(v or '').replace('"', "'")
 
+    def scalar(f):
+        """볼트 표기를 따른다 — 숫자·불리언은 그대로, 문자열만 따옴표.
+
+        model_order: 21 / dc_ac_coupling: false 처럼 써야 Dataview 가 수치·논리로
+        다룬다. 문자열을 감싸는 것은 '1.5~10' 같은 값이 깨지지 않게 하기 위함이다.
+        """
+        v = it.get(f)
+        if v is None or v == '' or v == []:
+            return unknown
+        if isinstance(v, bool):
+            return 'true' if v else 'false'
+        if isinstance(v, (int, float)):
+            return str(v)
+        return f'"{esc(v)}"'
+
+    def seq(f):
+        v = it.get(f) or []
+        if isinstance(v, str):
+            v = [v]
+        return '[' + ', '.join(f'"{esc(x)}"' for x in v) + ']' if v else '[]'
+
     fm = [
         '---',
+        'type: literature',
         f'cite_key: {key}',
         'ref_num: null',
         f'title: "{esc(p.get("title"))}"',
@@ -648,15 +969,17 @@ def render_note(key: str, it: dict, links: list) -> str:
         f'pdf_status: {pdf_status}',
         f'paper_type: {it.get("paper_type") or unknown}',
         f'target_system: {it.get("target_system") or unknown}',
-        'control_scheme: []',
-        f'model_order: {unknown}',
-        f'analysis_method: [{unknown}]',
-        f'tuning_method: {unknown}',
-        f'scr_range: {unknown}',
-        f'xr_range: {unknown}',
-        f'validation_level: {unknown}',
-        'hardware: []',
+        f'control_scheme: {seq("control_scheme")}',
+        f'model_order: {scalar("model_order")}',
+        f'analysis_method: {seq("analysis_method") if it.get("analysis_method") else "[" + unknown + "]"}',
+        f'tuning_method: {scalar("tuning_method")}',
+        f'scr_range: {scalar("scr_range")}',
+        f'xr_range: {scalar("xr_range")}',
+        f'validation_level: {scalar("validation_level")}',
+        f'hardware: {seq("hardware")}',
         f'extraction_depth: {depth}',
+        f'dc_ac_coupling: {scalar("dc_ac_coupling")}',
+        'pso_params: null',
         f'section: "{esc(it.get("section"))}"',
         'tags: [paper, lab-scholar]',
         f'status: {"read" if depth == "full" else "to-read"}',
@@ -754,8 +1077,18 @@ def suggest_links(it: dict, limit: int = 6) -> list:
     return out[:limit]
 
 
+# 노트 frontmatter 에서 사용자가 채울 수 있는 필드.
+# 뒷줄은 00_MOC.md 의 §2 갭 확인·§3 축별 분포가 GROUP BY 하는 축이다 —
+# 여기서 받지 않으면 그 표가 영구히 '미명시' 한 칸에 몰린다.
+EDITABLE = (
+    'highlights', 'extraction_depth', 'section', 'paper_type', 'target_system',
+    'model_order', 'analysis_method', 'tuning_method', 'scr_range', 'xr_range',
+    'validation_level', 'hardware', 'control_scheme', 'dc_ac_coupling',
+)
+
+
 def _apply_edits(it: dict, d: dict) -> None:
-    for f in ('highlights', 'extraction_depth', 'section', 'paper_type', 'target_system'):
+    for f in EDITABLE:
         if f in d:
             it[f] = d[f]
 
@@ -811,6 +1144,245 @@ def api_note_save():
 
 
 # ═══════════════════════════════════════════════
+# 볼트에서 가져오기 — 노트는 있는데 수집함에 없는 논문
+#   수집함 입구가 검색뿐이면 이미 읽어 노트까지 쓴 논문은 ④ 리더로 못 연다.
+#   여기서는 '새로 담는' 게 아니라 기존 노트에 수집함 항목을 '붙인다' —
+#   그래서 cite_key 를 그대로 쓴다. unique_cite_key 로 뒤에 글자를 붙이면
+#   kenyon2020ibrstabilityb 처럼 갈라져 [[kenyon2020ibrstability]] 링크가 끊긴다.
+#   서지는 노트 frontmatter 에서만 읽는다. 없는 값은 비워 둔다 — 지어내지 않는다.
+# ═══════════════════════════════════════════════
+FM_RE = re.compile(r'\A---\r?\n(.*?)\r?\n---\r?\n', re.S)
+
+# frontmatter 에서 수집함 항목으로 옮겨 올 축 필드 (EDITABLE 과 짝)
+FM_AXES = ('paper_type', 'target_system', 'control_scheme', 'model_order',
+           'analysis_method', 'tuning_method', 'scr_range', 'xr_range',
+           'validation_level', 'hardware', 'dc_ac_coupling', 'section')
+
+
+def read_frontmatter(path: Path) -> dict:
+    try:
+        text = path.read_text(encoding='utf-8')
+    except OSError:
+        return {}
+    m = FM_RE.match(text)
+    if not m:
+        return {}
+    try:
+        fm = yaml.safe_load(m.group(1))
+    except yaml.YAMLError:
+        return {}
+    return fm if isinstance(fm, dict) else {}
+
+
+def _as_text(v) -> str:
+    if v is None:
+        return ''
+    if isinstance(v, list):
+        return ', '.join(str(x) for x in v if x not in (None, ''))
+    return str(v)
+
+
+def _clean_axis(v):
+    """'미명시'·'N/A' 는 값이 아니다 — 비워서 '아직 안 적음'과 같게 둔다."""
+    if isinstance(v, str) and (v.strip() in ('미명시', '미확인', '') or v.startswith('N/A')):
+        return None
+    if isinstance(v, list):
+        out = [x for x in v if _clean_axis(x) is not None]
+        return out or None
+    return v
+
+
+H1_RE = re.compile(r'^#\s+(.+?)\s*$', re.M)
+
+
+def heading_title(path: Path) -> str:
+    """frontmatter 에 title 이 없는 옛 노트용 — 본문 첫 H1 을 쓴다.
+
+    이건 서지 제목이 아니라 노트 제목이다 ('# 📚 Chen et al. 2024 — Electronics').
+    그래서 호출부가 title_from='heading' 으로 표시해 사람이 구분하게 한다.
+    """
+    try:
+        body = H1_RE.search(path.read_text(encoding='utf-8'))
+    except OSError:
+        return ''
+    if not body:
+        return ''
+    # 장식용 이모지만 떼고 나머지는 그대로 둔다
+    return re.sub(r'^[^\w(\[]+', '', body.group(1)).strip()
+
+
+def paper_from_note(path: Path, fm: dict) -> dict:
+    """노트 frontmatter → 내부 서지. venue 는 'Solar Energy, vol.210, pp.149-168'
+    처럼 한 줄로 적힌 경우가 많아 쪼개지 않고 그대로 둔다 — 쪼개면 추측이 된다."""
+    r = empty_rec()
+    year = fm.get('year')
+    r.update(
+        title=_as_text(fm.get('title')),
+        authors=_as_text(fm.get('authors')),
+        year=year if isinstance(year, int) else None,
+        venue=_as_text(fm.get('venue')),
+        doi=_as_text(fm.get('doi')).lower(),
+        cited_by=fm.get('cited_by') if isinstance(fm.get('cited_by'), int) else 0,
+        topics=[t for t in (fm.get('tags') or []) if isinstance(t, str)][:6],
+        source='vault',
+    )
+    return r
+
+
+def vault_notes(inbox_keys: set) -> list:
+    """수집함에 없는 볼트 문헌 노트. 노트 폴더만 본다 (claims·mine 은 논문이 아니다)."""
+    s = load_settings()
+    out = []
+    for folder in dict.fromkeys([s['note_dir'], '00_Knowledge/literature']):
+        d = VAULT / folder
+        if not d.exists():
+            continue
+        for f in sorted(d.glob('*.md')):
+            fm = read_frontmatter(f)
+            key = str(fm.get('cite_key') or f.stem).strip()
+            if not key or key in inbox_keys or any(o['key'] == key for o in out):
+                continue
+            paper = paper_from_note(f, fm)
+            title_from = 'frontmatter' if paper['title'] else ''
+            if not paper['title']:
+                paper['title'] = heading_title(f)
+                title_from = 'heading' if paper['title'] else 'none'
+            it = {
+                'key': key,
+                'note_path': f.relative_to(VAULT).as_posix(),
+                'paper': paper,
+                # 'heading' 은 서지 제목이 아니라 노트 제목이다 — ⑦에서 DOI 로 검증해야 한다
+                'title_from': title_from,
+                'extraction_depth': fm.get('extraction_depth') or 'abstract',
+                'axes': {a: _clean_axis(fm.get(a)) for a in FM_AXES
+                         if _clean_axis(fm.get(a)) is not None},
+            }
+            fp = attach_path({'key': key, 'original': {}}, s)
+            it['has_pdf'] = bool(fp)
+            out.append(it)
+    return out
+
+
+@bp.route('/vault-papers')
+def api_vault_papers():
+    """볼트에만 있는 논문 목록 — ②의 '볼트에서 가져오기' 가 쓴다."""
+    inbox_keys = {i['key'] for i in load_inbox()}
+    return jsonify({'status': 'ok', 'papers': vault_notes(inbox_keys)})
+
+
+@bp.route('/import', methods=['POST'])
+def api_import():
+    """고른 볼트 노트를 수집함에 붙인다. cite_key 는 그대로 쓴다.
+
+    노트를 다시 쓰지 않는다 — 손으로 쓴 ▸/※ 가 거기 들어 있다. 발췌를 칠하면
+    /note/append 가 발췌 섹션 하나만 갈아 끼운다.
+    """
+    d = request.json or {}
+    want = [k for k in (d.get('keys') or []) if isinstance(k, str)]
+    if not want:
+        return jsonify({'status': 'error', 'error': '가져올 cite_key 가 필요합니다'}), 400
+
+    items = load_inbox()
+    inbox_keys = {i['key'] for i in items}
+    found = {n['key']: n for n in vault_notes(inbox_keys)}
+    added, skipped = [], []
+    for key in want:
+        n = found.get(key)
+        if not n:
+            skipped.append({'key': key, 'why': '볼트에 없거나 이미 수집함에 있습니다'})
+            continue
+        items.append({
+            'key': key,
+            'paper': {f: n['paper'].get(f) for f in PAPER_FIELDS},
+            # 노트가 이미 있으므로 ⑤까지 끝난 상태다. ⑥ 연결은 아직 안 했다고 본다
+            'stage': 5,
+            'original': {},
+            'highlights': [],
+            'note_path': n['note_path'],
+            'links': [],
+            'cited': False,
+            'collections': [],
+            'tags': [],
+            'starred': False,
+            'from_vault': True,          # ⑤가 덮어쓰기 대신 덧붙이기를 쓰게 하는 표시
+            'extraction_depth': n['extraction_depth'],
+            'added': datetime.datetime.now().isoformat(timespec='seconds'),
+            **n['axes'],
+        })
+        added.append(key)
+    save_inbox(items)
+    return jsonify({'status': 'ok', 'added': added, 'skipped': skipped, 'items': items})
+
+
+# ── 발췌만 노트에 덧붙이기 ──
+HI_HEAD = '## 🖍 리더에서 칠한 발췌'
+SEC_RE = re.compile(r'^#{1,6} ', re.M)
+
+
+def put_section(text: str, heading: str, body: str) -> str:
+    """heading 섹션을 body 로 갈아 끼운다. 없으면 끝에 붙인다.
+
+    섹션 하나만 건드린다 — 손으로 쓴 나머지는 글자 하나도 바뀌지 않는다.
+    매번 통째로 다시 쓰므로 여러 번 눌러도 발췌가 겹쳐 쌓이지 않는다.
+    """
+    block = f'{heading}\n\n{body}\n'
+    i = text.find(heading)
+    if i < 0:
+        return text.rstrip() + '\n\n' + block
+    m = SEC_RE.search(text, i + len(heading))
+    tail = text[m.start():] if m else ''
+    return text[:i] + block + ('\n' + tail if tail else '')
+
+
+def highlights_md(key: str, hs: list) -> str:
+    """색(섹션)별로 묶어 ▸/※ 로 적는다. 노트 본문 규칙과 같은 표기다."""
+    by = _by_section(hs)
+    if not by:
+        return '*(아직 칠한 발췌가 없습니다.)*'
+    lines = []
+    for sec, label in SECTION_LABEL.items():
+        rows = by.get(sec) or []
+        if not rows:
+            continue
+        lines.append(f'**{label}**')
+        for h in rows:
+            mark = '※' if sec == 'unknown' else '▸'
+            anchor = f'  → [[{key}.pdf#page={h["page"]}]]' if h.get('page') else ''
+            lines.append(f'- {mark} {h["text"]}{anchor}')
+            if (h.get('note') or '').strip():
+                lines.append(f'  - ※ {h["note"].strip()}')
+        lines.append('')
+    return '\n'.join(lines).rstrip()
+
+
+@bp.route('/note/append', methods=['POST'])
+def api_note_append():
+    """④에서 칠한 발췌를 기존 노트의 발췌 섹션에 반영한다 (그 섹션만 바뀐다)."""
+    d = request.json or {}
+    items = load_inbox()
+    it = find_item(items, d.get('key'))
+    if not it:
+        return jsonify({'status': 'error', 'error': '수집함에 없습니다'}), 404
+    if not it.get('note_path'):
+        return jsonify({'status': 'error', 'error': '연결된 노트가 없습니다'}), 400
+    try:
+        fp = safe_vault_path(it['note_path'])
+    except ValueError:
+        return jsonify({'status': 'error', 'error': '볼트 밖 경로'}), 403
+    if not fp.is_file():
+        return jsonify({'status': 'error', 'error': f'노트가 없습니다: {it["note_path"]}'}), 404
+
+    before = fp.read_text(encoding='utf-8')
+    after = put_section(before, HI_HEAD, highlights_md(it['key'], it.get('highlights') or []))
+    if after != before:
+        fp.write_text(after, encoding='utf-8')
+    it['stage'] = max(it.get('stage', 2), 5)
+    save_inbox(items)
+    return jsonify({'status': 'ok', 'path': it['note_path'], 'changed': after != before,
+                    'section': HI_HEAD, 'item': it})
+
+
+# ═══════════════════════════════════════════════
 # ⑥ 연결 — 양쪽에 링크를 심는다
 # ═══════════════════════════════════════════════
 @bp.route('/related', methods=['POST'])
@@ -820,6 +1392,35 @@ def api_related():
     if not it:
         return jsonify({'status': 'error', 'error': '수집함에 없습니다'}), 404
     return jsonify({'status': 'ok', 'suggested': suggest_links(it, limit=12)})
+
+
+# 볼트의 연결 섹션 제목은 한 가지가 아니다 — obsidian-note-template 은
+# '## 🔗 본 연구 연결', render_note 는 '# 🔗 Knowledge Connections',
+# ce_tool 은 아예 만들지 않는다. 한 모양만 문자열로 찾으면
+# (1) 내 노트의 정방향 링크가 조용히 버려지고 (2) 상대 노트에 섹션이 둘 생긴다.
+CONN_HEAD = re.compile(
+    r'^#{1,3}[ \t]*(?:🔗[ \t]*)?'
+    r'(?:Knowledge Connections|본 연구 연결|연결 노트|Connections)[ \t]*$',
+    re.M)
+
+
+def put_under_conn(text: str, line: str, replace: str = '') -> str:
+    """연결 섹션을 찾아 그 바로 아래에 line 을 넣는다.
+
+    replace 에 정규식을 주면 그 줄이 이미 있을 때 갈아끼운다 (중복 방지).
+    섹션이 없으면 끝에 하나 만든다 — 이미 있는 섹션 옆에 또 만들지 않는다.
+    """
+    if replace and re.search(replace, text, flags=re.M):
+        return re.sub(replace, lambda _m: line, text, count=1, flags=re.M)
+    m = CONN_HEAD.search(text)
+    if m:
+        return text[:m.end()] + '\n' + line + text[m.end():]
+    return text.rstrip() + '\n\n## 🔗 연결 노트\n' + line + '\n'
+
+
+def note_dir_of(it: dict) -> str:
+    """문자열 target 의 폴더를 추정한다 — 내 노트와 같은 폴더로 본다."""
+    return (it.get('note_path') or '').rsplit('/', 1)[0] or load_settings()['note_dir']
 
 
 @bp.route('/link', methods=['POST'])
@@ -832,7 +1433,19 @@ def api_link():
         return jsonify({'status': 'error', 'error': '수집함에 없습니다'}), 404
     if not it.get('note_path'):
         return jsonify({'status': 'error', 'error': '먼저 ⑤에서 노트를 저장하세요'}), 400
-    targets = [t for t in (d.get('targets') or []) if t.get('note') and t.get('path')]
+    # targets 는 {note, path} 객체 목록. 문자열만 온 경우도 받는다 —
+    # /note 의 links 는 문자열이라 호출부가 섞어 보내기 쉽고, 그때 500 이 나면 안 된다.
+    targets = []
+    for t in (d.get('targets') or []):
+        if isinstance(t, str):
+            n = t.strip()
+            if n:
+                targets.append({'note': n, 'path': f'{note_dir_of(it)}/{n}.md'})
+        elif isinstance(t, dict) and t.get('note') and t.get('path'):
+            targets.append(t)
+        else:
+            return jsonify({'status': 'error',
+                            'error': "targets 는 문자열 또는 {note, path} 여야 합니다"}), 400
     key = it['key']
     try:
         mine = safe_vault_path(it['note_path'])
@@ -844,12 +1457,7 @@ def api_link():
     text = mine.read_text(encoding='utf-8')
     linked = sorted({t['note'] for t in targets} | set(it.get('links') or []))
     line = '* 연결된 노트: ' + (', '.join(f'[[{l}]]' for l in linked) if linked else '없음')
-    if re.search(r'^\* 연결된 노트:.*$', text, flags=re.M):
-        text = re.sub(r'^\* 연결된 노트:.*$', lambda _m: line, text, count=1, flags=re.M)
-    else:
-        text = text.replace('# 🔗 Knowledge Connections\n',
-                            f'# 🔗 Knowledge Connections\n\n{line}\n', 1)
-    mine.write_text(text, encoding='utf-8')
+    mine.write_text(put_under_conn(text, line, r'^\* 연결된 노트:.*$'), encoding='utf-8')
 
     back = []
     for t in targets:
@@ -865,11 +1473,7 @@ def api_link():
         if f'[[{key}]]' in body:
             back.append({'path': t['path'], 'ok': True, 'msg': '이미 연결되어 있습니다'})
             continue
-        if '## 🔗 연결 노트' in body:
-            body = body.replace('## 🔗 연결 노트', f'## 🔗 연결 노트\n- [[{key}]]', 1)
-        else:
-            body = body.rstrip() + f'\n\n## 🔗 연결 노트\n- [[{key}]]\n'
-        tp.write_text(body, encoding='utf-8')
+        tp.write_text(put_under_conn(body, f'- [[{key}]]'), encoding='utf-8')
         back.append({'path': t['path'], 'ok': True, 'msg': '역링크를 넣었습니다'})
 
     it['links'] = linked
@@ -1011,6 +1615,190 @@ def api_draft():
     save_inbox(items)
     return jsonify({'status': 'ok', 'path': fp.relative_to(VAULT).as_posix(),
                     'appended': block.strip()})
+
+
+# ═══════════════════════════════════════════════
+# 라이브러리 — 컬렉션 · 태그 · 저장한 검색 · 중복
+#   수집함은 평면 리스트다. Zotero 좌측 패널이 하던 일을 여기서 한다.
+#   컬렉션은 항목을 옮기지 않는다 — 항목이 어디에 속하는지만 적는다.
+#   한 논문이 여러 컬렉션에 동시에 들어가야 하기 때문이다 (Zotero 와 같다).
+# ═══════════════════════════════════════════════
+LIBRARY_PATH = ROOT / 'Server' / 'scholar_library.json'
+DEFAULT_LIBRARY = {'collections': [], 'saved': []}
+
+
+def load_library() -> dict:
+    lib = {k: list(v) for k, v in DEFAULT_LIBRARY.items()}
+    if LIBRARY_PATH.exists():
+        try:
+            d = json.loads(LIBRARY_PATH.read_text(encoding='utf-8'))
+        except Exception:                                    # noqa: BLE001
+            return lib
+        for k in DEFAULT_LIBRARY:
+            if isinstance(d.get(k), list):
+                lib[k] = d[k]
+    return lib
+
+
+def save_library(lib: dict) -> None:
+    LIBRARY_PATH.write_text(json.dumps(lib, ensure_ascii=False, indent=2), encoding='utf-8')
+
+
+def tag_counts(items: list) -> list:
+    c = {}
+    for it in items:
+        for t in it.get('tags') or []:
+            c[t] = c.get(t, 0) + 1
+    return [{'tag': t, 'n': n} for t, n in sorted(c.items(), key=lambda x: (-x[1], x[0]))]
+
+
+def dup_groups(items: list) -> list:
+    """DOI 가 같거나 제목이 같은 묶음만 모은다.
+
+    판정은 하지 않는다 — 어느 쪽을 남길지는 사람이 고른다. 자동 병합은
+    서지가 다른 두 논문을 한 키로 합쳐 버릴 수 있다.
+    """
+    buckets = {}
+    for it in items:
+        p = it.get('paper') or {}
+        k = (p.get('doi') or '').lower() or norm_title(p.get('title') or '')
+        if not k:
+            continue
+        buckets.setdefault(k, []).append(it['key'])
+    return [{'on': k, 'keys': v} for k, v in buckets.items() if len(v) > 1]
+
+
+@bp.route('/library')
+def api_library():
+    """좌측 패널이 필요한 것 한 번에 — 컬렉션·저장검색·태그 집계·중복 묶음."""
+    items = load_inbox()
+    lib = load_library()
+    return jsonify({'status': 'ok', 'collections': lib['collections'],
+                    'saved': lib['saved'], 'tags': tag_counts(items),
+                    'duplicates': dup_groups(items),
+                    'path': 'Server/scholar_library.json'})
+
+
+@bp.route('/library/collection', methods=['POST'])
+def api_collection_put():
+    """컬렉션을 만들거나 이름을 고친다. id 를 주면 수정, 없으면 생성."""
+    d = request.json or {}
+    name = (d.get('name') or '').strip()
+    if not name:
+        return jsonify({'status': 'error', 'error': '이름이 필요합니다'}), 400
+    parent = (d.get('parent') or '').strip()
+    lib = load_library()
+    cid = d.get('id')
+    cur = next((c for c in lib['collections'] if c['id'] == cid), None) if cid else None
+    if cur:
+        if parent == cur['id']:
+            return jsonify({'status': 'error', 'error': '자기 자신을 상위로 둘 수 없습니다'}), 400
+        cur['name'], cur['parent'] = name, parent
+    else:
+        if any(c['name'] == name and (c.get('parent') or '') == parent
+               for c in lib['collections']):
+            return jsonify({'status': 'error',
+                            'error': f'같은 자리에 "{name}" 이 이미 있습니다'}), 409
+        lib['collections'].append({'id': uuid.uuid4().hex[:8], 'name': name, 'parent': parent})
+    save_library(lib)
+    return jsonify({'status': 'ok', 'collections': lib['collections']})
+
+
+@bp.route('/library/collection/<cid>', methods=['DELETE'])
+def api_collection_del(cid):
+    """컬렉션만 지운다 — 논문은 수집함에 남는다 (Zotero 와 같다)."""
+    lib = load_library()
+    kill = {cid}
+    while True:                              # 하위 컬렉션까지 따라 내려간다
+        more = {c['id'] for c in lib['collections']
+                if (c.get('parent') or '') in kill and c['id'] not in kill}
+        if not more:
+            break
+        kill |= more
+    lib['collections'] = [c for c in lib['collections'] if c['id'] not in kill]
+    save_library(lib)
+    items = load_inbox()
+    for it in items:
+        if it.get('collections'):
+            it['collections'] = [x for x in it['collections'] if x not in kill]
+    save_inbox(items)
+    return jsonify({'status': 'ok', 'collections': lib['collections'],
+                    'items': items, 'removed': sorted(kill)})
+
+
+@bp.route('/library/saved', methods=['POST'])
+def api_saved_put():
+    """저장한 검색 — 조건을 이름으로 남긴다. 결과를 저장하는 게 아니다.
+
+    결과를 저장하면 수집함이 바뀌어도 낡은 목록이 남는다. 조건만 남기면
+    누를 때마다 지금의 수집함에 다시 걸린다.
+    """
+    d = request.json or {}
+    name = (d.get('name') or '').strip()
+    if not name:
+        return jsonify({'status': 'error', 'error': '이름이 필요합니다'}), 400
+    lib = load_library()
+    row = {'id': uuid.uuid4().hex[:8], 'name': name,
+           'q': (d.get('q') or '').strip(),
+           'tags': [t for t in (d.get('tags') or []) if isinstance(t, str)],
+           'collection': (d.get('collection') or '').strip(),
+           'stage_min': max(0, min(7, int(d.get('stage_min') or 0))),
+           'has_pdf': bool(d.get('has_pdf')),
+           'untagged': bool(d.get('untagged')),
+           'starred': bool(d.get('starred'))}
+    lib['saved'] = [x for x in lib['saved'] if x['name'] != name] + [row]
+    save_library(lib)
+    return jsonify({'status': 'ok', 'saved': lib['saved']})
+
+
+@bp.route('/library/saved/<sid>', methods=['DELETE'])
+def api_saved_del(sid):
+    lib = load_library()
+    lib['saved'] = [x for x in lib['saved'] if x['id'] != sid]
+    save_library(lib)
+    return jsonify({'status': 'ok', 'saved': lib['saved']})
+
+
+@bp.route('/merge', methods=['POST'])
+def api_merge():
+    """중복 병합 — keep 에 모으고 나머지를 수집함에서 뺀다.
+
+    서지는 keep 것을 그대로 둔다. 섞으면 어느 쪽 값인지 알 수 없게 된다.
+    하이라이트·태그·컬렉션·링크만 합친다.
+    단계도 올리지 않는다 — keep 의 산출물(노트·인용)만이 근거다. 뺀 쪽이
+    남긴 노트 파일은 디스크에 그대로 있으므로 경로를 돌려준다 (지우는 건 사람의 일).
+    """
+    d = request.json or {}
+    keep_key = d.get('keep')
+    drop_keys = [k for k in (d.get('drop') or []) if k and k != keep_key]
+    items = load_inbox()
+    keep = find_item(items, keep_key)
+    if not keep:
+        return jsonify({'status': 'error', 'error': f'수집함에 없습니다: {keep_key}'}), 404
+    drops = [it for it in items if it['key'] in drop_keys]
+    if not drops:
+        return jsonify({'status': 'error', 'error': '뺄 항목이 없습니다'}), 400
+
+    seen = {(h.get('section'), (h.get('text') or '').strip())
+            for h in keep.get('highlights') or []}
+    merged = list(keep.get('highlights') or [])
+    orphan_notes = []
+    for it in drops:
+        for h in it.get('highlights') or []:
+            sig = (h.get('section'), (h.get('text') or '').strip())
+            if sig in seen:
+                continue
+            seen.add(sig)
+            merged.append(h)
+        for f in ('tags', 'collections', 'links'):
+            keep[f] = sorted(set(keep.get(f) or []) | set(it.get(f) or []))
+        if it.get('note_path'):
+            orphan_notes.append(it['note_path'])
+    keep['highlights'] = merged
+    items = [it for it in items if it['key'] not in drop_keys]
+    save_inbox(items)
+    return jsonify({'status': 'ok', 'item': keep, 'items': items,
+                    'dropped': drop_keys, 'orphan_notes': orphan_notes})
 
 
 # ═══════════════════════════════════════════════

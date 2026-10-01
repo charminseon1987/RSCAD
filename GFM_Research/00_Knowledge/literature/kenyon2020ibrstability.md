@@ -112,3 +112,6 @@ IBR(인버터 기반 자원)이 동기기 중심으로 설계된 계통의 사�
   - **Shah et al. (2018)** — PCC에서 IBR 임피던스와 계통 임피던스 비교, 임피던스 기반 안정도 지표
   - **Eto et al. (2020), NREL Research Roadmap on Grid-Forming Inverters** — 서론 정책·기술 로드맵
   - **Matevosyan et al. (2019)** — GFM이 고침투의 열쇠인가, IEEE Power Energy Mag. 서론용
+
+## 🔗 연결 노트
+- [[zhan2024industrial]]

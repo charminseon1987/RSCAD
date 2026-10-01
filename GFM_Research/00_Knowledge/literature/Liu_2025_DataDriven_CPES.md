@@ -114,6 +114,7 @@ tags: [literature, Liu2025, data-driven, RL, GFM, DRL, CPES, survey]
 ---
 
 ## 🔗 연결 노트
+- [[qu2025industrial]]
 
 - [[PSO 이중수렴기준]] — 데이터기반 vs 모델기반 비교
 - [[고유값_안정도판단]] — 모델기반 안정성 보장 근거

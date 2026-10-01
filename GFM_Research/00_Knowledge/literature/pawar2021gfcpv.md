@@ -146,3 +146,6 @@ status: cited
 ## 내 논문 인용
 - phd_proposal / 2. 선행연구 — PV GFM 예비력 운전 (gap_motivation): Pawar 등[x]은 MPP 추정 없이 감발 운전과 GF/LGF 모드 전환으로 PV GFM을 구현했으나, 균일 일사와 평균값 모델 시뮬레이션에 한정되어 모드 전환 경계의 강건성은 정량화되지 않았다.
 - phd_proposal / 3. 연구방법 — 비교 기준선 (comparison): 전류 제한 성능 비교에는 [x]의 가변 포화 + rate limiter 방식을 기준선으로 사용한다.
+
+## 🔗 연결 노트
+- [[zhan2024industrial]]
