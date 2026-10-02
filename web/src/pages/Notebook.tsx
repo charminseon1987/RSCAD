@@ -488,6 +488,14 @@ export default function Notebook() {
                   <div className="flex gap-1 flex-wrap mt-2">
                     <button className="s-chip s-chip-sm"
                       disabled={!!busy} onClick={() => introduce(it)}>이 논문 설명</button>
+                    {attach[it.key]?.ok && (
+                      /* 읽기는 한 곳에서만 한다 — 리더와 하이라이트는 저쪽이 맡는다 */
+                      <a className="s-chip s-chip-sm" style={{ textDecoration: 'none' }}
+                        title="PDF 를 열어 끌어서 칠합니다"
+                        href={`/research/scholar/flow?key=${encodeURIComponent(it.key)}&step=4`}>
+                        원문 읽기 ↗
+                      </a>
+                    )}
                     {!attach[it.key]?.ok && (
                       <>
                         <button className="s-chip s-chip-sm" disabled={!!busy}

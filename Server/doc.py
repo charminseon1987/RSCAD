@@ -36,7 +36,7 @@ bp = Blueprint('doc', __name__, url_prefix='/api/doc')
 COMMENTS_PATH = ROOT / 'Server' / 'doc_comments.json'
 
 # 글을 두는 곳. 볼트 안이면 어디든 열 수 있지만, 목록은 여기부터 보여 준다.
-WRITE_DIRS = ['00_Knowledge/mine', '00_Knowledge/claims']
+WRITE_DIRS = ['00_Knowledge/mine', '00_Knowledge/claims', 'RSCAD/03_실험/일지']
 
 
 def _now() -> str:
@@ -152,6 +152,128 @@ def api_new():
 
 
 # ═══════════════════════════════════════════════
+# 연구일지 — 수치는 자동, 해석은 내가
+#   그날 돌린 실험을 고르면 조건·결과가 표로 박힌다. 사람이 숫자를 옮겨 적으면
+#   언젠가 틀린다 — 틀린 줄도 모르고 그 숫자가 논문으로 간다.
+#   그 위에 ▸(관측) / ※(내 해석)으로 쓴다. 이 글이 나중에 논문 문단이 된다.
+# ═══════════════════════════════════════════════
+JOURNAL_DIR = 'RSCAD/03_실험/일지'
+RESULTS_ROOT = ROOT / 'results'
+
+
+def _runs() -> list:
+    """results/ 의 실험 기록. app.py 의 /api/runs 와 같은 자리를 읽는다."""
+    out = []
+    if not RESULTS_ROOT.exists():
+        return out
+    for d in sorted(RESULTS_ROOT.iterdir()):
+        mp = d / 'meta.json'
+        if not d.is_dir() or not mp.exists():
+            continue
+        try:
+            m = json.loads(mp.read_text(encoding='utf-8'))
+        except Exception:                                    # noqa: BLE001
+            continue
+        m['run_name'] = m.get('run_name') or d.name
+        out.append(m)
+    return out
+
+
+def run_table(names: list) -> str:
+    """고른 실험을 마크다운 표로. 없는 값은 비워 둔다 — 지어내지 않는다."""
+    want = [r for r in _runs() if r.get('run_name') in set(names)]
+    if not want:
+        return ''
+    rows = ['| run | 날짜 | X/R | SCR | 전부 안정 | ζ_min | 상태수 |',
+            '|---|---|---|---|---|---|---|']
+    for r in want:
+        scr = ', '.join(str(x) for x in (r.get('SCR_list') or [])) or '—'
+        stable = {True: '예', False: '아니오'}.get(r.get('all_stable'), '—')
+        z = r.get('zeta_min')
+        rows.append(f"| `{r['run_name']}` | {r.get('timestamp') or '—'} | "
+                    f"{r.get('XR', '—')} | {scr} | {stable} | "
+                    f"{z if z is not None else '—'} | {r.get('n_states', '—')} |")
+    return '\n'.join(rows)
+
+
+@bp.route('/runs')
+def api_runs():
+    """일지에 박을 수 있는 실험 목록. 화면이 여기서 고른다."""
+    out = [{k: r.get(k) for k in
+            ('run_name', 'timestamp', 'XR', 'SCR_list', 'all_stable', 'zeta_min',
+             'n_states', 'model_version')}
+           for r in _runs()]
+    out.sort(key=lambda r: r.get('timestamp') or '', reverse=True)
+    return jsonify({'status': 'ok', 'runs': out, 'dir': 'results'})
+
+
+@bp.route('/journal', methods=['POST'])
+def api_journal_new():
+    """오늘자 연구일지를 만든다. 고른 실험이 있으면 표로 박아 둔다."""
+    d = request.json or {}
+    title = re.sub(r'[\\/:*?"<>|]', '', (d.get('title') or '').strip()) or '연구일지'
+    day = (d.get('date') or datetime.date.today().isoformat())[:10]
+    rel = f'{JOURNAL_DIR}/{day}_{title}.md'
+    try:
+        fp = safe_vault_path(rel)
+    except ValueError:
+        return jsonify({'status': 'error', 'error': '볼트 밖 경로'}), 403
+    if fp.exists():
+        return jsonify({'status': 'error', 'error': f'이미 있습니다: {rel}'}), 409
+
+    table = run_table(d.get('runs') or [])
+    body = [f'# {day} {title}', '']
+    if table:
+        body += ['## 돌린 것', '',
+                 '<!-- results/ 의 meta.json 에서 그대로 옮긴 값이다. 손으로 고치지 않는다. -->',
+                 table, '']
+    elif d.get('runs'):
+        body += ['## 돌린 것', '',
+                 '※ 고른 실험을 results/ 에서 찾지 못했습니다 — 이름을 확인하세요.', '']
+    body += ['## 본 것', '', '▸ ', '',
+             '## 내 해석', '', '※ ', '',
+             '## 논문 어디에', '',
+             '※ 이 일지를 논문 어느 절로 보낼지 (I~V). ‘합치기’ 에서 고릅니다.', '']
+    text = '\n'.join(body) + '\n'
+    fp.parent.mkdir(parents=True, exist_ok=True)
+    fp.write_text(text, encoding='utf-8')
+    return jsonify({'status': 'ok', 'path': rel, 'text': text, 'base': _hash(text)})
+
+
+# ═══════════════════════════════════════════════
+# 합치기 — 일지 문단을 논문 절로
+#   파일을 쓰지 않는다. 합친 본문을 돌려주기만 하고, 저장은 사람이 편집기에서
+#   보고 누른다. 자동으로 써 버리면 '언제 뭐가 들어갔는지' 를 놓친다.
+# ═══════════════════════════════════════════════
+PARA_SPLIT = re.compile(r'\n\s*\n')
+
+
+@bp.route('/paragraphs')
+def api_paragraphs():
+    """글을 문단으로 쪼개 돌려준다. 합치기 화면이 왼쪽에 세운다."""
+    rel = request.args.get('path') or ''
+    try:
+        fp = safe_vault_path(rel)
+    except ValueError:
+        return jsonify({'status': 'error', 'error': '볼트 밖 경로'}), 403
+    if not fp.is_file():
+        return jsonify({'status': 'error', 'error': f'없는 글입니다: {rel}'}), 404
+    text = fp.read_text(encoding='utf-8')
+    out = []
+    for i, p in enumerate(PARA_SPLIT.split(text)):
+        s = p.strip()
+        if not s:
+            continue
+        out.append({'i': i, 'text': s,
+                    # 제목·표·주석은 그대로 옮길 것이 아니라 보고 판단할 것이다
+                    'kind': ('heading' if s.startswith('#')
+                             else 'table' if s.startswith('|')
+                             else 'comment' if s.startswith('<!--')
+                             else 'marker' if s[0] in '▸※'
+                             else 'text')})
+    return jsonify({'status': 'ok', 'path': rel, 'paragraphs': out})
+
+# ═══════════════════════════════════════════════
 # ② 댓글 — 문장에 묶인 메모
 #   마크다운에는 댓글을 담을 자리가 없다. 그래서 따로 둔다.
 #   자리는 글자 위치가 아니라 **인용한 문장 자체**로 잡는다. 글을 고치면 위치는
@@ -260,6 +382,149 @@ def api_comment_edit(cid):
     save_comments(rows)
     return jsonify({'status': 'ok', 'comments': [c for c in rows if c['path'] == rel]})
 
+
+# ═══════════════════════════════════════════════
+# AI 검토 — 댓글로만 남긴다
+#   본문을 고치지 않는다. 고쳐 주면 편하지만, 어디가 왜 바뀌었는지 모른 채
+#   논문이 흘러간다. 지적만 남기고 고치는 것은 사람이 한다.
+#
+#   보는 것 셋. 넓히지 않는다 — 모델이 넓게 보면 '문장이 어색합니다' 같은
+#   쓸모없는 말이 쌓이고, 쌓이면 아무도 안 읽는다.
+#     ① 근거 없는 주장 — 색인에서 뒷받침을 못 찾는 문단 (모델이 아니라 검색이 판단)
+#     ② 인용 표기 깨짐 — [@key]·[[링크]] 모양이 틀린 것 (정규식이 판단)
+#     ③ 용어 흔들림   — 같은 것을 다르게 쓴 것 (표로 판단)
+#   ①②③ 모두 **기계가 먼저 거르고**, 모델은 거기에 설명을 붙일 뿐이다.
+# ═══════════════════════════════════════════════
+# 이 저장소에서 굳어진 표기. 왼쪽이 맞고 오른쪽은 흔들린 꼴이다.
+TERMS = [
+    ('SCR', [r'\bscr\b', r'단락\s*용량\s*비']),
+    ('X/R', [r'\bx\s*/\s*r\b(?!\))', r'\bXR\b']),
+    ('GFM', [r'\bgfm\b', r'그리드\s*포밍(?!\s*\()']),
+    ('GFL', [r'\bgfl\b']),
+    ('PSO', [r'\bpso\b', r'입자\s*군집']),
+]
+CITE_OK = re.compile(r'\[@[A-Za-z][A-Za-z0-9_:.#$%&+?<>~/-]*\]')
+CITE_LOOSE = re.compile(r'\[@[^\]]*\]')
+WIKI_OK = re.compile(r'\[\[[^\[\]]+\]\]')
+WIKI_LOOSE = re.compile(r'\[\[[^\]]*\]?\]?')
+
+
+def _cite_problems(text: str) -> list:
+    """인용 표기가 망가진 곳. 모델이 [@key] 를 중간에서 끊어 먹은 적이 있다."""
+    out = []
+    for m in CITE_LOOSE.finditer(text):
+        if not CITE_OK.fullmatch(m.group()):
+            out.append(f'인용 표기가 깨졌습니다: `{m.group()[:40]}`')
+    # [@ 로 열고 안 닫은 것
+    for m in re.finditer(r'\[@[^\]\n]{0,60}$', text, re.M):
+        out.append(f'인용이 닫히지 않았습니다: `{m.group()[:40]}`')
+    return out
+
+
+def _term_problems(text: str) -> list:
+    out = []
+    for right, wrongs in TERMS:
+        if right in text:
+            continue                      # 맞게 쓴 자리가 있으면 흔들림만 본다
+        for w in wrongs:
+            m = re.search(w, text, re.I)
+            if m and m.group() != right:
+                out.append(f'표기가 흔들립니다: `{m.group()}` → `{right}`')
+                break
+    return out
+
+
+REVIEW_SYS = ('학술 원고의 한 문단을 검토합니다. 지적된 문제에 대해서만, '
+              '왜 문제인지와 어떻게 고칠지를 한국어 1~2문장으로 씁니다.\n'
+              '규칙: 새 사실·수치·출처를 지어내지 않습니다. 문단을 다시 쓰지 않습니다. '
+              '머리말 없이 지적만 씁니다.')
+REVIEW_PREFILL = '지적:'
+
+
+@bp.route('/review', methods=['POST'])
+def api_review():
+    """글을 훑어 댓글을 단다. 본문은 글자 하나도 바뀌지 않는다.
+
+    기계가 먼저 거르고(근거·인용·용어) 모델은 설명만 붙인다. 모델을 못 쓰면
+    기계가 찾은 것만 댓글로 남는다 — 검토가 통째로 멈추지는 않는다.
+    """
+    d = request.json or {}
+    rel = (d.get('path') or '').strip()
+    try:
+        fp = safe_vault_path(rel)
+    except ValueError:
+        return jsonify({'status': 'error', 'error': '볼트 밖 경로'}), 403
+    if not fp.is_file():
+        return jsonify({'status': 'error', 'error': f'없는 글입니다: {rel}'}), 404
+
+    text = fp.read_text(encoding='utf-8')
+    paras = [p.strip() for p in PARA_SPLIT.split(text) if p.strip()]
+    # 제목·표·주석은 검토 대상이 아니다
+    paras = [p for p in paras if not p.startswith(('#', '|', '<!--', '>'))]
+    limit = max(1, min(12, int(d.get('limit') or 8)))
+    paras = [p for p in paras if len(p) >= 40][:limit]
+    if not paras:
+        return jsonify({'status': 'ok', 'added': 0, 'comments': [],
+                        'note': '검토할 문단이 없습니다 (40자 이상 본문 기준)'})
+
+    explain = bool(d.get('explain', True))
+    engine = d.get('engine')
+    rows = load_comments()
+    have = {(c.get('path'), c.get('quote'), c.get('body')) for c in rows}
+    added, checked = [], 0
+
+    for p in paras:
+        checked += 1
+        problems = []
+
+        # ① 근거 — 검색이 판단한다. 모델에게 묻지 않는다.
+        hits, err = ask.retrieve(p[:400], 3)
+        if not err:
+            best = hits[0]['sim'] if hits else 0
+            if best < ask.MIN_SIM:
+                problems.append(('evidence',
+                                 f'색인에서 이 문단을 뒷받침할 대목을 찾지 못했습니다 '
+                                 f'(최고 유사도 {best} < {ask.MIN_SIM}). '
+                                 f'근거 없이 쓰고 있는 문장일 수 있습니다'))
+        # ② 인용 표기
+        for msg in _cite_problems(p):
+            problems.append(('citation', msg))
+        # ③ 용어
+        for msg in _term_problems(p):
+            problems.append(('term', msg))
+
+        for kind, msg in problems:
+            body = msg
+            if explain and kind != 'evidence':
+                r = llm.complete(system=REVIEW_SYS,
+                                 messages=[{'role': 'user',
+                                            'content': f'문단:\n{p[:800]}\n\n지적할 점: {msg}'}],
+                                 engine=engine, prefill=REVIEW_PREFILL,
+                                 max_tokens=200, timeout=int(d.get('timeout') or 180))
+                if r['ok'] and r['text'].strip():
+                    body = f'{msg}\n{r["text"].strip()}'
+            quote = p[:200]
+            if (rel, quote, body) in have:
+                continue                  # 같은 지적을 두 번 달지 않는다
+            at = text.find(quote)
+            rows.append({
+                'id': uuid.uuid4().hex[:10], 'path': rel, 'quote': quote,
+                'prefix': text[max(0, at - 40):at] if at > 0 else '',
+                'suffix': text[at + len(quote):at + len(quote) + 40] if at >= 0 else '',
+                'start': at if at >= 0 else None,
+                'body': body, 'by': 'ai', 'kind': kind,
+                'resolved': False, 'created': _now(),
+            })
+            have.add((rel, quote, body))
+            added.append(kind)
+
+    save_comments(rows)
+    mine = [anchor(text, c) for c in rows if c.get('path') == rel]
+    return jsonify({'status': 'ok', 'checked': checked, 'added': len(added),
+                    'by_kind': {k: added.count(k) for k in set(added)},
+                    'comments': mine,
+                    'note': ('본문은 바뀌지 않았습니다 — 지적만 댓글로 달렸습니다'
+                             if added else '지적할 것을 찾지 못했습니다')})
 
 # ═══════════════════════════════════════════════
 # ③ AI 보조 — 고른 문장에 대해서만

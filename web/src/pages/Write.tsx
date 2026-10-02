@@ -75,7 +75,24 @@ interface Suggestion {
   lost_citations: string[]; truncated: boolean; note: string; model: string;
 }
 
+interface Run {
+  run_name: string; timestamp: string; XR: number | null;
+  SCR_list: number[] | null; all_stable: boolean | null; zeta_min: number | null;
+}
+interface Para { i: number; text: string; kind: string }
+interface Section { id: string; title: string }
+
 const SAVE_DELAY = 1800;   // 타자가 멈추고 이만큼 지나면 저장한다
+
+/* 글이 어느 탭의 것인지는 **폴더로** 갈린다. 연구일지와 논문을 한 목록에 섞으면
+   어느 것을 고쳐야 할지 매번 헷갈린다. */
+const JOURNAL_DIR = 'RSCAD/03_실험/일지';
+const TABS = [
+  { k: 'journal', label: '연구일지', hint: '돌린 실험 위에 내 해석을 쌓는다' },
+  { k: 'merge', label: '합치기', hint: '일지 문단을 논문 절로 — 나란히 보고 민다' },
+  { k: 'paper', label: '논문', hint: '본문을 쓰고 다듬고 검토한다' },
+] as const;
+type Tab = typeof TABS[number]['k'];
 
 export default function Write() {
   const [docs, setDocs] = useState<DocRow[]>([]);
@@ -96,6 +113,20 @@ export default function Write() {
   const [clips, setClips] = useState<Clip[]>([]);
   const [q, setQ] = useState('');
   const [found, setFound] = useState<Hit[] | null>(null);
+
+  const [tab, setTab] = useState<Tab>('paper');
+  // 연구일지
+  const [runs, setRuns] = useState<Run[]>([]);
+  const [pickRun, setPickRun] = useState<Record<string, boolean>>({});
+  const [jTitle, setJTitle] = useState('');
+  // 합치기
+  const [src, setSrc] = useState('');            // 어느 일지에서
+  const [paras, setParas] = useState<Para[]>([]);
+  const [dst, setDst] = useState('');            // 어느 논문으로
+  const [sections, setSections] = useState<Section[]>([]);
+  const [sec, setSec] = useState('III');
+  const [pickPara, setPickPara] = useState<Record<number, boolean>>({});
+  const [preview, setPreview] = useState<{ text: string; where: string } | null>(null);
 
   const [busy, setBusy] = useState('');
   const [err, setErr] = useState('');
@@ -142,7 +173,74 @@ export default function Write() {
     loadDocs();
     fetchJSON('/doc/actions').then(d => { setActions(d.actions || []); setOllama(d.ollama); }).catch(() => {});
     fetchJSON('/notebook/clips').then(d => setClips(d.clips || [])).catch(() => {});
+    fetchJSON('/doc/runs').then(d => setRuns(d.runs || [])).catch(() => {});
+    fetchJSON('/notebook/sections').then(d => setSections(d.sections || [])).catch(() => {});
   }, [loadDocs]);
+
+  /* 탭이 바뀌면 그 탭의 글만 보여 준다 */
+  const inTab = (d: DocRow, t: Tab) =>
+    t === 'journal' ? d.path.startsWith(JOURNAL_DIR) : !d.path.startsWith(JOURNAL_DIR);
+  const tabDocs = docs.filter(d => inTab(d, tab === 'merge' ? 'paper' : tab));
+  const journals = docs.filter(d => d.path.startsWith(JOURNAL_DIR));
+  const papers = docs.filter(d => !d.path.startsWith(JOURNAL_DIR));
+
+  /* ── 연구일지 ── */
+  const newJournal = () => {
+    const picked = Object.entries(pickRun).filter(([, v]) => v).map(([k]) => k);
+    setBusy('journal'); setErr('');
+    postJSON('/doc/journal', { title: jTitle.trim() || '연구일지', runs: picked })
+      .then(d => {
+        setJTitle(''); setPickRun({});
+        loadDocs().then(() => open(d.path));
+        flash(`일지를 만들었습니다 — ${d.path}`);
+      })
+      .catch(e => {
+        const m = String(e?.message || e);
+        setErr(m.includes('409') ? '같은 이름의 일지가 이미 있습니다 — 제목을 바꾸세요' : m.slice(0, 200));
+      })
+      .finally(() => setBusy(''));
+  };
+
+  /* ── 합치기 ── */
+  const loadParas = (p: string) => {
+    setSrc(p); setParas([]); setPickPara({}); setPreview(null);
+    if (!p) return;
+    fetchJSON(`/doc/paragraphs?path=${encodeURIComponent(p)}`)
+      .then(d => setParas(d.paragraphs || [])).catch(fail);
+  };
+  const doMerge = () => {
+    const chosen = paras.filter(x => pickPara[x.i]).map(x => x.text);
+    if (!dst) { setErr('어느 논문으로 보낼지 고르세요'); return; }
+    if (!chosen.length) { setErr('밀어 넣을 문단을 고르세요'); return; }
+    setBusy('merge'); setErr('');
+    postJSON('/notebook/merge', { paper: dst, section: sec, paragraphs: chosen })
+      .then(d => { setPreview({ text: d.text, where: d.where }); flash(`${d.where} — ${d.note}`); })
+      .catch(fail).finally(() => setBusy(''));
+  };
+  /* 합친 본문을 논문 탭으로 넘긴다. 저장은 거기서 눌러야 한다 — 자동으로 쓰지 않는다. */
+  const toPaper = () => {
+    if (!preview || !editor) return;
+    setTab('paper');
+    fetchJSON(`/doc?path=${encodeURIComponent(dst)}`).then(d => {
+      setPath(d.path); pathRef.current = d.path;
+      setBase(d.base); baseRef.current = d.base;
+      editor.commands.setContent(preview.text);
+      setDirty(true); setPreview(null);
+      loadComments(d.path);
+      flash('논문 탭으로 옮겼습니다 — 보고 나서 저장하세요');
+    }).catch(fail);
+  };
+
+  /* ── AI 검토 — 댓글로만 ── */
+  const review = () => {
+    if (!path) return;
+    setBusy('review'); setErr('');
+    postJSON('/doc/review', { path, explain: false })
+      .then(d => {
+        setComments(d.comments || []);
+        flash(`${d.checked}개 문단에서 ${d.added}건 — ${d.note}`);
+      }).catch(fail).finally(() => setBusy(''));
+  };
 
   const open = (p: string) => {
     if (dirty && !window.confirm('저장하지 않은 글이 있습니다. 그래도 옮기시겠습니까?')) return;
@@ -283,11 +381,12 @@ export default function Write() {
       <div className="s-panel" style={{ padding: 14 }}>
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <div style={{ fontSize: 17, fontWeight: 700 }}>논문 쓰기</div>
+            <div style={{ fontSize: 17, fontWeight: 700 }}>쓰기</div>
             <p style={{ fontSize: 14, color: 'var(--ink-2)', marginTop: 3, lineHeight: 1.7 }}>
-              보이는 대로 쓰지만 <strong>저장본은 마크다운</strong>입니다 — 같은 파일을 Obsidian 이 열고
-              Pandoc 이 돌립니다. 문장을 고르면 다듬기·근거 찾기·댓글이 뜹니다.
-              <br />AI 가 고친 문장은 <strong>제안</strong>일 뿐입니다. 넣는 것은 직접 누르셔야 합니다.
+              <strong>연구일지</strong>에 그날 돌린 것과 해석을 쌓고 → <strong>합치기</strong>로 논문 절에 밀어 넣고
+              → <strong>논문</strong>에서 다듬고 검토합니다.
+              <br />보이는 대로 쓰지만 <strong>저장본은 마크다운</strong>이라 Obsidian·Pandoc 이 그대로 읽습니다.
+              AI 가 고친 문장은 <strong>제안</strong>이고, 넣는 것은 직접 누르셔야 합니다.
             </p>
           </div>
           <div className="flex gap-2 flex-wrap items-center" style={{ fontSize: 12.5 }}>
@@ -319,13 +418,113 @@ export default function Write() {
         </div>
       )}
 
+      {/* ══ 탭 ══ */}
+      <div className="s-panel flex gap-2 flex-wrap" style={{ padding: 10 }}>
+        {TABS.map(t => (
+          <button key={t.k} className={tab === t.k ? 's-btn' : 's-chip'}
+            aria-pressed={tab === t.k} title={t.hint}
+            onClick={() => setTab(t.k)}>
+            {t.label}
+          </button>
+        ))}
+        <span style={{ fontSize: 13, color: 'var(--ink-3)', alignSelf: 'center', marginLeft: 6 }}>
+          {TABS.find(t => t.k === tab)?.hint}
+        </span>
+      </div>
+
+      {/* ══ 합치기 — 나란히 보고 문단 단위로 민다 ══ */}
+      {tab === 'merge' && (
+        <div className="grid grid-cols-12 gap-4 items-start">
+          <div className="col-span-12 lg:col-span-5 space-y-2">
+            <div className="s-panel" style={{ padding: 14 }}>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>어느 일지에서</div>
+              <select className="s-input" style={{ marginTop: 8 }} value={src}
+                onChange={e => loadParas(e.target.value)}>
+                <option value="">— 연구일지 고르기 —</option>
+                {journals.map(j => <option key={j.path} value={j.path}>{j.name}</option>)}
+              </select>
+              {!journals.length && (
+                <p style={{ fontSize: 13, color: 'var(--ink-3)', marginTop: 6, lineHeight: 1.6 }}>
+                  아직 일지가 없습니다 — <strong>연구일지</strong> 탭에서 만드세요.
+                </p>
+              )}
+            </div>
+            <div className="s-panel" style={{ padding: 14 }}>
+              <div style={{ fontSize: 14.5, fontWeight: 700 }}>
+                문단 {paras.length} · 고름 {Object.values(pickPara).filter(Boolean).length}
+              </div>
+              <p style={{ fontSize: 12.5, color: 'var(--ink-3)', marginTop: 4, lineHeight: 1.6 }}>
+                제목·표·주석은 회색입니다 — 그대로 옮길 것이 아니라 보고 판단할 것입니다.
+              </p>
+              <div className="space-y-1 mt-2" style={{ maxHeight: '52vh', overflowY: 'auto' }}>
+                {paras.map(x => (
+                  <label key={x.i} className="s-src flex items-start gap-2"
+                    style={{ padding: 9, cursor: 'pointer', opacity: x.kind === 'text' || x.kind === 'marker' ? 1 : 0.55 }}>
+                    <input type="checkbox" style={{ marginTop: 4 }} checked={!!pickPara[x.i]}
+                      onChange={() => setPickPara(s2 => ({ ...s2, [x.i]: !s2[x.i] }))} />
+                    <span style={{ fontSize: 13.5, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                      {x.text.slice(0, 220)}{x.text.length > 220 ? '…' : ''}
+                    </span>
+                  </label>
+                ))}
+                {src && !paras.length && (
+                  <p style={{ fontSize: 13.5, color: 'var(--ink-3)' }}>문단이 없습니다.</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="col-span-12 lg:col-span-7 space-y-2">
+            <div className="s-panel" style={{ padding: 14 }}>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>어느 논문 · 어느 절로</div>
+              <div className="flex gap-2 flex-wrap mt-2">
+                <select className="s-input" style={{ flex: 1, minWidth: 220 }} value={dst}
+                  onChange={e => setDst(e.target.value)}>
+                  <option value="">— 논문 고르기 —</option>
+                  {papers.map(d => <option key={d.path} value={d.path}>{d.name}</option>)}
+                </select>
+                <select className="s-input" style={{ width: 190 }} value={sec}
+                  onChange={e => setSec(e.target.value)}>
+                  {sections.map(x => <option key={x.id} value={x.id}>{x.id}. {x.title}</option>)}
+                </select>
+                <button className="s-btn" disabled={!!busy} onClick={doMerge}>
+                  {busy === 'merge' ? '합치는 중…' : '→ 밀어 넣기'}
+                </button>
+              </div>
+              <p className="s-interp" style={{ fontSize: 13, marginTop: 8 }}>
+                ※ 밀어 넣어도 <strong>파일은 바뀌지 않습니다.</strong> 합친 결과를 아래에서 보고,
+                논문 탭으로 옮겨 직접 저장하세요.
+              </p>
+            </div>
+
+            {preview && (
+              <div className="s-panel" style={{ padding: 14 }}>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span style={{ fontSize: 14.5, fontWeight: 700 }}>합친 결과 — {preview.where}</span>
+                  <div className="flex gap-2">
+                    <button className="s-btn" onClick={toPaper}>논문 탭으로 옮기기</button>
+                    <button className="s-chip" onClick={() => setPreview(null)}>버리기</button>
+                  </div>
+                </div>
+                <pre style={{
+                  fontSize: 13, lineHeight: 1.8, marginTop: 10, padding: 11, borderRadius: 9,
+                  background: 'var(--s-bg)', border: '1px solid var(--s-line)',
+                  whiteSpace: 'pre-wrap', maxHeight: '52vh', overflowY: 'auto',
+                }}>{preview.text}</pre>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {tab !== 'merge' && (
       <div className="grid grid-cols-12 gap-4 items-start">
         {/* ══ 왼쪽: 글 목록 ══ */}
         <div className="col-span-12 lg:col-span-2 space-y-2">
           <div className="s-panel" style={{ padding: 12 }}>
             <div style={{ fontSize: 14.5, fontWeight: 700 }}>글 {docs.length}</div>
             <div className="space-y-1 mt-2" style={{ maxHeight: '40vh', overflowY: 'auto' }}>
-              {docs.map(d => (
+              {tabDocs.map(d => (
                 <button key={d.path} className="s-src w-full text-left" data-hot={d.path === path}
                   style={{ padding: 8 }} onClick={() => open(d.path)}>
                   <div style={{ fontSize: 13, fontWeight: 600 }}>{d.name}</div>
@@ -342,6 +541,43 @@ export default function Write() {
               <button className="s-chip" style={{ fontSize: 12 }} onClick={create}>＋</button>
             </div>
           </div>
+
+          {/* 연구일지 — 돌린 실험을 고르면 수치가 표로 박힌다.
+              사람이 숫자를 옮겨 적으면 언젠가 틀리고, 틀린 줄도 모른다. */}
+          {tab === 'journal' && (
+            <div className="s-panel" style={{ padding: 12 }}>
+              <div style={{ fontSize: 14.5, fontWeight: 700 }}>새 일지</div>
+              <input className="s-input" style={{ fontSize: 13, padding: '6px 9px', marginTop: 8 }}
+                value={jTitle} placeholder="제목 (예: XR1.0 스윕 재확인)"
+                onChange={e => setJTitle(e.target.value)} />
+              <div style={{ fontSize: 12.5, color: 'var(--ink-3)', marginTop: 8, marginBottom: 4 }}>
+                오늘 돌린 실험 — 고르면 조건·결과가 표로 들어갑니다
+              </div>
+              <div className="space-y-1" style={{ maxHeight: '26vh', overflowY: 'auto' }}>
+                {!runs.length && (
+                  <p style={{ fontSize: 12.5, color: 'var(--ink-3)' }}>results/ 에 실험이 없습니다.</p>
+                )}
+                {runs.map(r => (
+                  <label key={r.run_name} className="flex items-start gap-2"
+                    style={{ fontSize: 12, cursor: 'pointer', lineHeight: 1.5 }}>
+                    <input type="checkbox" style={{ marginTop: 3 }} checked={!!pickRun[r.run_name]}
+                      onChange={() => setPickRun(x => ({ ...x, [r.run_name]: !x[r.run_name] }))} />
+                    <span className="min-w-0">
+                      <span style={{ display: 'block' }}>
+                        X/R {r.XR ?? '—'} · SCR {(r.SCR_list || []).join(', ') || '—'}
+                        {r.all_stable === true ? ' · 안정' : r.all_stable === false ? ' · 불안정' : ''}
+                      </span>
+                      <span style={{ color: 'var(--ink-3)' }}>{(r.timestamp || '').slice(0, 16)}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <button className="s-btn w-full" style={{ marginTop: 10 }}
+                disabled={!!busy} onClick={newJournal}>
+                {busy === 'journal' ? '만드는 중…' : '＋ 오늘 일지 만들기'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ══ 가운데: 본문 ══ */}
@@ -370,6 +606,13 @@ export default function Write() {
                     <button className="s-chip" style={{ fontSize: 12 }}
                       onClick={() => editor?.chain().focus().toggleBlockquote().run()}>인용블록</button>
                     <button className="s-chip" style={{ fontSize: 12 }} onClick={save}>저장</button>
+                    {tab === 'paper' && (
+                      <button className="s-chip" style={{ fontSize: 12 }} disabled={!!busy}
+                        title="근거 없는 주장·깨진 인용·흔들린 표기를 찾아 댓글로만 답니다. 본문은 바뀌지 않습니다"
+                        onClick={review}>
+                        {busy === 'review' ? 'AI 검토 중…' : 'AI 검토'}
+                      </button>
+                    )}
                   </div>
                 </div>
                 <EditorContent editor={editor} />
@@ -558,6 +801,7 @@ export default function Write() {
           </div>
         </div>
       </div>
+      )}
     </>
   );
 }

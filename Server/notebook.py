@@ -275,6 +275,112 @@ def api_clips_to_draft():
 
 
 # ═══════════════════════════════════════════════
+# ③ 합치기 — 일지 문단을 논문 절로
+#   **파일을 쓰지 않는다.** 합친 본문을 돌려주기만 하고, 저장은 사람이 편집기에서
+#   보고 누른다. 자동으로 써 버리면 언제 무엇이 들어갔는지 놓치고, 되돌리기도 어렵다.
+# ═══════════════════════════════════════════════
+SEC_HEAD = re.compile(r'^#{1,3}\s*(?:([IVX]+)\s*[.·]\s*)?(.+?)\s*$', re.M)
+
+
+def section_span(text: str, sec_id: str) -> tuple:
+    """논문에서 그 절의 (시작, 끝) 위치. 없으면 (-1, -1).
+
+    제목은 '## III. Methodology' 처럼 쓰지만 사람마다 흔들린다. 로마숫자가
+    맞거나 절 이름이 들어 있으면 그 절로 본다.
+    """
+    title = next((s['title'] for s in PAPER_SECTIONS if s['id'] == sec_id), '')
+    for m in SEC_HEAD.finditer(text):
+        roman, name = m.group(1), m.group(2)
+        hit = (roman and roman.upper() == sec_id.upper()) or \
+              (title and title.lower() in name.lower())
+        if not hit:
+            continue
+        nxt = SEC_HEAD.search(text, m.end())
+        return m.start(), (nxt.start() if nxt else len(text))
+    return -1, -1
+
+
+@bp.route('/merge', methods=['POST'])
+def api_merge():
+    """고른 문단을 논문의 그 절 끝에 붙인 본문을 돌려준다. 저장은 하지 않는다."""
+    d = request.json or {}
+    paper_rel = (d.get('paper') or '').strip()
+    sec = d.get('section') if d.get('section') in SECTION_IDS else None
+    paras = [p for p in (d.get('paragraphs') or []) if isinstance(p, str) and p.strip()]
+    if not paper_rel:
+        return jsonify({'status': 'error', 'error': '논문 파일이 필요합니다'}), 400
+    if not sec:
+        return jsonify({'status': 'error', 'error': '논문 절을 고르세요 (I~V)'}), 400
+    if not paras:
+        return jsonify({'status': 'error', 'error': '밀어 넣을 문단이 없습니다'}), 400
+    try:
+        fp = safe_vault_path(paper_rel)
+    except ValueError:
+        return jsonify({'status': 'error', 'error': '볼트 밖 경로'}), 403
+    if not fp.is_file():
+        return jsonify({'status': 'error', 'error': f'없는 글입니다: {paper_rel}'}), 404
+
+    text = fp.read_text(encoding='utf-8')
+    block = '\n\n'.join(p.strip() for p in paras)
+    start, end = section_span(text, sec)
+    if start < 0:
+        # 절이 아직 없으면 끝에 만든다. 있는 절에 끼워 넣지 않는다 —
+        # 엉뚱한 자리에 들어가면 찾기 어렵다.
+        title = next((s['title'] for s in PAPER_SECTIONS if s['id'] == sec), sec)
+        merged = text.rstrip() + f'\n\n## {sec}. {title}\n\n{block}\n'
+        where = f'새 절 "{sec}. {title}" 을 끝에 만들었습니다'
+    else:
+        head = text[:end].rstrip()
+        merged = head + '\n\n' + block + '\n\n' + text[end:].lstrip('\n')
+        where = f'{sec} 절 끝에 붙였습니다'
+    return jsonify({'status': 'ok', 'paper': paper_rel, 'section': sec,
+                    'text': merged, 'added': len(paras), 'where': where,
+                    # 저장하지 않았다는 사실을 화면이 그대로 말한다
+                    'saved': False,
+                    'note': '아직 저장하지 않았습니다 — 논문 탭에서 보고 저장하세요'})
+
+
+# ═══════════════════════════════════════════════
+# 논문 절 상태 — 눌러서 남는다
+#   예전에는 하드코딩이라 체크해도 사라졌다.
+# ═══════════════════════════════════════════════
+SECTIONS_PATH = ROOT / 'Server' / 'paper_sections.json'
+SECTION_STATES = ('pending', 'active', 'done')
+
+
+def load_sections() -> dict:
+    if SECTIONS_PATH.exists():
+        try:
+            return json.loads(SECTIONS_PATH.read_text(encoding='utf-8'))
+        except Exception:                                    # noqa: BLE001
+            return {}
+    return {}
+
+
+@bp.route('/sections')
+def api_sections():
+    st = load_sections()
+    return jsonify({'status': 'ok', 'sections': PAPER_SECTIONS,
+                    'state': st.get('state', {}), 'checklist': st.get('checklist', {}),
+                    'states': list(SECTION_STATES), 'path': 'Server/paper_sections.json'})
+
+
+@bp.route('/sections', methods=['POST'])
+def api_sections_put():
+    d = request.json or {}
+    st = load_sections()
+    state = dict(st.get('state', {}))
+    checklist = dict(st.get('checklist', {}))
+    for k, v in (d.get('state') or {}).items():
+        if k in SECTION_IDS and v in SECTION_STATES:
+            state[k] = v
+    for k, v in (d.get('checklist') or {}).items():
+        checklist[str(k)] = bool(v)
+    out = {'state': state, 'checklist': checklist, 'updated': _now()}
+    SECTIONS_PATH.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding='utf-8')
+    return jsonify({'status': 'ok', **out})
+
+# ═══════════════════════════════════════════════
 # ② 산출물 — 고른 소스를 묶어 정리한다
 #   만드는 주체는 로컬 모델이다. NotebookLM 처럼 보이지만 원문이 나가지 않는다.
 # ═══════════════════════════════════════════════

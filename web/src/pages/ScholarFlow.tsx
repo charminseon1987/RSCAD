@@ -263,7 +263,17 @@ export default function ScholarFlow() {
     fetchJSON('/scholar/settings').then(d => { setSettings(d.settings); setCfg(d.settings); })
       .catch(() => setErr('설정을 불러오지 못했습니다 — Flask 가 떠 있는지 확인하세요.'));
     fetchJSON('/scholar/vault-folders').then(d => setFolders(d.folders || [])).catch(() => {});
-    fetchJSON('/scholar/inbox').then(d => setItems(d.items || [])).catch(() => {});
+    fetchJSON('/scholar/inbox').then(d => {
+      setItems(d.items || []);
+      /* 노트북에서 '원문 읽기' 로 넘어온 경우 — 그 논문을 바로 열어 준다.
+         화면을 옮겨 놓고 "어느 논문이었더라" 를 다시 찾게 하면 안 된다. */
+      const q = new URLSearchParams(window.location.search);
+      const want = q.get('key');
+      if (want && (d.items || []).some((i: Item) => i.key === want)) {
+        setActiveKey(want);
+        setStep(Math.min(Math.max(Number(q.get('step')) || 4, 1), 7));
+      }
+    }).catch(() => {});
     loadAttachments();
     loadLibrary();
     loadVaultOnly();

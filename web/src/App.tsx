@@ -23,19 +23,25 @@ const NAV: (Leaf | Group)[] = [
   {
     label: '연구', base: '/research',
     children: [
+      /* 화면을 둘로 줄였다. 같은 일을 하는 입구가 다섯 군데라 "어디서 시작하나" 를
+         알 수 없었다. 모으고·읽기는 노트북이, 쓰기는 쓰기 화면이 맡는다.
+         옛 경로는 라우트로 살려 둬 북마크가 깨지지 않는다. */
       {
-        to: '/research/scholar/flow', label: '연구실 스콜라',
+        to: '/research/notebook', label: '모으고·읽기',
         children: [
-          /* 검색·답변은 수집 워크플로 ①단계로 합쳐졌다 */
-          { to: '/research/scholar/flow', label: '수집 워크플로 (7단계)' },
+          { to: '/research/notebook', label: '노트북 (소스·대화·산출물)' },
+          { to: '/research/scholar/flow', label: '원문 읽기 (PDF·하이라이트)' },
           { to: '/research/scholar/compare', label: '비교표' },
-          { to: '/research/scholar/library', label: '라이브러리' },
-          { to: '/research/scholar/write', label: '논문 쓰기' },
         ],
       },
-      { to: '/research/notebook', label: '노트북' },
+      {
+        to: '/research/scholar/write', label: '쓰기',
+        children: [
+          { to: '/research/scholar/write', label: '연구일지 · 합치기 · 논문' },
+          { to: '/research/my-paper', label: '인용 자료 · 진행' },
+        ],
+      },
       { to: '/research/knowledge', label: '지식화' },
-      { to: '/research/my-paper', label: '내논문' },
     ],
   },
   {
