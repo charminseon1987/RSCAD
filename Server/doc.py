@@ -464,7 +464,10 @@ def api_review():
     limit = max(1, min(12, int(d.get('limit') or 8)))
     paras = [p for p in paras if len(p) >= 40][:limit]
     if not paras:
-        return jsonify({'status': 'ok', 'added': 0, 'comments': [],
+        # checked 를 빼면 화면이 'undefined개 문단에서' 라고 쓴다 — 돌려주는 모양을
+        # 성공 경로와 똑같이 맞춘다.
+        return jsonify({'status': 'ok', 'checked': 0, 'added': 0, 'by_kind': {},
+                        'comments': [],
                         'note': '검토할 문단이 없습니다 (40자 이상 본문 기준)'})
 
     explain = bool(d.get('explain', True))

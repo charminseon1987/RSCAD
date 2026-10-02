@@ -5,6 +5,7 @@ import Papers from './pages/Papers';
 import Knowledge from './pages/Knowledge';
 import MyPaper from './pages/MyPaper';
 import Notebook from './pages/Notebook';
+import Docs from './pages/Docs';
 import ExperimentLog from './pages/ExperimentLog';
 import Archify from './pages/Archify';
 import Lab from './pages/Lab';
@@ -35,9 +36,10 @@ const NAV: (Leaf | Group)[] = [
         ],
       },
       {
-        to: '/research/scholar/write', label: '쓰기',
+        to: '/research/docs', label: '쓰기',
         children: [
-          { to: '/research/scholar/write', label: '연구일지 · 합치기 · 논문' },
+          { to: '/research/docs', label: '내 논문 (문서·댓글·판)' },
+          { to: '/research/scholar/write', label: '연구일지 · 합치기 (.md)' },
           { to: '/research/my-paper', label: '인용 자료 · 진행' },
         ],
       },
@@ -126,6 +128,7 @@ export default function App() {
       <Route path="/research/scholar/search" element={<Navigate to="/research/scholar/flow" replace />} />
       <Route path="/research/papers" element={<Navigate to="/research/scholar/flow" replace />} />
       <Route path="/research/notebook" element={<Notebook />} />
+      <Route path="/research/docs" element={<Docs />} />
       {/* NotebookLM 식 이름으로도 들어올 수 있게 */}
       <Route path="/research/notebooklm" element={<Navigate to="/research/notebook" replace />} />
       <Route path="/research/knowledge" element={<Knowledge />} />

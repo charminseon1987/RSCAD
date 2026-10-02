@@ -59,6 +59,8 @@ from notebook import bp as notebook_bp  # noqa: E402  — 발췌 보관함 · �
 from doc import bp as doc_bp            # noqa: E402  — 논문 쓰기 (문서·댓글·보조)
 from indexer import bp as indexer_bp    # noqa: E402  — 증분 색인 (화면에서 돌린다)
 from export import bp as export_bp      # noqa: E402  — Word·Excel 내보내기
+from docs_store import bp as docs_bp    # noqa: E402  — 논문 문서 저장소 (Docs·버전·댓글)
+from drafter import bp as drafter_bp    # noqa: E402  — 에이전트 초안 (일지·노트를 읽고 쓴다)
 
 RESULTS_ROOT = ROOT / 'results'
 WEB_DIR      = ROOT / 'Web'
@@ -98,6 +100,8 @@ app.register_blueprint(notebook_bp)     # /api/notebook/{clips,reports,generate,
 app.register_blueprint(doc_bp)          # /api/doc/{list,new,comments,assist,evidence}
 app.register_blueprint(indexer_bp)      # /api/index/{status,rebuild}
 app.register_blueprint(export_bp)       # /api/export/{status,docx,xlsx}
+app.register_blueprint(docs_bp)         # /api/docs/{list,CRUD,versions,revert,comments,markdown}
+app.register_blueprint(drafter_bp)      # /api/docs/draft/{sources,status} + POST
 
 # ── Firebase Admin SDK ──
 # 예전에는 WERKZEUG_RUN_MAIN == 'true' 로 걸러 리로더 자식에서만 초기화했다. 그러면

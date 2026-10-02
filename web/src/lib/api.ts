@@ -17,8 +17,22 @@ export async function fetchJSON<T = any>(path: string, init?: RequestInit): Prom
 }
 
 export function postJSON<T = any>(path: string, body: object): Promise<T> {
-  return fetchJSON(path, {
-    method: 'POST',
+  return sendJSON('POST', path, body);
+}
+
+/* 문서 저장소는 PUT·DELETE 를 쓴다 — 고치기와 지우기를 POST 하나에 섞으면
+   무엇이 되돌릴 수 없는 일인지 호출부에서 안 보인다. */
+export function putJSON<T = any>(path: string, body: object): Promise<T> {
+  return sendJSON('PUT', path, body);
+}
+
+export function delJSON<T = any>(path: string): Promise<T> {
+  return fetchJSON(path, { method: 'DELETE' });
+}
+
+function sendJSON<T = any>(method: string, path: string, body: object): Promise<T> {
+  return fetchJSON<T>(path, {
+    method,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });

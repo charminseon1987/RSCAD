@@ -18,6 +18,10 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import TiptapText from '@tiptap/extension-text';
 import HardBreak from '@tiptap/extension-hard-break';
+import { Table } from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableHeader from '@tiptap/extension-table-header';
+import TableCell from '@tiptap/extension-table-cell';
 import { Markdown } from 'tiptap-markdown';
 import { fetchJSON, postJSON } from '../lib/api';
 
@@ -144,6 +148,14 @@ export default function Write() {
       StarterKit.configure({ text: false, hardBreak: false }),
       RawText,
       PlainBreak,
+      /* 표. 없으면 연구일지의 실험 표가 저장할 때 한 줄로 뭉개진다 —
+         `10:15:09` 과 `1.0` 이 붙어 `10:15:091.0` 이 된 적이 있다. 실측값이
+         읽을 수 없게 되는 것이라 모양 문제가 아니다. 스키마에 table 노드가
+         있으면 tiptap-markdown 이 제 직렬화기를 쓴다. */
+      Table.configure({ resizable: false }),
+      TableRow,
+      TableHeader,
+      TableCell,
       /* 저장본이 마크다운이어야 하므로 직렬화를 켠다.
          linkify — 끈다. 본문의 doi.org 주소를 멋대로 링크로 바꾸면 저장본이 달라진다.
          breaks  — 켠다. 줄바꿈 하나가 ▸/※ 를 가르는 경계다. 끄면 두 줄이 한 줄로 붙는다. */
@@ -376,6 +388,14 @@ export default function Write() {
           color: var(--ink-2); margin: 10px 0; }
         .tt-doc p.is-editor-empty:first-child::before { content: attr(data-placeholder);
           color: var(--ink-3); float: left; height: 0; pointer-events: none; }
+        /* 표 — 칸 경계가 보여야 어느 수치가 어느 열인지 읽힌다 */
+        .tt-doc table { border-collapse: collapse; margin: 12px 0; width: 100%;
+          table-layout: fixed; overflow: hidden; font-size: 14px; }
+        .tt-doc th, .tt-doc td { border: 1px solid var(--s-line); padding: 6px 9px;
+          vertical-align: top; text-align: left; position: relative; }
+        .tt-doc th { background: var(--s-bg); font-weight: 600; }
+        .tt-doc .selectedCell:after { content: ''; position: absolute; inset: 0;
+          background: var(--s-line); opacity: .35; pointer-events: none; }
       `}</style>
 
       <div className="s-panel" style={{ padding: 14 }}>
