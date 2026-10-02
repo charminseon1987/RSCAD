@@ -10,6 +10,7 @@
    지금은 볼트의 실제 노트(/api/notes · /api/vault/search)로 채운다. */
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import Write from './Write';
 import { fetchJSON } from '../lib/api';
 import ScholarFlow from './ScholarFlow';
 
@@ -20,6 +21,7 @@ const RAIL = [
   { key: 'flow', label: '수집 워크플로 (7단계)' },
   { key: 'compare', label: '비교표' },
   { key: 'library', label: '라이브러리' },
+  { key: 'write', label: '논문 쓰기' },
 ] as const;
 type Screen = typeof RAIL[number]['key'];
 
@@ -131,6 +133,8 @@ export default function Papers() {
           {err && <p style={{ color: 'var(--error)', fontSize: 15 }}>{err}</p>}
 
           {/* ═══ 비교표 ═══ */}
+          {screen === 'write' && <Write />}
+
           {screen === 'compare' && (
             <>
               <div className="s-panel" style={{ padding: 18 }}>

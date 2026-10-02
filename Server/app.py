@@ -56,6 +56,7 @@ from scholar import bp as scholar_bp    # noqa: E402  — 연구실 스콜라 7�
 from nblm import bp as nblm_bp          # noqa: E402  — NotebookLM (MCP stdio · 오디오 전용)
 from ask import bp as ask_bp            # noqa: E402  — 근거 Q&A (로컬 색인 + Ollama)
 from notebook import bp as notebook_bp  # noqa: E402  — 발췌 보관함 · 산출물
+from doc import bp as doc_bp            # noqa: E402  — 논문 쓰기 (문서·댓글·보조)
 
 RESULTS_ROOT = ROOT / 'results'
 WEB_DIR      = ROOT / 'Web'
@@ -92,6 +93,7 @@ app.register_blueprint(scholar_bp)      # /api/scholar/{stages,search,inbox,orig
 app.register_blueprint(nblm_bp)         # /api/scholar/nblm/{status,notebook,source,generate,studio,query,to-note}
 app.register_blueprint(ask_bp)          # /api/scholar/ask/{status,search,to-note} + POST /api/scholar/ask
 app.register_blueprint(notebook_bp)     # /api/notebook/{clips,reports,generate,report-kinds}
+app.register_blueprint(doc_bp)          # /api/doc/{list,new,comments,assist,evidence}
 
 # ── Firebase Admin SDK ──
 # 예전에는 WERKZEUG_RUN_MAIN == 'true' 로 걸러 리로더 자식에서만 초기화했다. 그러면

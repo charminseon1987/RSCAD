@@ -30,6 +30,7 @@ const NAV: (Leaf | Group)[] = [
           { to: '/research/scholar/flow', label: '수집 워크플로 (7단계)' },
           { to: '/research/scholar/compare', label: '비교표' },
           { to: '/research/scholar/library', label: '라이브러리' },
+          { to: '/research/scholar/write', label: '논문 쓰기' },
         ],
       },
       { to: '/research/notebook', label: '노트북' },
