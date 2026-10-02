@@ -25,6 +25,7 @@ import datetime
 import json
 import math
 import re
+import threading
 import time
 import uuid
 import xml.etree.ElementTree as ET
@@ -482,7 +483,47 @@ def api_inbox_add():
         })
         added.append(key)
     save_inbox(items)
-    return jsonify({'status': 'ok', 'added': added, 'items': items})
+    if added:
+        autofetch(added)
+    return jsonify({'status': 'ok', 'added': added, 'items': items,
+                    'autofetch': bool(added),
+                    'note': ('원본 PDF 를 받아 색인에 넣는 중입니다 — 몇 분 걸립니다. '
+                             '끝나면 소스 목록의 ‘미색인’ 표시가 사라집니다') if added else ''})
+
+
+def autofetch(keys: list) -> None:
+    """담은 직후 원본을 받아 색인까지 넣는다. 배경에서 돈다.
+
+    이게 없으면 담은 논문은 서지만 있고 본문이 없어서 대화·산출물에서 영영
+    쓸 수 없다 (실제로 수집함 5편과 색인 6편이 하나도 겹치지 않았다).
+    네트워크를 기다리느라 '담기' 가 멈추면 안 되므로 응답은 먼저 보낸다.
+    """
+    def work():
+        s = load_settings()
+        got = []
+        for key in keys:
+            it = find_item(load_inbox(), key)
+            if not it or attach_path(it, s):          # 이미 원본이 있으면 건드리지 않는다
+                continue
+            res = fetch_pdf(key, it['paper'], s['contact_email'], s['pdf_dir'])
+            items = load_inbox()                      # 그 사이 바뀌었을 수 있다
+            cur = find_item(items, key)
+            if not cur:
+                continue
+            cur['original'] = dict(cur.get('original') or {}, pdf=res)
+            if res.get('ok'):
+                cur['stage'] = max(cur.get('stage', 2), 3)
+                got.append(key)
+            save_inbox(items)
+        if got:
+            # 색인은 indexer 가 맡는다. 순환 임포트를 피해 여기서 늦게 부른다.
+            try:
+                import indexer
+                indexer.start(got)
+            except Exception:                         # noqa: BLE001
+                pass
+
+    threading.Thread(target=work, daemon=True).start()
 
 
 # ═══════════════════════════════════════════════
@@ -652,6 +693,33 @@ def unpaywall_pdf(doi: str, email: str) -> str:
     return ((d.get('best_oa_location') or {}).get('url_for_pdf')) or ''
 
 
+def fetch_pdf(key: str, p: dict, email: str, rel_dir: str) -> dict:
+    """오픈액세스 PDF 를 받아 cite_key.pdf 로 보관한다. 실패는 이유를 돌려준다.
+
+    ③ '원본 가져오기' 와 ② '담자마자' 가 같은 길을 쓴다 — 두 벌로 두면
+    한쪽만 고쳐져 어떤 경로로 담았느냐에 따라 결과가 달라진다.
+    """
+    url = p.get('pdf_url') or ''
+    if not (url.lower().endswith('.pdf') or 'arxiv.org/pdf' in url):
+        url = unpaywall_pdf(p.get('doi') or '', email) or url
+    if not url:
+        return {'ok': False,
+                'msg': '오픈액세스 PDF 링크가 없습니다 — 도서관 경유로 직접 저장하세요'}
+    resp = http_get(url, as_json=False, email=email, wait=0, tries=2, timeout=60)
+    if not resp or b'%PDF' not in resp.content[:2048]:
+        return {'ok': False, 'url': url,
+                'msg': 'PDF 가 아니라 랜딩/유료 페이지였습니다 — 수동 저장이 필요합니다'}
+    try:
+        d = safe_vault_path(rel_dir)
+    except ValueError:
+        return {'ok': False, 'msg': '볼트 밖 경로'}
+    d.mkdir(parents=True, exist_ok=True)
+    fp = d / f'{key}.pdf'
+    fp.write_bytes(resp.content)
+    return {'ok': True, 'path': fp.relative_to(VAULT).as_posix(),
+            'bytes': len(resp.content), 'msg': '원본을 저장했습니다'}
+
+
 def bibtex_entry(key: str, p: dict) -> str:
     def f(v):
         return str(v or '')
@@ -689,27 +757,7 @@ def api_original():
 
     # ── PDF ──
     if 'pdf' in want:
-        url = p.get('pdf_url') or ''
-        if not (url.lower().endswith('.pdf') or 'arxiv.org/pdf' in url):
-            url = unpaywall_pdf(p.get('doi') or '', email) or url
-        if not url:
-            out['pdf'] = {'ok': False,
-                          'msg': '오픈액세스 PDF 링크가 없습니다 — 도서관 경유로 직접 저장하세요'}
-        else:
-            resp = http_get(url, as_json=False, email=email, wait=0, tries=2, timeout=60)
-            if not resp or b'%PDF' not in resp.content[:2048]:
-                out['pdf'] = {'ok': False, 'url': url,
-                              'msg': 'PDF 가 아니라 랜딩/유료 페이지였습니다 — 수동 저장이 필요합니다'}
-            else:
-                try:
-                    pdf_dir = safe_vault_path(d.get('pdf_dir') or s['pdf_dir'])
-                except ValueError:
-                    return jsonify({'status': 'error', 'error': '볼트 밖 경로'}), 403
-                pdf_dir.mkdir(parents=True, exist_ok=True)
-                fp = pdf_dir / f'{key}.pdf'
-                fp.write_bytes(resp.content)
-                out['pdf'] = {'ok': True, 'path': fp.relative_to(VAULT).as_posix(),
-                              'bytes': len(resp.content), 'msg': '원본을 저장했습니다'}
+        out['pdf'] = fetch_pdf(key, p, email, d.get('pdf_dir') or s['pdf_dir'])
 
     # ── BibTeX ──
     if 'bib' in want:
@@ -738,20 +786,51 @@ def api_original():
 #   Zotero 의 storage 자리. 파일 이름은 cite_key.pdf 로 고정한다 —
 #   ④ 리더와 노트의 [[key.pdf#page=N]] 앵커가 같은 이름을 찾기 때문이다.
 # ═══════════════════════════════════════════════
+def _norm_name(s: str) -> str:
+    """파일명·키 비교용. 대소문자·밑줄·공백·하이픈 차이를 지운다."""
+    return re.sub(r'[^a-z0-9]', '', (s or '').lower())
+
+
 def attach_path(it: dict, s: dict = None):
-    """보관한 PDF 의 실제 경로. 없으면 None — 있다고 지어내지 않는다."""
+    """보관한 PDF 의 실제 경로. 없으면 None — 있다고 지어내지 않는다.
+
+    손으로 모아 둔 PDF 는 파일명이 cite_key 와 다르다. 실제로 이 볼트가 그랬다:
+        Salem_2025_GFM_Review.pdf    ↔ salem2025gfmreview
+        DArco_2014_VSM_Droop.pdf     ↔ darco2014vsm
+        Liu 2025 datadriven cpes.pdf ↔ liu2025datadriven
+    이름만 정확히 맞춰 보면 이 셋을 못 찾아 '원문 없음·미색인' 으로 뜬다 —
+    색인에는 멀쩡히 들어 있는데도. 그래서 이름 차이를 지운 뒤 비교하고,
+    그래도 안 맞으면 한쪽이 다른 쪽으로 시작하는 경우까지 본다.
+
+    단, **후보가 둘 이상이면 고르지 않는다**. 엉뚱한 논문의 본문을 그 논문의
+    근거로 내놓는 것이 못 찾는 것보다 나쁘다.
+    """
     s = s or load_settings()
-    cands = [f'{s["pdf_dir"]}/{it["key"]}.pdf']
     rec = (it.get('original') or {}).get('pdf') or {}
-    if rec.get('path'):
-        cands.append(rec['path'])
-    for rel in cands:
+    for rel in [f'{s["pdf_dir"]}/{it["key"]}.pdf'] + ([rec['path']] if rec.get('path') else []):
         try:
             fp = safe_vault_path(rel)
         except ValueError:
             continue
         if fp.is_file():
             return fp
+
+    try:
+        d = safe_vault_path(s['pdf_dir'])
+    except ValueError:
+        return None
+    if not d.is_dir():
+        return None
+    key = _norm_name(it['key'])
+    if not key:
+        return None
+    files = list(d.glob('*.pdf'))
+    exact = [p for p in files if _norm_name(p.stem) == key]
+    if len(exact) == 1:
+        return exact[0]
+    pre = [p for p in files if _norm_name(p.stem).startswith(key)]
+    if len(pre) == 1:
+        return pre[0]
     return None
 
 

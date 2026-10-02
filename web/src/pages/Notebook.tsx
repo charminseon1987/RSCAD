@@ -23,7 +23,9 @@ interface Attach { ok: boolean; path?: string; bytes?: number }
 interface Hit { id: string; doc: string; title: string; page: number | null; sim: number; text: string }
 interface Turn {
   q: string; answer: string; hits: Hit[]; grounded: boolean; enough: boolean;
-  truncated?: boolean; error?: string; note?: string; model?: string; at: string;
+  truncated?: boolean; error?: string; note?: string; model?: string;
+  engine?: string;          // 어느 엔진이 쓴 글인지 — 나중에 추적할 수 있어야 한다
+  at: string;
 }
 interface Report {
   id: string; kind: string; label: string; title: string; text: string;
@@ -37,10 +39,28 @@ interface Clip {
   id: string; cite_key: string; doc: string; page: string; text: string; note: string;
   section: string; kind: string; source: string; used: boolean; created: string;
 }
+/* 색인 작업 상태. 한 편에 1~3분이라 진행률을 보여 줘야 한다 —
+   아무 표시 없이 몇 분 멈춰 있으면 고장난 줄 안다. */
+interface IndexJob {
+  running: boolean; done: number; total: number; doc: string;
+  added: { doc: string; chunks: number }[];
+  skipped: { doc: string; why: string }[];
+  error: string;
+}
+interface IndexStatus {
+  job: IndexJob; pending: string[]; indexed: string[];
+  unusable: { doc: string; why: string }[];   // 스캔본 등 — 숨기지 않고 따로 보여 준다
+}
 interface AskStatus {
   chunks: number; error: string; min_sim: number; embed_model: string;
   docs: { doc: string; chunks: number; pages: number }[];
   ollama: { ok: boolean; msg: string; model: string };
+}
+/* 글을 쓰는 엔진. 기준은 로컬이고 Claude 는 골라 쓰는 쪽이다.
+   원격을 고르면 발췌가 밖으로 나가므로 화면이 그 사실을 먼저 말한다. */
+interface Engine { ok: boolean; model: string; msg: string }
+interface Engines {
+  default: string; local: Engine; claude: Engine; remote_warning: string;
 }
 
 /* 산출물 한 건의 상태를 낱개 배지로 끊는다 — 점으로 이어 붙이면 뭉쳐 안 읽힌다.
@@ -75,6 +95,9 @@ export default function Notebook() {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [ask, setAsk] = useState('');
   const [st, setSt] = useState<AskStatus | null>(null);
+  const [idx, setIdx] = useState<IndexStatus | null>(null);
+  const [eng, setEng] = useState<Engines | null>(null);
+  const [engine, setEngine] = useState<'local' | 'claude'>('local');
 
   // 산출물
   const [kinds, setKinds] = useState<Kind[]>([]);
@@ -102,13 +125,30 @@ export default function Notebook() {
     setClips(d.clips || []); setSections(d.sections || []); setClipKinds(d.kinds || {});
   }).catch(() => {});
   const loadReports = () => fetchJSON('/notebook/reports').then(d => setReports(d.reports || [])).catch(() => {});
+  const loadAsk = () => fetchJSON('/scholar/ask/status').then(setSt).catch(() => {});
+  const loadIdx = () => fetchJSON('/index/status').then(setIdx).catch(() => {});
+  const loadEngines = () => fetchJSON('/doc/actions')
+    .then(d => { setEng(d.engines); setEngine(d.engines?.default === 'claude' ? 'claude' : 'local'); })
+    .catch(() => {});
 
   useEffect(() => {
-    loadItems(); loadAttach(); loadClips(); loadReports();
+    loadItems(); loadAttach(); loadClips(); loadReports(); loadIdx(); loadEngines();
     fetchJSON('/notebook/report-kinds').then(d => setKinds(d.kinds || [])).catch(() => {});
     fetchJSON('/scholar/vault-papers').then(d => setVaultOnly(d.papers || [])).catch(() => {});
-    fetchJSON('/scholar/ask/status').then(setSt).catch(() => {});
+    loadAsk();
   }, []);
+
+  /* 색인이 도는 동안만 들여다본다. 끝나면 색인 목록을 새로 읽어 '미색인' 을 지운다. */
+  useEffect(() => {
+    if (!idx?.job.running) return;
+    const t = window.setInterval(() => {
+      fetchJSON('/index/status').then((d: IndexStatus) => {
+        setIdx(d);
+        if (!d.job.running) { loadAsk(); loadAttach(); }
+      }).catch(() => {});
+    }, 4000);
+    return () => window.clearInterval(t);
+  }, [idx?.job.running]);
 
   useEffect(() => { chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight }); }, [turns]);
 
@@ -125,6 +165,44 @@ export default function Notebook() {
     [chosen, attach, st]);
   const keyOfDoc = (doc: string) =>
     items.find(i => docOf(i.key) === doc)?.key || doc;
+
+  /* ── 색인에 넣기 ──
+     이 길이 없어서 앱 전체가 막혀 있었다. 담은 논문과 색인된 논문이 겹치지
+     않으면 소스를 다 골라도 대화·산출물이 잠긴다. */
+  const runIndex = (docs?: string[]) => {
+    setErr('');
+    postJSON('/index/rebuild', docs ? { docs } : {})
+      .then(d => { setIdx(x => (x ? { ...x, job: d.job } : x)); flash(`색인을 시작했습니다 — ${d.total}편`); })
+      .catch(e => {
+        const m = String(e?.message || e);
+        if (m.includes('409')) flash('이미 색인 중입니다');
+        else fail(e);
+      });
+  };
+
+  /* ── 원문 확보 ──
+     유료 논문은 자동으로 못 가져온다. 그럴 때 다른 화면으로 보내지 않고
+     여기서 바로 올리게 한다 — 원문이 없으면 그 논문으로는 아무것도 못 한다. */
+  const fetchOriginal = (key: string) => {
+    setBusy('pdf:' + key); setErr('');
+    postJSON('/scholar/original', { key, channels: ['pdf'] })
+      .then(d => {
+        const r = d.item?.original?.pdf || {};
+        flash(`${key} — ${r.msg || (r.ok ? '받았습니다' : '받지 못했습니다')}`);
+      })
+      .then(loadAttach).then(loadIdx)
+      .catch(fail).finally(() => setBusy(''));
+  };
+
+  const uploadOriginal = (key: string, file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    setBusy('pdf:' + key); setErr('');
+    fetchJSON(`/scholar/attach/${encodeURIComponent(key)}`, { method: 'POST', body: fd })
+      .then(d => flash(`${key} — 보관했습니다 (${d.path})`))
+      .then(loadAttach).then(loadIdx)
+      .catch(fail).finally(() => setBusy(''));
+  };
 
   /* ── 소스 추가 ── */
   const search = (e: React.FormEvent) => {
@@ -163,11 +241,11 @@ export default function Notebook() {
     if (!st?.ollama.ok) { setErr('Ollama 가 꺼져 있습니다 — 터미널에서 `ollama serve`'); return; }
     setBusy('ask'); setErr(''); setAsk('');
     postJSON('/scholar/ask', {
-      q: question, n: 4, ...(chosenDocs.length ? { docs: chosenDocs } : {}),
+      q: question, n: 4, engine, ...(chosenDocs.length ? { docs: chosenDocs } : {}),
     }).then(d => setTurns(t => [...t, {
       q: question, answer: d.answer || '', hits: d.hits || [], grounded: !!d.grounded,
       enough: d.enough !== false, truncated: !!d.truncated, error: d.error,
-      note: d.note, model: d.model, at: new Date().toLocaleTimeString(),
+      note: d.note, model: d.model, engine: d.engine, at: new Date().toLocaleTimeString(),
     }])).catch(fail).finally(() => setBusy(''));
   };
 
@@ -182,11 +260,12 @@ export default function Notebook() {
     setBusy('ask'); setErr('');
     postJSON('/scholar/ask', {
       q: `이 논문은 무엇을 다루고 무엇을 보였는가. 방법과 검증 조건도 함께.`,
-      n: 5, docs: [d],
+      n: 5, docs: [d], engine,
     }).then(x => setTurns(t => [...t, {
       q: `${it.key} 는 어떤 논문인가`, answer: x.answer || '', hits: x.hits || [],
       grounded: !!x.grounded, enough: x.enough !== false, truncated: !!x.truncated,
-      error: x.error, note: x.note, model: x.model, at: new Date().toLocaleTimeString(),
+      error: x.error, note: x.note, model: x.model, engine: x.engine,
+      at: new Date().toLocaleTimeString(),
     }])).catch(fail).finally(() => setBusy(''));
   };
 
@@ -225,8 +304,12 @@ export default function Notebook() {
           <div style={{ maxWidth: 680 }}>
             <h1 className="t-title" style={{ color: 'var(--s-accent-ink)' }}>노트북</h1>
             <p className="t-body" style={{ color: 'var(--ink-2)', marginTop: 4 }}>
-              왼쪽에서 고른 소스가 대화와 산출물의 범위가 됩니다. 색인도 모델도 이 기기에 있어
-              원문이 밖으로 나가지 않습니다.
+              왼쪽에서 고른 소스가 대화와 산출물의 범위가 됩니다.{' '}
+              {engine === 'local'
+                ? '색인도 모델도 이 기기에 있어 원문이 밖으로 나가지 않습니다.'
+                : <strong style={{ color: 'var(--s-interp)' }}>
+                    지금은 Claude 로 돌고 있어 {eng?.remote_warning || '고른 대목이 바깥 서버로 전송됩니다'}.
+                  </strong>}
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -234,11 +317,21 @@ export default function Notebook() {
             <span className={'s-tag ' + (chosenDocs.length ? 's-tag-ok' : 's-tag-warn')}>
               색인된 것 {chosenDocs.length}
             </span>
-            {st && (
-              <span className={'s-tag ' + (st.ollama.ok ? 's-tag-ok' : 's-tag-warn')}>
-                {st.ollama.ok ? st.ollama.model : st.ollama.msg}
-              </span>
-            )}
+            {eng && (['local', 'claude'] as const).map(e => {
+              const info = eng[e];
+              const on = engine === e;
+              return (
+                <button key={e} className={'s-chip s-chip-sm' + (on ? ' s-chip-on' : '')}
+                  aria-pressed={on} disabled={!info.ok}
+                  title={info.ok
+                    ? (e === 'local' ? '이 기기에서 돌립니다 — 느리지만 원문이 나가지 않습니다'
+                                     : eng.remote_warning)
+                    : info.msg}
+                  onClick={() => setEngine(e)}>
+                  {e === 'local' ? '로컬' : 'Claude'} · {info.ok ? info.model : '못 씀'}
+                </button>
+              );
+            })}
             <span className="s-tag s-tag-mute">보관 발췌 {clips.length}</span>
           </div>
         </div>
@@ -248,6 +341,42 @@ export default function Notebook() {
           ‘근거로 쓰인 대목’</strong> 에서 담으세요 — 담은 것이 내 논문으로 갑니다.
         </p>
       </div>
+
+      {/* 색인 상태 — 여기가 막히면 대화도 산출물도 안 된다. 가장 먼저 보여 준다. */}
+      {idx && (idx.job.running || !!idx.pending.length || !!idx.unusable.length) && (
+        <div className="s-panel" style={{ padding: 12 }}>
+          {idx.job.running ? (
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="t-body">
+                색인 중 {idx.job.done}/{idx.job.total}
+                {idx.job.doc ? ` · ${idx.job.doc}` : ''} — 한 편에 1~3분입니다
+              </span>
+              <span className="t-meta" style={{ color: 'var(--ink-3)' }}>
+                끝나면 ‘미색인’ 이 사라지고 그 논문으로 답할 수 있습니다
+              </span>
+            </div>
+          ) : !!idx.pending.length && (
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="t-body">
+                색인에 안 들어간 원문 <strong>{idx.pending.length}편</strong> — 이 논문들로는 답할 수 없습니다
+              </span>
+              <button className="s-chip" onClick={() => runIndex()}>
+                전부 색인에 넣기 ({idx.pending.length}편 · 약 {idx.pending.length * 2}분)
+              </button>
+            </div>
+          )}
+          {!!idx.unusable.length && (
+            <p className="s-interp t-meta" style={{ marginTop: 8 }}>
+              ※ 색인에 넣을 수 없는 원문: {idx.unusable.map(x => `${x.doc} — ${x.why}`).join(' · ')}
+            </p>
+          )}
+          {idx.job.error && (
+            <p className="t-meta" style={{ color: 'var(--s-danger)', marginTop: 8 }}>
+              색인 실패 — {idx.job.error}
+            </p>
+          )}
+        </div>
+      )}
 
       {err && (
         <p role="alert" className="s-interp t-body"
@@ -340,8 +469,15 @@ export default function Notebook() {
                           ? <span className="s-tag s-tag-ok">PDF</span>
                           : <span className="s-tag s-tag-mute">원문 없음</span>}
                         {attach[it.key]?.ok && !indexed(it.key) && (
-                          <span className="s-tag s-tag-warn"
-                            title="PDF 는 있지만 색인에 없습니다 — 재색인이 필요합니다">미색인</span>
+                          <>
+                            <span className="s-tag s-tag-warn"
+                              title="PDF 는 있지만 색인에 없어 이 논문으로는 답할 수 없습니다">미색인</span>
+                            <button className="s-chip s-chip-sm" disabled={!!idx?.job.running}
+                              title="이 논문을 색인에 넣습니다 (1~3분)"
+                              onClick={e => { e.preventDefault(); runIndex([docOf(it.key)]); }}>
+                              색인에 넣기
+                            </button>
+                          </>
                         )}
                       </span>
                       <span className="t-meta" style={{ display: 'block', marginTop: 4, color: 'var(--ink-2)' }}>
@@ -349,8 +485,29 @@ export default function Notebook() {
                       </span>
                     </span>
                   </label>
-                  <button className="s-chip s-chip-sm mt-2"
-                    disabled={!!busy} onClick={() => introduce(it)}>이 논문 설명</button>
+                  <div className="flex gap-1 flex-wrap mt-2">
+                    <button className="s-chip s-chip-sm"
+                      disabled={!!busy} onClick={() => introduce(it)}>이 논문 설명</button>
+                    {!attach[it.key]?.ok && (
+                      <>
+                        <button className="s-chip s-chip-sm" disabled={!!busy}
+                          title="오픈액세스면 받아 옵니다. 유료 논문은 받지 못합니다"
+                          onClick={() => fetchOriginal(it.key)}>
+                          {busy === 'pdf:' + it.key ? '받는 중…' : '원문 받기'}
+                        </button>
+                        <label className="s-chip s-chip-sm" style={{ cursor: 'pointer' }}
+                          title="내려받은 PDF 를 올립니다 — 색인까지 자동으로 들어갑니다">
+                          원문 올리기
+                          <input type="file" accept="application/pdf" style={{ display: 'none' }}
+                            onChange={e => {
+                              const f = e.target.files?.[0];
+                              e.target.value = '';
+                              if (f) uploadOriginal(it.key, f);
+                            }} />
+                        </label>
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -399,7 +556,14 @@ export default function Notebook() {
                     }}>
                       <div className="flex gap-1 flex-wrap" style={{ marginBottom: 7 }}>
                         <span className="s-tag s-tag-warn">※ AI 생성 — 인용 근거 아님</span>
-                        {t.model && <span className="s-tag s-tag-mute">{t.model}</span>}
+                        {t.model && (
+                          <span className={'s-tag ' + (t.engine === 'claude' ? 's-tag-warn' : 's-tag-mute')}
+                            title={t.engine === 'claude'
+                              ? '이 답은 Claude 로 썼습니다 — 대목이 바깥으로 나갔습니다'
+                              : '이 답은 이 기기에서 썼습니다'}>
+                            {t.engine === 'claude' ? '바깥 · ' : '로컬 · '}{t.model}
+                          </span>
+                        )}
                         {!t.grounded && <span className="s-tag s-tag-warn">근거번호 없음</span>}
                         {t.truncated && <span className="s-tag s-tag-warn">끝 끊김</span>}
                       </div>

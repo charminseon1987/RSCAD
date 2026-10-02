@@ -37,8 +37,8 @@ OLLAMA = 'http://localhost:11434/api/chat'
 # 의존하는데, 그 크기에서는 도구 인자를 자주 틀린다.
 #
 # 바꾸려면 코드를 고치지 말고 환경변수를 쓴다:
-#   GFM_AGENT_MODEL=qwen3:8b python agent/orchestrator.py ...
-DEFAULT_MODEL = os.environ.get('GFM_AGENT_MODEL', 'qwen3:4b')
+#   GFM_AGENT_MODEL=qwen3:8b ,qwen3:4b  python agent/orchestrator.py ... 
+DEFAULT_MODEL = os.environ.get('GFM_AGENT_MODEL', 'qwen3:8b')
 
 
 # ══════════════════════════════════════════════

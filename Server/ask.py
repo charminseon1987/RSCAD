@@ -22,12 +22,15 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 import threading
 
 import requests
 from flask import Blueprint, jsonify, request
 
-from scholar import VAULT, find_item, load_inbox, safe_vault_path
+import llm
+
+from scholar import ROOT, VAULT, find_item, load_inbox, safe_vault_path
 
 bp = Blueprint('scholar_ask', __name__, url_prefix='/api/scholar/ask')
 
@@ -39,8 +42,10 @@ STRATEGY = os.environ.get('GFM_RAG_STRATEGY', 'section')
 
 OLLAMA_CHAT = 'http://localhost:11434/api/chat'
 OLLAMA_TAGS = 'http://localhost:11434/api/tags'
-# agent/core.py 와 같은 기본값·같은 환경변수를 쓴다 — 모델을 두 곳에서 정하지 않는다
-LLM_MODEL = os.environ.get('GFM_AGENT_MODEL', 'qwen3:4b')
+
+
+# 모델·엔진은 llm.py 한 곳에서 정한다 (로컬 Ollama 기준, Claude 는 골라 쓰기)
+LLM_MODEL = llm.local_model()
 
 # 유사도 하한. 이보다 아래면 '찾지 못했다'고 말한다 — 엉뚱한 대목으로 답을
 # 지어내는 것보다 낫다.
@@ -150,18 +155,8 @@ def _docs_in_index(col) -> list:
 
 
 def ollama_up() -> dict:
-    try:
-        r = requests.get(OLLAMA_TAGS, timeout=3)
-        if r.status_code != 200:
-            return {'ok': False, 'msg': f'Ollama 응답 {r.status_code}'}
-        names = [m['name'] for m in r.json().get('models', [])]
-        base = LLM_MODEL.split(':')[0]
-        have = LLM_MODEL in names or any(n.split(':')[0] == base for n in names)
-        return {'ok': have, 'models': names, 'model': LLM_MODEL,
-                'msg': '' if have else f'{LLM_MODEL} 가 없습니다 — `ollama pull {LLM_MODEL}`'}
-    except requests.RequestException:
-        return {'ok': False, 'models': [], 'model': LLM_MODEL,
-                'msg': 'Ollama 가 꺼져 있습니다 — 터미널에서 `ollama serve`'}
+    """로컬 모델 상태. 판단은 llm.py 가 한다 — 두 곳에서 따로 보지 않는다."""
+    return llm.local_status()
 
 
 @bp.route('/status')
@@ -270,41 +265,24 @@ def build_prompt(q: str, hits: list) -> str:
 
 
 CITE_RE = re.compile(r'\[(\d{1,2})\]')
-THINK_RE = re.compile(r'<think>.*?</think>\s*', re.S)
+clean_answer = llm.clean_answer   # 생각 과정 떼어내기 — llm.py 한 곳
 
 
-def ask_llm(q: str, hits: list, timeout: int = 300) -> dict:
-    # think=False — qwen3 계열은 기본으로 긴 <think> 를 쓴다. 이 기기에서 초당
-    # 3토큰쯤 나오므로 그 과정만으로 몇 분이 간다. 답에 쓰이지 않는 글자다.
-    # num_predict — 끝없이 쓰는 것을 막는다. 3~6문장이면 충분하다.
-    body = {'model': LLM_MODEL, 'stream': False, 'think': False,
-            'messages': [{'role': 'system', 'content': SYSTEM},
-                         {'role': 'user', 'content': build_prompt(q, hits)},
-                         {'role': 'assistant', 'content': PREFILL}],
-            'options': {'temperature': 0.1, 'num_predict': 600, 'stop': STOP}}
-    try:
-        r = requests.post(OLLAMA_CHAT, json=body, timeout=timeout)
-    except requests.Timeout:
-        return {'ok': False, 'error': f'{timeout}초 안에 답이 오지 않았습니다 — '
-                                      f'{LLM_MODEL} 는 이 기기에서 초당 3토큰쯤입니다. '
-                                      '질문을 짧게 하거나 ‘검색만’ 을 쓰세요'}
-    except requests.RequestException as e:
-        return {'ok': False, 'error': f'Ollama 호출 실패 ({type(e).__name__}) — '
-                                      '`ollama serve` 가 떠 있는지 확인하세요'}
-    if r.status_code != 200:
-        return {'ok': False, 'error': f'Ollama 응답 {r.status_code}: {r.text[:200]}'}
-    j = r.json()
-    # 프리필은 모델이 '이미 쓴' 말이라 응답에 포함되지 않는다 — 앞에 되붙인다
-    text = (PREFILL + ((j.get('message') or {}).get('content') or '')).strip()
-    # <think> 태그를 쓰는 빌드도 있다 — 있으면 떼어낸다
-    text = THINK_RE.sub('', text).strip()
+def ask_llm(q: str, hits: list, timeout: int = 300, engine: str = None) -> dict:
+    """고른 대목만으로 답을 받아 온다. 어느 엔진으로 썼는지 함께 돌려준다."""
+    r = llm.complete(system=SYSTEM,
+                     messages=[{'role': 'user', 'content': build_prompt(q, hits)}],
+                     engine=engine, prefill=PREFILL, max_tokens=600,
+                     timeout=timeout, temperature=0.1)
+    if not r['ok']:
+        return {'ok': False, 'error': r['error'],
+                'engine': r.get('engine'), 'model': r.get('model')}
+    text = r['text']
     used = sorted({int(n) for n in CITE_RE.findall(text) if 1 <= int(n) <= len(hits)})
-    # 길이 제한에 걸려 문장 가운데서 끊긴 답은 끊겼다고 말한다. 잘린 문장이
-    # 완결된 주장처럼 읽히면 안 된다.
-    cut = j.get('done_reason') == 'length'
     return {'ok': True, 'answer': text, 'used': used,
             'grounded': bool(used),          # 인용이 하나도 없으면 근거 없는 답이다
-            'truncated': cut}
+            'truncated': r.get('truncated', False),
+            'engine': r['engine'], 'model': r['model']}
 
 
 @bp.route('', methods=['POST'])
@@ -329,7 +307,7 @@ def api_ask():
                                  f'(최고 유사도 {best} < {MIN_SIM}). '
                                  f'답을 지어내지 않습니다 — 질문을 바꾸거나 논문을 더 색인하세요'})
 
-    res = ask_llm(q, strong, timeout=int(d.get('timeout') or 300))
+    res = ask_llm(q, strong, timeout=int(d.get('timeout') or 300), engine=d.get('engine'))
     if not res['ok']:
         # 모델이 없어도 검색 결과는 돌려준다 — 어느 쪽을 볼지는 알 수 있다
         return jsonify({'status': 'ok', 'q': q, 'hits': strong, 'answer': '',
@@ -341,7 +319,8 @@ def api_ask():
         notes.append('길이 제한에 걸려 마지막 문장이 끊겼습니다 — 끊긴 문장은 그대로 쓰지 마세요')
     return jsonify({'status': 'ok', 'q': q, 'hits': strong, 'answer': res['answer'],
                     'used': res['used'], 'grounded': res['grounded'], 'enough': True,
-                    'truncated': res['truncated'], 'model': LLM_MODEL,
+                    'truncated': res['truncated'],
+                    'model': res.get('model'), 'engine': res.get('engine'),
                     'note': ' · '.join(notes)})
 
 

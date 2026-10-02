@@ -25,10 +25,10 @@ import json
 import re
 import uuid
 
-import requests
 from flask import Blueprint, jsonify, request
 
 import ask
+import llm
 from scholar import ROOT, VAULT, safe_vault_path
 
 bp = Blueprint('doc', __name__, url_prefix='/api/doc')
@@ -106,6 +106,12 @@ def api_write():
         return jsonify({'status': 'error', 'error': '볼트 밖 경로'}), 403
     if fp.suffix.lower() != '.md':
         return jsonify({'status': 'error', 'error': '.md 만 저장합니다'}), 400
+
+    # 마크다운 파일은 끝 개행으로 끝나는 것이 관례다. 편집기 직렬화기는 그걸
+    # 떼고 내보내서, 한 번 열었다 저장하면 파일 끝이 바뀌어 버린다 (실제로
+    # 초안.md 가 그렇게 됐다). 내용이 아니라 모양만 달라지는 변경은 만들지 않는다.
+    if text and not text.endswith('\n'):
+        text += '\n'
 
     if fp.exists():
         cur = fp.read_text(encoding='utf-8')
@@ -291,7 +297,9 @@ PREFILL = '수정:'
 def api_actions():
     return jsonify({'status': 'ok',
                     'actions': [{'kind': k, 'label': v['label']} for k, v in ACTIONS.items()],
-                    'ollama': ask.ollama_up()})
+                    'ollama': ask.ollama_up(),
+                    # 어느 엔진으로 돌릴 수 있는지. 원격은 '밖으로 나간다'는 사실까지 화면이 말한다
+                    'engines': llm.status()})
 
 
 @bp.route('/assist', methods=['POST'])
@@ -309,28 +317,14 @@ def api_assist():
                         'error': '한 번에 2000자까지입니다 — 문단을 나눠 고르세요'}), 400
 
     spec = ACTIONS[kind]
-    body = {'model': ask.LLM_MODEL, 'stream': False, 'think': False,
-            'messages': [{'role': 'system', 'content': spec['sys']},
-                         {'role': 'user', 'content': f'{spec["ask"]}\n\n{text}'},
-                         {'role': 'assistant', 'content': PREFILL}],
-            'options': {'temperature': 0.2, 'num_predict': 500,
-                        'stop': ['Okay,', 'Let me', 'Wait,', 'The user', 'Hmm']}}
-    try:
-        r = requests.post(ask.OLLAMA_CHAT, json=body, timeout=int(d.get('timeout') or 240))
-    except requests.Timeout:
-        return jsonify({'status': 'error',
-                        'error': f'시간 안에 답이 오지 않았습니다 — {ask.LLM_MODEL} 는 '
-                                 '이 기기에서 느립니다. 더 짧게 골라 보세요'}), 504
-    except requests.RequestException as e:
-        return jsonify({'status': 'error',
-                        'error': f'Ollama 호출 실패 ({type(e).__name__}) — `ollama serve` 확인'}), 503
-    if r.status_code != 200:
-        return jsonify({'status': 'error', 'error': f'Ollama 응답 {r.status_code}'}), 502
-
-    j = r.json()
-    out = (PREFILL + ((j.get('message') or {}).get('content') or ''))
-    out = ask.THINK_RE.sub('', out).strip()
-    out = re.sub(r'^수정:\s*', '', out).strip()
+    r = llm.complete(system=spec['sys'],
+                     messages=[{'role': 'user', 'content': spec['ask'] + '\n\n' + text}],
+                     engine=d.get('engine'), prefill=PREFILL, max_tokens=500,
+                     timeout=int(d.get('timeout') or 240), temperature=0.2)
+    if not r['ok']:
+        return jsonify({'status': 'error', 'error': r['error'],
+                        'engine': r.get('engine'), 'model': r.get('model')}), 502
+    out = re.sub(r'^수정:\s*', '', r['text']).strip()
 
     # 인용 표기를 잃어버렸는지 본다. 모델이 [@key] 를 지우면 출처가 사라진다
     def cites(s):
@@ -338,8 +332,8 @@ def api_assist():
     lost = sorted(cites(text) - cites(out))
     return jsonify({'status': 'ok', 'kind': kind, 'label': spec['label'],
                     'original': text, 'suggestion': out,
-                    'model': ask.LLM_MODEL,
-                    'truncated': j.get('done_reason') == 'length',
+                    'model': r['model'], 'engine': r['engine'],
+                    'truncated': r.get('truncated', False),
                     'lost_citations': lost,
                     'note': (f'인용 표기가 빠졌습니다: {", ".join(lost)} — 그대로 넣으면 출처가 사라집니다'
                              if lost else '')})
