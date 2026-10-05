@@ -606,7 +606,9 @@ th, td { padding-top: 7px; padding-bottom: 7px; }
    사실 네 개가 11.5px 회색 한 줄로 뭉쳐 아무것도 읽히지 않는다. 낱개로 끊는다. */
 .scholar .s-tag {
   display: inline-flex; align-items: center;
-  font-size: 11.5px; font-weight: 600; padding: 1px 7px; border-radius: 999px;
+  /* 메타와 같은 크기를 쓴다. 전에 11.5px 로 따로 잡았더니 PDF·미색인·철회처럼
+     가장 중요한 상태가 화면에서 제일 작은 글씨가 됐다. */
+  font-size: var(--fs-meta); font-weight: 600; padding: 1px 8px; border-radius: 999px;
   border: 1px solid currentColor; white-space: nowrap;
 }
 .scholar .s-tag-ok   { color: var(--s-ok);     background: var(--s-ok-soft); }
@@ -619,7 +621,16 @@ th, td { padding-top: 7px; padding-bottom: 7px; }
   border: 1px solid transparent; cursor: pointer;
   background: var(--s-accent); color: #fff;
 }
-.scholar .s-btn:disabled, .scholar .s-chip:disabled { opacity: .5; cursor: not-allowed; }
+/* 비활성 상태. opacity 로 흐리면 1px 테두리가 같이 지워져서 알약이 아니라 맨 텍스트로
+   보인다 — 헤더의 'Claude · 못 씀' 이 그렇게 떠 있었다. 모양은 남기고 색만 죽인다. */
+.scholar .s-btn:disabled {
+  background: var(--s-panel-2); color: var(--ink-3);
+  border-color: var(--s-line); cursor: not-allowed;
+}
+.scholar .s-chip:disabled {
+  background: var(--s-panel-2); color: var(--ink-3);
+  border-color: var(--s-line); border-style: dashed; cursor: not-allowed;
+}
 .scholar .s-chip-sm { font-size: var(--fs-meta); padding: 3px 9px; }
 .scholar .s-chip-danger {
   color: var(--s-danger);
