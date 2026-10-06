@@ -642,6 +642,98 @@ th, td { padding-top: 7px; padding-bottom: 7px; }
   border: 1px solid var(--s-line); background: var(--s-bg); color: var(--ink); width: 100%;
 }
 
+/* ══════════════════════════════════════════════════════
+   Docs 편집 툴바 — Google Docs 배치·치수
+   ──────────────────────────────────────────────────────
+   Google Docs 의 실제 값: 바는 모서리 999px 의 연회색 알약, 버튼은 한 변 28px 에
+   모서리 4px, 아이콘 18px, 구분선은 높이 20px 의 1px 선. 눌린 버튼은 파란 틴트다.
+   브랜드 색이나 로고는 쓰지 않는다 — 배치와 치수만 따른다.
+   ══════════════════════════════════════════════════════ */
+.scholar .gd-bar {
+  display: flex; align-items: center; gap: 1px; flex-wrap: wrap;
+  padding: 4px 8px; border-radius: 999px;
+  background: var(--s-panel-2); border: 1px solid var(--s-line);
+  min-height: 38px;
+}
+.scholar .gd-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; padding: 0; flex: none;
+  border: none; border-radius: 4px; background: transparent;
+  color: var(--ink); font-size: 14px; line-height: 1; cursor: pointer;
+}
+.scholar .gd-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--ink) 10%, transparent); }
+.scholar .gd-btn:disabled { color: var(--ink-3); opacity: .45; cursor: default; }
+.scholar .gd-btn.gd-on { background: var(--s-accent-soft); color: var(--s-accent-ink); }
+.scholar .gd-btn:focus-visible { outline: 2px solid var(--s-accent); outline-offset: 1px; }
+
+.scholar .gd-sep {
+  width: 1px; height: 20px; flex: none;
+  background: var(--s-line); margin: 0 5px;
+}
+
+/* 드롭다운 — Google Docs 는 테두리 없이 글자만 두고 호버에서만 바탕을 준다 */
+.scholar .gd-sel {
+  height: 28px; border: none; border-radius: 4px; background: transparent;
+  color: var(--ink); font-size: var(--fs-meta); padding: 0 4px; cursor: pointer;
+  max-width: 100%;
+}
+.scholar .gd-sel:hover { background: color-mix(in srgb, var(--ink) 10%, transparent); }
+.scholar .gd-sel:focus-visible { outline: 2px solid var(--s-accent); outline-offset: 1px; }
+.scholar .gd-sel-style { width: 104px; }
+.scholar .gd-sel-font  { width: 96px; }
+.scholar .gd-sel-line  { width: 76px; }
+
+/* 글자 크기 — − [11] ＋ 묶음 */
+.scholar .gd-size { display: inline-flex; align-items: center; gap: 1px; flex: none; }
+.scholar .gd-size-in {
+  width: 34px; height: 24px; text-align: center;
+  border: 1px solid var(--s-line); border-radius: 4px;
+  background: var(--s-bg); color: var(--ink); font-size: var(--fs-meta);
+}
+.scholar .gd-size-in:focus-visible { outline: 2px solid var(--s-accent); outline-offset: 1px; }
+
+/* 글자색·형광펜 — 글리프 아래 현재 색 막대 */
+.scholar .gd-btn-color { flex-direction: column; gap: 1px; }
+.scholar .gd-color-glyph { font-size: 13px; font-weight: 700; line-height: 1; }
+.scholar .gd-color-bar {
+  width: 16px; height: 3px; border-radius: 1px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent);
+}
+
+/* 색 고르개 */
+.scholar .gd-pop-wrap { position: relative; display: inline-flex; flex: none; }
+.scholar .gd-pop {
+  position: absolute; top: 32px; left: 0; z-index: 40;
+  display: block; padding: 8px; border-radius: 10px;
+  background: var(--s-bg); border: 1px solid var(--s-line);
+  box-shadow: 0 6px 20px rgb(16 22 40 / 14%);
+}
+.scholar .gd-swatches {
+  display: grid; grid-template-columns: repeat(8, 18px); gap: 4px;
+}
+.scholar .gd-swatch {
+  width: 18px; height: 18px; padding: 0; cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); border-radius: 3px;
+}
+.scholar .gd-swatch:hover { transform: scale(1.15); }
+.scholar .gd-pop-clear {
+  margin-top: 8px; width: 100%; height: 26px; cursor: pointer;
+  border: 1px solid var(--s-line); border-radius: 6px;
+  background: var(--s-panel); color: var(--ink-2); font-size: var(--fs-meta);
+}
+
+/* 편집기 본문 — 툴바가 만들어 내는 서식이 실제로 보이게 한다 */
+.scholar .dd-doc u { text-decoration: underline; }
+.scholar .dd-doc mark { padding: 0 2px; border-radius: 2px; }
+.scholar .dd-doc ul[data-type="taskList"] { list-style: none; padding-left: 4px; }
+.scholar .dd-doc ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 8px; }
+.scholar .dd-doc ul[data-type="taskList"] li > label { margin-top: 3px; }
+.scholar .dd-doc ul[data-type="taskList"] li > div { flex: 1 1 auto; }
+
+@media print {
+  .scholar .gd-bar, .scholar aside, .scholar .s-zone { display: none !important; }
+}
+
 .scholar table.s-tbl { width: 100%; border-collapse: collapse; font-size: 15px; }
 .scholar table.s-tbl th, .scholar table.s-tbl td {
   border: 1px solid var(--s-line); padding: 9px 11px; text-align: left; vertical-align: top;

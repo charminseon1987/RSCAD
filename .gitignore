@@ -21,3 +21,5 @@ GFM_Research/RSCAD/05_템플릿/*.docx
 # 따로 들고 있다(*.versions.jsonl). 백업이 필요하면 문서를 열고 마크다운으로
 # 내보내 볼트에 두면 된다.
 Server/documents/
+# 볼트 .md 글에 달린 댓글 — 역시 사용자 로컬 상태다
+Server/doc_comments.json

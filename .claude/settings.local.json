@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:contribution.usercontent.google.com)"
+      "WebFetch(domain:contribution.usercontent.google.com)",
+      "Bash(PYTHONIOENCODING=utf-8 grep -n \"editor?.chain\\(\\)\\\\|toggleHeading\\\\|toggleBold\\\\|setLink\\\\|툴바\\\\|H2\\\\|굵게\" web/src/pages/Docs.tsx)"
     ]
   }
 }

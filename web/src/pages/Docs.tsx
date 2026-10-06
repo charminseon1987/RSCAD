@@ -20,6 +20,15 @@ import TableRow from '@tiptap/extension-table-row';
 import TableHeader from '@tiptap/extension-table-header';
 import TableCell from '@tiptap/extension-table-cell';
 import Link from '@tiptap/extension-link';
+import Underline from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
+import TextStyle from '@tiptap/extension-text-style';
+import Color from '@tiptap/extension-color';
+import Highlight from '@tiptap/extension-highlight';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
+import { TextFormat, BlockFormat } from '../lib/tiptapExtras';
+import DocsToolbar from '../components/DocsToolbar';
 import { apiUrl, delJSON, fetchJSON, postJSON, putJSON } from '../lib/api';
 
 interface Row {
@@ -459,6 +468,17 @@ function DocEditor({ doc, onBack, onFail, onFlash }: {
       Table.configure({ resizable: true }), TableRow, TableHeader, TableCell,
       Link.configure({ openOnClick: false }),
       Placeholder.configure({ placeholder: '여기에 씁니다.' }),
+      /* Google Docs 툴바가 쓰는 서식들. TextStyle 은 글자색·글꼴·크기가 올라타는
+         바탕이라 Color/TextFormat 보다 먼저 와야 한다. */
+      Underline,
+      TextStyle,
+      Color,
+      Highlight.configure({ multicolor: true }),
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      TaskList,
+      TaskItem.configure({ nested: true }),
+      TextFormat,
+      BlockFormat,
     ],
     content: doc.doc,
     editorProps: { attributes: { class: 'dd-doc' } },
@@ -631,7 +651,7 @@ function DocEditor({ doc, onBack, onFail, onFlash }: {
                   <div style={{ fontSize: 12, color: 'var(--ink-2)', marginBottom: 6 }}>
                     고른 문장: “{sel.slice(0, 80)}{sel.length > 80 ? '…' : ''}”
                   </div>
-                  <textarea className="s-input" rows={3} style={{ width: '100%' }}
+                  <textarea id="dd-comment-box" className="s-input" rows={3} style={{ width: '100%' }}
                     placeholder="이 문장에 댓글" value={cmBody} onChange={e => setCmBody(e.target.value)} />
                   <button className="s-btn" style={{ marginTop: 6 }} disabled={!cmBody.trim()}
                     onClick={() => postJSON(`/docs/${doc.id}/comments`, { body: cmBody, quote: sel })
