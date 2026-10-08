@@ -1,0 +1,180 @@
+[
+  {
+    "q": "그리드포밍 인버터의 소신호 상태공간 모델에서 DC 링크와 AC 측을 함께 다룬 연구",
+    "candidates": [
+      {
+        "doc": "Salem_2025_GFM_Review",
+        "hits": 47
+      },
+      {
+        "doc": "henriquezauba2022arxiv",
+        "hits": 40
+      },
+      {
+        "doc": "kenyon2020ibrstability",
+        "hits": 39
+      },
+      {
+        "doc": "Liu 2025 datadriven cpes",
+        "hits": 9
+      },
+      {
+        "doc": "Taul_2020_CurrentLimiting_GFM",
+        "hits": 5
+      }
+    ]
+  },
+  {
+    "q": "약계통에서 가상 동기기 제어의 동기화 안정도 한계",
+    "candidates": [
+      {
+        "doc": "Salem_2025_GFM_Review",
+        "hits": 146
+      },
+      {
+        "doc": "DArco_2014_VSM_Droop",
+        "hits": 34
+      },
+      {
+        "doc": "Taul_2020_CurrentLimiting_GFM",
+        "hits": 13
+      },
+      {
+        "doc": "kenyon2020ibrstability",
+        "hits": 12
+      },
+      {
+        "doc": "henriquezauba2022arxiv",
+        "hits": 11
+      }
+    ]
+  },
+  {
+    "q": "단락비와 X/R 비를 함께 변화시킨 안정도 경계 분석",
+    "candidates": [
+      {
+        "doc": "Salem_2025_GFM_Review",
+        "hits": 35
+      },
+      {
+        "doc": "Taul_2020_CurrentLimiting_GFM",
+        "hits": 13
+      },
+      {
+        "doc": "kenyon2020ibrstability",
+        "hits": 8
+      },
+      {
+        "doc": "henriquezauba2022arxiv",
+        "hits": 1
+      }
+    ]
+  },
+  {
+    "q": "입자군집최적화로 인버터 제어 이득을 조정한 사례",
+    "candidates": [],
+    "note": "NOT COVERED BY CORPUS"
+  },
+  {
+    "q": "LCL 필터 공진 감쇠와 전류 제어 이득의 관계",
+    "candidates": [
+      {
+        "doc": "Salem_2025_GFM_Review",
+        "hits": 16
+      },
+      {
+        "doc": "Taul_2020_CurrentLimiting_GFM",
+        "hits": 9
+      },
+      {
+        "doc": "kenyon2020ibrstability",
+        "hits": 7
+      },
+      {
+        "doc": "henriquezauba2022arxiv",
+        "hits": 4
+      },
+      {
+        "doc": "DArco_2014_VSM_Droop",
+        "hits": 1
+      }
+    ]
+  },
+  {
+    "q": "PV 부스트 컨버터와 ESS 를 공유 DC 링크로 묶은 2단 구성",
+    "candidates": [
+      {
+        "doc": "Salem_2025_GFM_Review",
+        "hits": 11
+      },
+      {
+        "doc": "Liu 2025 datadriven cpes",
+        "hits": 3
+      },
+      {
+        "doc": "kenyon2020ibrstability",
+        "hits": 2
+      }
+    ]
+  },
+  {
+    "q": "참여계수로 지배 모드의 물리적 정체를 규명한 방법",
+    "candidates": [
+      {
+        "doc": "henriquezauba2022arxiv",
+        "hits": 3
+      },
+      {
+        "doc": "kenyon2020ibrstability",
+        "hits": 1
+      }
+    ]
+  },
+  {
+    "q": "실시간 시뮬레이터와 실물 제어기를 연동한 CHIL 검증 절차",
+    "candidates": [
+      {
+        "doc": "Taul_2020_CurrentLimiting_GFM",
+        "hits": 2
+      }
+    ]
+  },
+  {
+    "q": "전력각이 커질 때 동기화계수가 변하는 방식",
+    "candidates": [
+      {
+        "doc": "Salem_2025_GFM_Review",
+        "hits": 16
+      },
+      {
+        "doc": "kenyon2020ibrstability",
+        "hits": 12
+      },
+      {
+        "doc": "Taul_2020_CurrentLimiting_GFM",
+        "hits": 4
+      }
+    ]
+  },
+  {
+    "q": "가상 관성과 댐핑 계수가 과도 응답에 미치는 영향",
+    "candidates": [
+      {
+        "doc": "Salem_2025_GFM_Review",
+        "hits": 9
+      },
+      {
+        "doc": "Taul_2020_CurrentLimiting_GFM",
+        "hits": 6
+      },
+      {
+        "doc": "kenyon2020ibrstability",
+        "hits": 3
+      },
+      {
+        "doc": "DArco_2014_VSM_Droop",
+        "hits": 3
+      }
+    ]
+  }
+]
