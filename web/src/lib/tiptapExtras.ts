@@ -138,6 +138,131 @@ export const BlockFormat = Extension.create({
   },
 });
 
+/* ── 제안 모드 ──────────────────────────────────────────────────────────
+   Google Docs 의 '제안' 에 해당한다. 켜 두면 글이 바로 바뀌지 않고 자국만 남는다:
+   새로 친 글자는 <ins> 로, 지운 글자는 지우지 않고 <del> 로 표시한다. 그 뒤에
+   모두 수락 / 모두 취소로 한 번에 정리한다.
+
+   낱개 수락·거절은 아직 없다 — 자국 단위로 끊어 세는 UI 가 더 필요하다.
+   지금은 문서 전체 단위로만 정리된다. */
+import { Mark } from '@tiptap/core';
+import { Plugin, TextSelection } from '@tiptap/pm/state';
+
+export const SuggestInsert = Mark.create({
+  name: 'suggestInsert',
+  inclusive: true,
+  parseHTML() { return [{ tag: 'ins[data-suggest]' }]; },
+  renderHTML({ HTMLAttributes }) {
+    return ['ins', { ...HTMLAttributes, 'data-suggest': 'insert' }, 0];
+  },
+});
+
+export const SuggestDelete = Mark.create({
+  name: 'suggestDelete',
+  inclusive: false,
+  parseHTML() { return [{ tag: 'del[data-suggest]' }]; },
+  renderHTML({ HTMLAttributes }) {
+    return ['del', { ...HTMLAttributes, 'data-suggest': 'delete' }, 0];
+  },
+});
+
+/* 표시된 자국의 범위를 모아 준다. 뒤에서부터 지워야 앞쪽 위치가 밀리지 않는다. */
+const ranges = (doc: any, markName: string) => {
+  const out: { from: number; to: number }[] = [];
+  doc.descendants((node: any, pos: number) => {
+    if (!node.isText) return;
+    if (node.marks.some((m: any) => m.type.name === markName)) {
+      const last = out[out.length - 1];
+      if (last && last.to === pos) last.to = pos + node.nodeSize;
+      else out.push({ from: pos, to: pos + node.nodeSize });
+    }
+  });
+  return out;
+};
+
+export const SuggestMode = Extension.create({
+  name: 'suggestMode',
+  addStorage() {
+    return { on: false };
+  },
+  addCommands(): any {
+    return {
+      setSuggesting:
+        (on: boolean) =>
+        ({ editor }: any) => {
+          editor.storage.suggestMode.on = on;
+          return true;
+        },
+      /* 수락 — 새로 친 글자는 그대로 두고 자국만 떼고, 지운다고 표시한 글자는 진짜 지운다 */
+      acceptSuggestions:
+        () =>
+        ({ state, tr, dispatch }: any) => {
+          const del = ranges(state.doc, 'suggestDelete');
+          const ins = ranges(state.doc, 'suggestInsert');
+          ins.forEach(r => tr.removeMark(r.from, r.to, state.schema.marks.suggestInsert));
+          del.slice().reverse().forEach(r => tr.delete(tr.mapping.map(r.from), tr.mapping.map(r.to)));
+          if (dispatch) dispatch(tr);
+          return true;
+        },
+      /* 취소 — 새로 친 글자를 지우고, 지운다고 표시했던 글자는 되살린다 */
+      rejectSuggestions:
+        () =>
+        ({ state, tr, dispatch }: any) => {
+          const del = ranges(state.doc, 'suggestDelete');
+          const ins = ranges(state.doc, 'suggestInsert');
+          del.forEach(r => tr.removeMark(r.from, r.to, state.schema.marks.suggestDelete));
+          ins.slice().reverse().forEach(r => tr.delete(tr.mapping.map(r.from), tr.mapping.map(r.to)));
+          if (dispatch) dispatch(tr);
+          return true;
+        },
+    };
+  },
+  addProseMirrorPlugins() {
+    const ext = this;
+    return [
+      new Plugin({
+        props: {
+          /* 친 글자에 ins 자국을 달아 넣는다 */
+          handleTextInput(view, from, to, text) {
+            if (!ext.storage.on) return false;
+            const m = view.state.schema.marks.suggestInsert.create();
+            const tr = view.state.tr.insertText(text, from, to);
+            tr.addMark(from, from + text.length, m);
+            view.dispatch(tr);
+            return true;
+          },
+          /* 지우는 대신 del 자국만 남긴다. 이미 ins 자국인 글자는 내가 방금 친
+             것이므로 그냥 지운다 — 제안 안에서 오타를 고칠 수 있어야 한다. */
+          handleKeyDown(view, ev) {
+            if (!ext.storage.on) return false;
+            if (ev.key !== 'Backspace' && ev.key !== 'Delete') return false;
+            const { state } = view;
+            let { from, to } = state.selection;
+            if (from === to) {
+              if (ev.key === 'Backspace') from = Math.max(0, from - 1);
+              else to = Math.min(state.doc.content.size, to + 1);
+            }
+            if (from >= to) return true;
+
+            const insMark = state.schema.marks.suggestInsert;
+            const onlyMine = state.doc.rangeHasMark(from, to, insMark);
+            const tr = state.tr;
+            if (onlyMine) {
+              tr.delete(from, to);
+            } else {
+              tr.addMark(from, to, state.schema.marks.suggestDelete.create());
+              const at = ev.key === 'Backspace' ? from : to;
+              tr.setSelection(TextSelection.create(tr.doc, Math.min(at, tr.doc.content.size)));
+            }
+            view.dispatch(tr);
+            return true;
+          },
+        },
+      }),
+    ];
+  },
+});
+
 /* addCommands() 로 만든 명령은 런타임에만 생긴다 — TypeScript 는 모른다.
    선언을 붙이지 않으면 editor.chain().setFontSize(...) 가 타입 오류로 막혀
    `npm run build`(tsc -b && vite build) 가 깨진다. 실제로 깨져 있었다. */
@@ -152,6 +277,11 @@ declare module '@tiptap/core' {
       indentBlock: () => ReturnType;
       outdentBlock: () => ReturnType;
       setLineHeight: (height: string) => ReturnType;
+    };
+    suggestMode: {
+      setSuggesting: (on: boolean) => ReturnType;
+      acceptSuggestions: () => ReturnType;
+      rejectSuggestions: () => ReturnType;
     };
   }
 }

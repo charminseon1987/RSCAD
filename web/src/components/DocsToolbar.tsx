@@ -36,6 +36,8 @@ const ic = {
   outdent: 'M20 6H10M20 12H10M20 18H10M7 9l-3 3 3 3',
   indent: 'M20 6H10M20 12H10M20 18H10M4 9l3 3-3 3',
   clear: 'M6 6h12M9 6l1 11M15 6l-1 7M5 20h8M16 15l5 5M21 15l-5 5',
+  spell: 'M4 16 8.5 6l4.5 10M5.6 13h5.8M15 19l2.5 2.5L22 17',
+  image: 'M3 5h18v14H3zM3 16l5-5 4 4 3-3 6 6M8.5 9.5h.01',
 } as const;
 
 /* ── Google Docs 와 같은 목록 ── */
@@ -50,7 +52,10 @@ const FONTS = [
   'Pretendard', 'Noto Sans KR', 'Noto Serif KR', 'Arial',
   'Times New Roman', 'Georgia', 'Courier New',
 ];
-const SIZES = ['8', '9', '10', '11', '12', '14', '18', '24', '30', '36', '48'];
+const SIZES = ['8', '9', '10', '11', '12', '14', '16', '18', '24', '30', '36', '48'];
+/* 글자 크기를 따로 지정하지 않은 글의 실제 크기 (.dd-doc 의 font-size).
+   Google Docs 는 빈 칸을 두지 않고 지금 적용된 크기를 늘 보여 준다. */
+const BASE_SIZE = '16';
 const LINE_HEIGHTS = [
   { v: '1', label: '1.0' }, { v: '1.15', label: '1.15' }, { v: '1.5', label: '1.5' },
   { v: '2', label: '2.0' }, { v: '2.5', label: '2.5' },
@@ -62,10 +67,27 @@ const COLORS = [
   '#9900ff', '#ff00ff', '#e6b8af', '#fce5cd', '#fff2cc', '#d9ead3', '#d0e0e3', '#c9daf8',
 ];
 
+const ZOOMS = ['50', '75', '90', '100', '125', '150', '200'];
+/* 편집 / 제안 / 보기 — Google Docs 의 오른쪽 끝 모드 전환 */
+const MODES = [
+  { k: 'edit', label: '편집', hint: '바로 고칩니다' },
+  { k: 'suggest', label: '제안', hint: '고친 자국만 남기고 나중에 수락·취소합니다' },
+  { k: 'view', label: '보기', hint: '읽기만 — 고칠 수 없습니다' },
+] as const;
+export type DocMode = (typeof MODES)[number]['k'];
+
 type Props = {
   editor: Editor | null;
   onComment?: () => void;
   canComment?: boolean;
+  /* 그림 올리기 — 성공하면 접근 가능한 URL 을 돌려준다 */
+  onUploadImage?: (file: File) => Promise<string>;
+  zoom?: number;
+  onZoom?: (z: number) => void;
+  spell?: boolean;
+  onSpell?: (on: boolean) => void;
+  mode?: DocMode;
+  onMode?: (m: DocMode) => void;
 };
 
 /* 버튼 하나. on 이면 눌린 상태로 칠한다. */
@@ -117,8 +139,13 @@ function ColorPicker({ label, swatch, onPick, onClear, icon }: any) {
   );
 }
 
-export default function DocsToolbar({ editor, onComment, canComment }: Props) {
+export default function DocsToolbar({
+  editor, onComment, canComment, onUploadImage,
+  zoom = 100, onZoom, spell = true, onSpell, mode = 'edit', onMode,
+}: Props) {
   const [, force] = useState(0);
+  const pick = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
   /* 커서를 옮기거나 글을 고치면 눌린 상태가 달라진다. 편집기 이벤트에 붙어
      다시 그린다 — 안 하면 B 가 켜졌는지 꺼졌는지 툴바가 모른다. */
   useEffect(() => {
@@ -138,7 +165,7 @@ export default function DocsToolbar({ editor, onComment, canComment }: Props) {
   const curStyle = STYLES.find(s =>
     s.k === 'p' ? editor.isActive('paragraph')
       : editor.isActive('heading', { level: Number(s.k[1]) }))?.k ?? 'p';
-  const curSize = String(attrs.fontSize || '').replace('px', '');
+  const curSize = String(attrs.fontSize || '').replace('px', '') || BASE_SIZE;
   const curFont = attrs.fontFamily || '';
   const curLine = editor.getAttributes('paragraph').lineHeight
     || editor.getAttributes('heading').lineHeight || '';
@@ -148,8 +175,11 @@ export default function DocsToolbar({ editor, onComment, canComment }: Props) {
       : ch().toggleHeading({ level: Number(k[1]) as any }).run();
 
   const bumpSize = (dir: 1 | -1) => {
-    const i = SIZES.indexOf(curSize || '11');
-    const next = SIZES[Math.min(SIZES.length - 1, Math.max(0, (i < 0 ? 4 : i) + dir))];
+    /* 목록에 없는 크기(직접 입력한 13 같은 값)면 가장 가까운 칸부터 움직인다 */
+    const n = Number(curSize) || Number(BASE_SIZE);
+    let i = SIZES.indexOf(String(n));
+    if (i < 0) i = SIZES.findIndex(s => Number(s) >= n) - (dir > 0 ? 1 : 0);
+    const next = SIZES[Math.min(SIZES.length - 1, Math.max(0, i + dir))];
     editor.chain().focus().setFontSize(next).run();
   };
 
@@ -164,6 +194,18 @@ export default function DocsToolbar({ editor, onComment, canComment }: Props) {
   const align = (a: string) => ch().setTextAlign(a).run();
   const isAlign = (a: string) => editor.isActive({ textAlign: a });
 
+  const addImage = async (f?: File | null) => {
+    if (!f || !onUploadImage) return;
+    setBusy(true);
+    try {
+      const url = await onUploadImage(f);
+      ch().setImage({ src: url, alt: f.name }).run();
+    } finally {
+      setBusy(false);
+      if (pick.current) pick.current.value = '';   // 같은 파일을 또 고를 수 있게
+    }
+  };
+
   return (
     <div className="gd-bar" role="toolbar" aria-label="서식 도구">
       <Btn title="실행취소 (Ctrl+Z)" disabled={!editor.can().undo()}
@@ -171,8 +213,16 @@ export default function DocsToolbar({ editor, onComment, canComment }: Props) {
       <Btn title="다시 실행 (Ctrl+Y)" disabled={!editor.can().redo()}
         onClick={() => ch().redo().run()}><I d={ic.redo} /></Btn>
       <Btn title="인쇄 (Ctrl+P)" onClick={() => window.print()}><I d={ic.print} /></Btn>
+      <Btn title={spell ? '맞춤법 표시 끄기' : '맞춤법 표시 켜기'} on={spell}
+        onClick={() => onSpell?.(!spell)}><I d={ic.spell} /></Btn>
       <Btn title="서식 지우고 붙이기" onClick={() => ch().unsetAllMarks().run()}>
         <I d={ic.brush} /></Btn>
+
+      <Sep />
+      <select className="gd-sel gd-sel-zoom" value={String(zoom)} title="확대·축소"
+        onChange={e => onZoom?.(Number(e.target.value))}>
+        {ZOOMS.map(z => <option key={z} value={z}>{z}%</option>)}
+      </select>
 
       <Sep />
       <select className="gd-sel gd-sel-style" value={curStyle} title="스타일"
@@ -217,6 +267,11 @@ export default function DocsToolbar({ editor, onComment, canComment }: Props) {
         <I d={ic.link} /></Btn>
       <Btn title="댓글 추가" disabled={!canComment} onClick={onComment}>
         <I d={ic.comment} /></Btn>
+      <Btn title={busy ? '올리는 중…' : '이미지 삽입'} disabled={!onUploadImage || busy}
+        onClick={() => pick.current?.click()}><I d={ic.image} /></Btn>
+      <input ref={pick} id="dd-image-pick" type="file" hidden
+        accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml"
+        onChange={e => addImage(e.target.files?.[0])} />
 
       <Sep />
       <Btn title="왼쪽 맞춤" on={isAlign('left')} onClick={() => align('left')}>
@@ -253,6 +308,25 @@ export default function DocsToolbar({ editor, onComment, canComment }: Props) {
       <Btn title="서식 지우기"
         onClick={() => ch().unsetAllMarks().setParagraph().run()}>
         <I d={ic.clear} /></Btn>
+
+      {/* 모드 전환은 Google Docs 와 같이 오른쪽 끝으로 민다 */}
+      <span className="gd-spacer" />
+      {mode === 'suggest' && (
+        <>
+          <button type="button" className="gd-pill gd-pill-ok"
+            title="제안한 것을 모두 본문에 반영합니다"
+            onMouseDown={e => e.preventDefault()}
+            onClick={() => cmd.acceptSuggestions()}>모두 수락</button>
+          <button type="button" className="gd-pill gd-pill-no"
+            title="제안한 것을 모두 되돌립니다"
+            onMouseDown={e => e.preventDefault()}
+            onClick={() => cmd.rejectSuggestions()}>모두 취소</button>
+        </>
+      )}
+      <select className="gd-sel gd-sel-mode" value={mode} title="편집 모드"
+        onChange={e => onMode?.(e.target.value as DocMode)}>
+        {MODES.map(m => <option key={m.k} value={m.k} title={m.hint}>{m.label}</option>)}
+      </select>
     </div>
   );
 }

@@ -27,8 +27,12 @@ import Color from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import { TextFormat, BlockFormat } from '../lib/tiptapExtras';
+import Image from '@tiptap/extension-image';
+import {
+  TextFormat, BlockFormat, SuggestInsert, SuggestDelete, SuggestMode,
+} from '../lib/tiptapExtras';
 import DocsToolbar from '../components/DocsToolbar';
+import type { DocMode } from '../components/DocsToolbar';
 import { apiUrl, delJSON, fetchJSON, postJSON, putJSON } from '../lib/api';
 
 interface Row {
@@ -452,6 +456,9 @@ function DocEditor({ doc, onBack, onFail, onFlash }: {
   const [comments, setComments] = useState<Comment[]>(doc.comments_list || []);
   const [versions, setVersions] = useState<Version[]>((doc as any).versions || []);
   const [sel, setSel] = useState('');
+  const [zoom, setZoom] = useState(100);
+  const [spell, setSpell] = useState(true);
+  const [mode, setMode] = useState<DocMode>('edit');
   const [cmBody, setCmBody] = useState('');
   const [pane, setPane] = useState<'comments' | 'cite' | 'versions' | 'origin'>('comments');
   const [reviewing, setReviewing] = useState(false);
@@ -477,8 +484,13 @@ function DocEditor({ doc, onBack, onFail, onFlash }: {
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       TaskList,
       TaskItem.configure({ nested: true }),
+      Image.configure({ inline: false, allowBase64: false }),
       TextFormat,
       BlockFormat,
+      /* 제안 모드 — 자국 마크 두 개가 먼저 등록돼야 플러그인이 쓸 수 있다 */
+      SuggestInsert,
+      SuggestDelete,
+      SuggestMode,
     ],
     content: doc.doc,
     editorProps: { attributes: { class: 'dd-doc' } },
@@ -488,6 +500,29 @@ function DocEditor({ doc, onBack, onFail, onFlash }: {
       setSel(from === to ? '' : ed.state.doc.textBetween(from, to, ' ').trim());
     },
   });
+
+  /* 모드를 바꾸면 편집 가능 여부와 제안 추적을 함께 맞춘다.
+     보기 모드에서는 자동저장이 돌 일도 없다 — 고칠 수 없으니 onUpdate 가 안 뜬다. */
+  useEffect(() => {
+    if (!editor) return;
+    editor.setEditable(mode !== 'view');
+    editor.commands.setSuggesting(mode === 'suggest');
+  }, [editor, mode]);
+
+  /* 맞춤법 표시는 브라우저가 해 준다. contenteditable 의 spellcheck 속성을 직접 건다. */
+  useEffect(() => {
+    const el = editor?.view?.dom as HTMLElement | undefined;
+    if (el) el.setAttribute('spellcheck', String(spell));
+  }, [editor, spell]);
+
+  const uploadImage = useCallback(async (f: File) => {
+    const fd = new FormData();
+    fd.append('file', f);
+    const r = await fetch(apiUrl(`/docs/${doc.id}/images`), { method: 'POST', body: fd });
+    const d = await r.json();
+    if (!r.ok || d.status !== 'ok') throw new Error(d.error || '그림을 올리지 못했습니다');
+    return d.url as string;
+  }, [doc.id]);
 
   const save = useCallback((label = '') => {
     if (!editor) return;
@@ -524,7 +559,11 @@ function DocEditor({ doc, onBack, onFail, onFlash }: {
     a.download = `${d.title || '문서'}.md`;
     a.click();
     URL.revokeObjectURL(a.href);
-    onFlash('마크다운으로 내려받았습니다 — Obsidian·Pandoc 이 그대로 읽습니다');
+    // 제안이 남은 채 내보내면 수락한 모습으로 나간다. 모르고 지나가면 안 된다.
+    onFlash(d.suggestions
+      ? `마크다운으로 내려받았습니다 — 다만 수락하지 않은 제안 ${d.suggestions}건이 `
+        + '수락된 모습으로 나갔습니다 (지우기로 표시한 글자는 빠졌습니다)'
+      : '마크다운으로 내려받았습니다 — Obsidian·Pandoc 이 그대로 읽습니다');
   }).catch(onFail);
 
   const B = ({ on, children, act, title: t }: any) => (
@@ -534,20 +573,29 @@ function DocEditor({ doc, onBack, onFail, onFlash }: {
   return (
     <div className="scholar max-w-[1600px] mx-auto px-10 py-8 space-y-3">
       <style>{`
-        .dd-doc { outline: none; min-height: 60vh; font-size: 16px; line-height: 1.95; color: var(--ink); }
-        .dd-doc h1 { font-size: 26px; font-weight: 700; margin: 22px 0 10px; }
-        .dd-doc h2 { font-size: 21px; font-weight: 700; margin: 20px 0 8px; }
-        .dd-doc h3 { font-size: 17px; font-weight: 600; margin: 16px 0 6px; }
+        /* 확대가 먹으려면 본문 크기가 상대값이어야 한다. 바깥 .dd-stage 가
+           font-size 를 %로 들고 있고, 여기서는 전부 em 으로 받는다. */
+        .dd-doc { outline: none; min-height: 60vh; font-size: 1em; line-height: 1.95; color: var(--ink); }
+        .dd-doc h1 { font-size: 1.63em; font-weight: 700; margin: 22px 0 10px; }
+        .dd-doc h2 { font-size: 1.31em; font-weight: 700; margin: 20px 0 8px; }
+        .dd-doc h3 { font-size: 1.06em; font-weight: 600; margin: 16px 0 6px; }
+        .dd-doc img { max-width: 100%; height: auto; border-radius: 6px; margin: 10px 0; }
+        /* 제안 자국 — 들어온 것은 밑줄, 지울 것은 취소선으로 남긴다 */
+        .dd-doc ins[data-suggest] { text-decoration: underline; text-decoration-thickness: 2px;
+          color: var(--s-ok); background: var(--s-ok-soft); text-decoration-color: var(--s-ok); }
+        .dd-doc del[data-suggest] { text-decoration: line-through; text-decoration-thickness: 2px;
+          color: var(--s-interp); background: var(--s-interp-soft); opacity: .85; }
+        .dd-stage[data-mode="view"] { background: var(--s-panel-2); }
         .dd-doc p { margin: 9px 0; }
         .dd-doc ul, .dd-doc ol { margin: 9px 0; padding-left: 22px; }
-        .dd-doc code { font-size: 14px; padding: 1px 5px; border-radius: 5px;
+        .dd-doc code { font-size: .875em; padding: 1px 5px; border-radius: 5px;
           background: var(--s-bg); border: 1px solid var(--s-line); }
         .dd-doc pre { padding: 11px; border-radius: 9px; background: var(--s-bg);
           border: 1px solid var(--s-line); overflow-x: auto; }
         .dd-doc blockquote { border-left: 3px solid var(--s-line); padding-left: 12px;
           color: var(--ink-2); margin: 10px 0; }
         .dd-doc table { border-collapse: collapse; margin: 12px 0; width: 100%;
-          table-layout: fixed; font-size: 14px; }
+          table-layout: fixed; font-size: .875em; }
         .dd-doc th, .dd-doc td { border: 1px solid var(--s-line); padding: 6px 9px;
           vertical-align: top; text-align: left; position: relative; }
         .dd-doc th { background: var(--s-bg); font-weight: 600; }
@@ -589,26 +637,30 @@ function DocEditor({ doc, onBack, onFail, onFlash }: {
         )}
       </div>
 
-      {/* 서식 도구 */}
-      <div className="s-panel" style={{ padding: 8, marginTop: 10 }}>
-        <div className="flex items-center gap-1 flex-wrap">
-          {[1, 2, 3].map(l => (
-            <B key={l} on={editor?.isActive('heading', { level: l })}
-              act={() => editor?.chain().focus().toggleHeading({ level: l as any }).run()}>H{l}</B>
-          ))}
-          <B on={editor?.isActive('paragraph')} act={() => editor?.chain().focus().setParagraph().run()}>본문</B>
+      {/* 서식 도구 — Google Docs 배치 (components/DocsToolbar.tsx) */}
+      <div style={{ marginTop: 10 }}>
+        <DocsToolbar editor={editor} canComment={!!sel}
+          onComment={() => {
+            const box = document.getElementById('dd-comment-box');
+            box?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            (box as HTMLTextAreaElement | null)?.focus();
+          }}
+          onUploadImage={uploadImage}
+          zoom={zoom} onZoom={setZoom}
+          spell={spell} onSpell={setSpell}
+          mode={mode} onMode={setMode} />
+        {/* 표·인용·코드는 Google Docs 에 없는 항목이라 아래 줄로 내린다.
+            표 안에 커서가 있을 때만 행·열 버튼이 나온다. */}
+        <div className="flex items-center gap-1 flex-wrap" style={{ marginTop: 6, paddingLeft: 4 }}>
+          <B on={editor?.isActive('blockquote')}
+            act={() => editor?.chain().focus().toggleBlockquote().run()}>인용</B>
+          <B on={editor?.isActive('code')}
+            act={() => editor?.chain().focus().toggleCode().run()}>코드</B>
+          <B on={editor?.isActive('codeBlock')}
+            act={() => editor?.chain().focus().toggleCodeBlock().run()}>코드블록</B>
           <span style={{ width: 1, height: 20, background: 'var(--s-line)', margin: '0 4px' }} />
-          <B on={editor?.isActive('bold')} act={() => editor?.chain().focus().toggleBold().run()}>굵게</B>
-          <B on={editor?.isActive('italic')} act={() => editor?.chain().focus().toggleItalic().run()}>기울임</B>
-          <B on={editor?.isActive('strike')} act={() => editor?.chain().focus().toggleStrike().run()}>취소선</B>
-          <B on={editor?.isActive('code')} act={() => editor?.chain().focus().toggleCode().run()}>코드</B>
-          <span style={{ width: 1, height: 20, background: 'var(--s-line)', margin: '0 4px' }} />
-          <B on={editor?.isActive('bulletList')} act={() => editor?.chain().focus().toggleBulletList().run()}>• 목록</B>
-          <B on={editor?.isActive('orderedList')} act={() => editor?.chain().focus().toggleOrderedList().run()}>1. 목록</B>
-          <B on={editor?.isActive('blockquote')} act={() => editor?.chain().focus().toggleBlockquote().run()}>인용</B>
-          <B on={editor?.isActive('codeBlock')} act={() => editor?.chain().focus().toggleCodeBlock().run()}>코드블록</B>
-          <span style={{ width: 1, height: 20, background: 'var(--s-line)', margin: '0 4px' }} />
-          <B act={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>표</B>
+          <B act={() => editor?.chain().focus()
+            .insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>표</B>
           {editor?.isActive('table') && (
             <>
               <B act={() => editor?.chain().focus().addRowAfter().run()}>＋행</B>
@@ -617,14 +669,14 @@ function DocEditor({ doc, onBack, onFail, onFlash }: {
               <B act={() => editor?.chain().focus().deleteColumn().run()}>－열</B>
             </>
           )}
-          <span style={{ width: 1, height: 20, background: 'var(--s-line)', margin: '0 4px' }} />
-          <B act={() => editor?.chain().focus().undo().run()}>되돌리기</B>
-          <B act={() => editor?.chain().focus().redo().run()}>다시</B>
         </div>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 12, marginTop: 12 }}>
-        <div className="s-panel" style={{ padding: '18px 22px' }}>
+        {/* 확대는 글자만 키운다. transform: scale 로 키우면 글줄 폭이 그대로라
+            200% 에서 가로 스크롤이 생기고 캐럿 위치가 어긋난다. */}
+        <div className="s-panel dd-stage" data-mode={mode}
+          style={{ padding: '18px 22px', fontSize: `${zoom}%` }}>
           <EditorContent editor={editor} />
         </div>
 
