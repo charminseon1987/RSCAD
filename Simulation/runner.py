@@ -49,6 +49,7 @@ from datetime import datetime
 import model as M
 import op
 import metrics as MT
+import provenance
 
 MODEL_VERSION = 'v3-22state'
 
@@ -294,7 +295,8 @@ def verify_ctrl_applied(ctrl):
 # 코어
 # ══════════════════════════════════════════════
 def run(ctrl, SCR_list, XR=1.0, tag='',
-        persist=True, write_latest=True, base_dir=None, quiet=False):
+        persist=True, write_latest=True, base_dir=None, quiet=False,
+        journal=True):
     """스윕 1회 실행. PSO 에서 persist=False, quiet=True 로 호출.
 
     반환: (results dict, meta dict, out_dir Path | None)
@@ -308,7 +310,17 @@ def run(ctrl, SCR_list, XR=1.0, tag='',
 
     # 동작점 연속화는 강계통(쉬운 해)에서 출발해야 안정적이므로 내림차순 고정.
     # 순서가 바뀌면 같은 SCR 이 다른 해로 수렴할 수 있다(재현성 문제).
-    SCR_list = sorted((float(s) for s in SCR_list), reverse=True)
+    #
+    # 중복은 여기서 제거한다. results 가 SCR 을 키로 하는 dict 라 중복 입력은 어차피
+    # 한 번만 풀리는데, 예전에는 all_converged 를 len(ok_runs)==len(SCR_list) 로 재서
+    # 전부 수렴해도 False 가 나왔다. nonconvergence_SCR 는 비어 있는 채로 —
+    # "수렴 실패했는데 어디서 실패했는지는 없음" 이라는 모순된 기록이 남았고,
+    # main() 의 종료코드까지 1 로 뒤집혔다. 실제로 그런 런이 results/ 에 있다.
+    _raw = sorted((float(s) for s in SCR_list), reverse=True)
+    SCR_list = sorted(set(_raw), reverse=True)
+    if len(SCR_list) != len(_raw):
+        dup = sorted({s for s in _raw if _raw.count(s) > 1}, reverse=True)
+        print(f"  ⚠  SCR 중복 제거: {dup} — {len(_raw)}점 입력 → {len(SCR_list)}점 실행")
 
     run_name = make_run_name(ctrl, XR, SCR_list, tag)
     base_dir = Path(base_dir) if base_dir else Path(__file__).parent.parent / 'results'
@@ -464,6 +476,10 @@ def run(ctrl, SCR_list, XR=1.0, tag='',
         'n_states':      M.N,
         'n_dc_states':   M.N_DC,
         'timestamp':     datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        # 이 런을 만든 코드와 환경. 런 이름 해시는 '파라미터' 정체성이라 같은
+        # 파라미터·다른 코드가 같은 폴더를 쓴다 — 그 구멍을 여기서 메운다.
+        # persist 일 때만 뜬다 (PSO 내부 호출에 git 비용을 물리지 않는다).
+        'provenance':    (provenance.collect() if persist else None),
         'ctrl_params':   {k: float(v) for k, v in ctrl.items()},
         'fixed_params':  {k: float(v) for k, v in op.FIXED.items()},
         'inputs':        {k: float(v) for k, v in op.INP.items()},
@@ -473,7 +489,10 @@ def run(ctrl, SCR_list, XR=1.0, tag='',
         'bands':         {b: [lo, (None if np.isinf(hi) else hi)] for b, lo, hi in BANDS},
         'thresholds':    {'IMAG_TOL': IMAG_TOL, 'STABLE_TOL': STABLE_TOL,
                           'FD_TOL': FD_TOL, 'DELTA_WARN': DELTA_WARN},
-        'all_converged': len(ok_runs) == len(SCR_list),
+        # 실제로 푼 점(results) 기준으로 센다. len(SCR_list) 로 재면 입력에 중복이
+        # 있을 때 전부 수렴해도 False 가 된다 — 위에서 중복을 걷어내지만, 판정식
+        # 자체가 입력 모양에 흔들리지 않는 편이 낫다.
+        'all_converged': len(ok_runs) == len(results),
         'all_stable':    all(v['stable'] for v in ok_runs.values()),
         'score_min_all':      None if np.isnan(score_all) else round(score_all, 5),
         'sigma_min_all':      None if np.isnan(sigma_all) else round(sigma_all, 5),
@@ -510,6 +529,13 @@ def run(ctrl, SCR_list, XR=1.0, tag='',
             log(f"  🔖 LATEST.json → {run_name}")
         else:
             log(f"\n  📁 results/{run_name}/   (LATEST 갱신 생략)")
+
+        # 런이 끝난 자리에서 일지 초안을 남긴다. 나중에 쓰면 '본 것' 을 기억으로 채우게 된다.
+        # write_latest 에 묶는 이유: 88포인트 스윕이나 PSO 내부 호출이 일지를 쏟아내면
+        # 기록이 아니라 소음이 된다. 그쪽은 스윕이 끝난 뒤 한 번만 남기면 된다.
+        if journal and write_latest:
+            import journal_hook
+            journal_hook.on_run_finished(meta, base_dir, log=log)
 
     if not quiet:
         z_str = 'nan' if np.isnan(zeta_all) else f'{zeta_all:.4f}'
@@ -705,6 +731,8 @@ def parse_args(argv=None):
                    help='디스크 저장 없이 화면 출력만')
     p.add_argument('--no-latest', action='store_true',
                    help='LATEST.json 갱신 생략')
+    p.add_argument('--no-journal', action='store_true',
+                   help='런 뒤 연구일지 초안을 남기지 않는다')
     p.add_argument('--quiet', action='store_true')
     return p.parse_args(argv)
 
@@ -723,6 +751,7 @@ def main(argv=None):
         _, meta, _ = run(ctrl, args.SCR, args.XR, args.tag,
                          persist=not args.no_persist,
                          write_latest=not args.no_latest,
+                         journal=not args.no_journal,
                          quiet=args.quiet)
     except RuntimeError as e:
         raise SystemExit(f"\n  ❌ {e}")
