@@ -131,10 +131,19 @@ def word_count(doc: dict) -> int:
 def _inline(node: dict) -> str:
     if node.get('type') == 'hardBreak':
         return '\n'
+    if node.get('type') == 'image':
+        a = node.get('attrs') or {}
+        src = a.get('src') or ''
+        return f'![{a.get("alt") or ""}]({src})' if src else ''
     if node.get('type') != 'text':
         return ''.join(_inline(c) for c in (node.get('content') or []))
     t = node.get('text') or ''
-    for m in (node.get('marks') or []):
+    marks = node.get('marks') or []
+    # 제안 모드에서 '지울 것' 으로 표시한 글자는 내보내지 않는다 — 수락한 상태로 나간다.
+    # 자국만 떼고 글자를 남기면 지우려던 문장이 본문에 섞여 나가 문장이 깨진다.
+    if any(m.get('type') == 'suggestDelete' for m in marks):
+        return ''
+    for m in marks:
         k = m.get('type')
         if k == 'bold':
             t = f'**{t}**'
@@ -144,7 +153,30 @@ def _inline(node: dict) -> str:
             t = f'`{t}`'
         elif k == 'link':
             t = f'[{t}]({(m.get("attrs") or {}).get("href", "")})'
+        elif k == 'strike':
+            t = f'~~{t}~~'
+        elif k == 'underline':
+            t = f'<u>{t}</u>'      # 마크다운에 밑줄이 없다 — Pandoc 이 읽는 HTML 로 남긴다
+        elif k == 'highlight':
+            t = f'=={t}=='         # Obsidian 형광펜 표기
     return t
+
+
+def count_suggestions(doc: dict) -> int:
+    """아직 수락·취소하지 않은 제안 자국 수. 내보낼 때 조용히 지나가지 않으려고 센다."""
+    n = 0
+
+    def walk(node: dict) -> None:
+        nonlocal n
+        for m in (node.get('marks') or []):
+            if m.get('type') in ('suggestInsert', 'suggestDelete'):
+                n += 1
+                break
+        for c in (node.get('content') or []):
+            walk(c)
+
+    walk(doc)
+    return n
 
 
 def _children_md(node: dict) -> str:
@@ -192,6 +224,19 @@ def to_markdown(doc: dict) -> str:
                 out.append('| ' + ' | '.join(cells) + ' |')
                 if ri == 0:
                     out.append('| ' + ' | '.join(['---'] * len(cells)) + ' |')
+            out.append('')
+        elif t == 'image':
+            out.append(indent + _inline(n))
+            out.append('')
+        elif t == 'taskList':
+            for li in (n.get('content') or []):
+                done = 'x' if (li.get('attrs') or {}).get('checked') else ' '
+                inner = [_children_md(c) for c in (li.get('content') or [])
+                         if c.get('type') == 'paragraph']
+                out.append(f'{indent}- [{done}] ' + (inner[0] if inner else ''))
+                for sub in (li.get('content') or []):
+                    if sub.get('type') in ('bulletList', 'orderedList', 'taskList'):
+                        block(sub, indent + '  ')
             out.append('')
         elif t == 'horizontalRule':
             out.append('---')
@@ -290,6 +335,25 @@ def from_markdown(text: str) -> dict:
             content.append({'type': 'blockquote', 'content': [
                 {'type': 'paragraph', 'content': _text_nodes(st.lstrip('> ').strip())}]})
             i += 1
+            continue
+        # 그림 한 줄 — ![대체글](주소). 글자로 들여오면 편집기에 마크다운이 그대로 보인다.
+        m = re.match(r'^!\[([^\]]*)\]\(([^)\s]+)\)$', st)
+        if m:
+            content.append({'type': 'image',
+                            'attrs': {'src': m.group(2), 'alt': m.group(1)}})
+            i += 1
+            continue
+        # 체크리스트 — 보통 목록보다 먼저 본다. 뒤에 보면 '- ' 에 먼저 걸려 [x] 가 글자가 된다.
+        if re.match(r'^[-*+]\s+\[[ xX]\]\s', st):
+            items = []
+            while i < n and re.match(r'^[-*+]\s+\[[ xX]\]\s', lines[i].strip()):
+                mm = re.match(r'^[-*+]\s+\[([ xX])\]\s+(.*)$', lines[i].strip())
+                items.append({'type': 'taskItem',
+                              'attrs': {'checked': mm.group(1).lower() == 'x'},
+                              'content': [{'type': 'paragraph',
+                                           'content': _text_nodes(mm.group(2))}]})
+                i += 1
+            content.append({'type': 'taskList', 'content': items})
             continue
         m = re.match(r'^[-*+]\s+(.*)$', st)
         if m:
@@ -668,8 +732,11 @@ def api_markdown(doc_id):
     d = load(doc_id)
     if not d:
         return jsonify({'status': 'error', 'error': '없는 문서입니다'}), 404
+    doc = d.get('doc') or EMPTY_DOC
+    # 제안이 남아 있으면 수락한 모습으로 나간다. 조용히 지나가지 않게 수를 함께 준다.
     return jsonify({'status': 'ok', 'title': d.get('title'),
-                    'markdown': to_markdown(d.get('doc') or EMPTY_DOC)})
+                    'markdown': to_markdown(doc),
+                    'suggestions': count_suggestions(doc)})
 
 
 @bp.route('/<doc_id>/docx')
@@ -702,3 +769,58 @@ def api_docx(doc_id):
     if skipped:                       # 못 옮긴 것은 헤더로 알린다 — 모르고 지나가면 안 된다
         resp.headers['X-Export-Skipped'] = str(len(skipped))
     return resp
+
+
+# ── 이미지 ────────────────────────────────────────────────────────────────
+# 본문에 base64 로 박지 않는다. 문서는 판 스냅샷을 MAX_VERSIONS 개까지 들고 있어서,
+# 500KB 이미지 하나가 base64(약 1.37배)로 들어가면 판마다 복제돼 수십 MB 가 된다.
+# 파일은 따로 두고 본문에는 경로만 남긴다.
+ASSETS = STORE / 'assets'
+IMG_TYPES = {
+    'image/png': '.png', 'image/jpeg': '.jpg', 'image/gif': '.gif',
+    'image/webp': '.webp', 'image/svg+xml': '.svg',
+}
+MAX_IMG = 12 * 1024 * 1024        # 12 MiB — 논문 그림 한 장으로 넉넉하다
+SAFE_ASSET = re.compile(r'^[0-9a-f]{16}\.(png|jpg|gif|webp|svg)$')
+
+
+@bp.route('/<doc_id>/images', methods=['POST'])
+def api_image_upload(doc_id: str):
+    """그림 한 장을 받아 assets/ 에 두고 참조 경로를 돌려준다."""
+    if not SAFE_ID.match(doc_id) or not load(doc_id):
+        return jsonify({'status': 'error', 'error': '문서를 찾을 수 없습니다'}), 404
+
+    f = request.files.get('file')
+    if f is None:
+        return jsonify({'status': 'error', 'error': '파일이 없습니다'}), 400
+
+    ext = IMG_TYPES.get((f.mimetype or '').lower())
+    if ext is None:
+        return jsonify({'status': 'error',
+                        'error': f'지원하지 않는 형식입니다 ({f.mimetype}) — '
+                                 'PNG·JPEG·GIF·WebP·SVG 만 됩니다'}), 415
+
+    blob = f.read(MAX_IMG + 1)
+    if len(blob) > MAX_IMG:
+        return jsonify({'status': 'error',
+                        'error': f'{MAX_IMG // (1024 * 1024)}MiB 를 넘습니다'}), 413
+    if not blob:
+        return jsonify({'status': 'error', 'error': '빈 파일입니다'}), 400
+
+    ASSETS.mkdir(parents=True, exist_ok=True)
+    name = uuid.uuid4().hex[:16] + ext
+    (ASSETS / name).write_bytes(blob)
+    return jsonify({'status': 'ok', 'url': f'/api/docs/assets/{name}',
+                    'name': name, 'bytes': len(blob)})
+
+
+@bp.route('/assets/<name>')
+def api_image_get(name: str):
+    """올린 그림을 돌려준다. 이름 모양을 먼저 검사해 경로 탈출을 막는다."""
+    from flask import send_file
+    if not SAFE_ASSET.match(name):
+        return jsonify({'status': 'error', 'error': '잘못된 이름입니다'}), 400
+    p = ASSETS / name
+    if not p.is_file():
+        return jsonify({'status': 'error', 'error': '없는 그림입니다'}), 404
+    return send_file(p, max_age=31536000)      # 내용이 바뀌지 않는 이름이라 길게 캐시한다
