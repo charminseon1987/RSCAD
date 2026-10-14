@@ -1,0 +1,405 @@
+{
+  "schema_version": "1.0",
+  "paper": {
+    "bib_verification": {
+      "status": "resolved",
+      "retracted": null,
+      "registry": "non-crossref",
+      "checked_date": "2026-10-14"
+    },
+    "id": "chen2025slgfmopenloop",
+    "title": "Open-Loop Unstable Behavior in A Class of Single-Loop Grid-Forming Control",
+    "authors": ["Meng Chen", "Ioannis Lestas", "Yufei Xi", "Lin Cheng"],
+    "affiliations": [
+      "Department of Engineering, University of Cambridge",
+      "State Key Laboratory of Power System Operation and Control, Tsinghua University"
+    ],
+    "year": 2025,
+    "venue": "미검증 — 학회명·세션·수록 페이지가 본문·머리말·꼬리말 어디에도 없다",
+    "doi": "10.17863/cam.126549",
+    "pages_total": 6,
+    "keywords": ["single-loop grid-forming control", "reactive power control", "LCL resonance", "Routh criterion", "open-loop unstable"],
+    "pdf": "GFM_Research/00_Knowledge/papers/Chen_2025_OpenLoopUnstable_SingleLoop_GFM.pdf",
+    "pdf_status": "have",
+    "ingest": {
+      "method": "로컬 PDF 전문 추출 (pypdf, 6/6 쪽)",
+      "date": "2026-10-14",
+      "notes": "서지 미확인 사항: 학회명·세션·권/쪽이 PDF 안에 전혀 없다. 본문에서 확인된 단서는 (1) 자금 — UKRI Postdoctoral Fellowship Guarantee Grant [EP/Z001889/1], 2025 Beijing Program for Funding the Return of High-Level Overseas Talents (p.1 각주), (2) 소속 2곳(Cambridge, Tsinghua), (3) 참고문헌 [15] 가 arXiv:2504.06981 (2025) — 어느 것도 학회를 특정하지 못한다. 연도 2025 는 사용자가 준 값이며 PDF 자체로는 확증되지 않는다 (PDF 컴파일 시각은 D:20260203, pdfTeX/TeX Live 2024). DOI 10.17863/cam.126549 는 사용자 제공값이며 doi.org 로는 해석되지만 Crossref 에 서지가 없어(Apollo/DataCite 등록) 학회명을 그쪽에서도 받아올 수 없었다 — 철회 여부도 확인 불가(retracted=null). 쪽 번호는 PDF 물리 쪽 기준. 수식은 텍스트 추출에서 일부 깨져 기호를 손으로 복원했다(그리스문자·아래첨자)."
+    }
+  },
+  "context": {
+    "test_system": "SL-GFM(단일루프 그리드포밍) 컨버터 1기 — LCL 필터(Lf–Cf–Lg) + 선로저항 Rg 를 거쳐 무한모선에 연결, p.u. 체계. 상태 수는 논문에 없으나 식 (7)-(12) 의 LCL·선로 6상태 + 식 (1)(2)(3) 의 제어 3상태(ω, δ, Erf) = 9차로 읽힌다(이것은 내 해석이다)",
+    "simulation": "시간영역 시뮬레이션 (Fig. 5, Fig. 7) — 시뮬레이터·솔버·스텝 크기 모두 미명시. 해석은 소신호 전달함수 + Routh 판별 + Nyquist 선도(Fig. 4, Fig. 6) + 개루프 극점표(Table II)",
+    "parameters": [
+      {"name": "공칭 주파수", "symbol": "fn", "value": 50, "unit": "Hz", "basis": "Table I"},
+      {"name": "필터 커패시터", "symbol": "Cf", "value": 0.048, "unit": "p.u.", "basis": "Table I"},
+      {"name": "인버터측 인덕터", "symbol": "Lf", "value": 0.1, "unit": "p.u.", "basis": "Table I"},
+      {"name": "계통측 인덕터 + 선로", "symbol": "Lg", "value": 0.2, "unit": "p.u.", "basis": "Table I"},
+      {"name": "관성 상수", "symbol": "H", "value": 0.5, "unit": "s", "basis": "Table I"},
+      {"name": "유효전력 제어 댐핑", "symbol": "Dp", "value": 50, "unit": "-", "basis": "Table I"},
+      {"name": "q-V 드룹 계수", "symbol": "Dq", "value": 10, "unit": "-", "basis": "Table I"},
+      {"name": "유효전력 설정점", "symbol": "Pst", "value": 0.5, "unit": "p.u.", "basis": "Table I"},
+      {"name": "무효전력 설정점", "symbol": "Qst", "value": 0, "unit": "p.u.", "basis": "Table I"},
+      {"name": "전압 설정점", "symbol": "Vst", "value": 1, "unit": "p.u.", "basis": "Table I"},
+      {"name": "선로 X/R (사례 1)", "symbol": "Xg/Rg", "value": 17, "unit": "-", "basis": "Sec. IV — 이상적 유도성 계통 근사"},
+      {"name": "선로 X/R (사례 2)", "symbol": "Xg/Rg", "value": 6, "unit": "-", "basis": "Sec. IV — 저항 성분 증가"},
+      {"name": "RAP 루프 적분이득(사례별 값)", "symbol": "kq", "value": "1.5 / 4 / 11", "unit": "-", "basis": "Sec. IV — Table I 에는 kq 가 없고 사례별로만 주어진다"}
+    ],
+    "target_system": "일반",
+    "paper_type": "analysis",
+    "control_scheme": [
+      "SL-GFM (단일루프 — 내부 전압·전류 루프 없음)",
+      "AP 루프: 스윙방정식 기반 가상관성 + p-ω 드룹",
+      "RAP 루프: droop-I (q-V 드룹 + 적분)"
+    ],
+    "model_order": "미명시",
+    "analysis_method": [
+      "상세 소신호 전달함수 모델링(LCL 동특성 포함)",
+      "Routh 안정판별",
+      "개루프 극점 위치",
+      "Nyquist 선도",
+      "시간영역 시뮬레이션"
+    ],
+    "tuning_method": "미명시",
+    "scr_range": "미명시 — SCR 을 언급하지 않는다. Lg=0.2 p.u. 가 있으나 '계통측 필터 인덕터 + 선로' 합산값이라 계통 단독 SCR 로 환산할 수 없다",
+    "xr_range": "Xg/Rg = 17, 6 두 값만. 저 X/R(1.0~1.5) 구간은 다루지 않는다",
+    "validation_level": "sim-only",
+    "hardware": ["없음"],
+    "extraction_depth": "full",
+    "dc_ac_coupling": "미포함 — Fig. 1 에 vdc 가 그려져 있으나 DC단 동특성은 모델에 없다(식 (7)-(12) 에 DC 상태변수 없음)",
+    "pso_params": null
+  },
+  "claims": [
+    {
+      "id": "C01",
+      "type": "problem",
+      "statement": "SL-GFM 구조에서는 출력 필터 때문에 RAP(무효전력) 루프에 순수 드룹만 적용하면 정상상태 오차가 생기고, 이를 없애려고 드룹에 적분을 더한 droop-I 제어가 널리 채택돼 왔다.",
+      "evidence": [
+        {"page": 1, "locator": "Sec. I Introduction, 1열 하단~2열 상단 ([7] 인용)", "kind": "text"}
+      ],
+      "evidence_strength": "literature",
+      "verification": {"status": "auto_checked"},
+      "tags": ["droop-I", "SL-GFM", "정상상태오차"],
+      "my_relevance": "우리 2단 PV+ESS 는 전압-전류 이중루프로 필터 커패시터 전압을 내부 루프가 직접 제어한다 — 여기서 말하는 '필터 때문에 생기는 드룹 정상상태 오차' 자체가 우리 구조에서는 다르게 나타나므로 droop-I 채택 동기부터 우리와 일치하지 않는다."
+    },
+    {
+      "id": "C02",
+      "type": "problem",
+      "statement": "기존 SL-GFM 안정도 연구는 전력 루프와 LCL 공진이 대역폭이 분리돼 있다는 이유로 둘을 분리 취급해 LCL 동특성을 생략해 왔고, RAP 루프 자체의 안정도 문제는 AP 루프에 비해 거의 다뤄지지 않았다.",
+      "evidence": [
+        {"page": 1, "locator": "Sec. I Introduction, 2열 ([8], [9] 인용)", "kind": "text"}
+      ],
+      "evidence_strength": "literature",
+      "verification": {"status": "auto_checked"},
+      "tags": ["문헌공백", "대역폭분리", "LCL공진"]
+    },
+    {
+      "id": "C03",
+      "type": "method",
+      "statement": "저자들은 LCL 필터와 선로 동특성을 정적 이득으로 축약하지 않고 전부 유지한 상세 소신호 모델을 계통 dq 기준틀에서 세우고(전달행렬 A, B), 이를 스윙방정식 AP 루프와 droop-I RAP 루프에 결합해 Fig. 2 의 블록선도로 정리한다.",
+      "conditions": {
+        "기준틀": "계통 dq — GFM 기준틀과는 각도차 δ 로 연결(식 (29)(30))",
+        "모델 범위": "LCL·선로 6상태 + 제어 3상태, DC단·제어지연·내부루프 없음"
+      },
+      "evidence": [
+        {"page": 2, "locator": "Sec. III-A, 식 (7)-(19), Fig. 1", "kind": "equation"},
+        {"page": 3, "locator": "Sec. III-A, 식 (26)-(34) 및 Fig. 2 (상세 LCL 포함 소신호 블록선도)", "kind": "figure"},
+        {"page": 3, "locator": "Sec. III-B, 식 (35)-(37) — Gpδ(s), GqE(s), GVE(s) 는 정적 이득이 아니라 LCL 동특성을 그대로 담는다", "kind": "equation"}
+      ],
+      "evidence_strength": "analytical",
+      "verification": {"status": "auto_checked"},
+      "relations": [
+        {"type": "same_as", "target": "chen2026lcl_slgfm#C03", "note": "'LCL 동특성을 포함한 상세 소신호 모델'은 이 학회판만의 것이 아니다 — 같은 저자군의 저널판(IEEE TIE, arXiv:2504.06981)에도 있다. 다만 저널판 모델은 DC-link 전압 PI 와 지연 근사 τd 까지 포함해 더 넓고, 이 학회판은 AC측만 남긴 축약판이다"}
+      ],
+      "tags": ["소신호모델", "LCL", "dq"],
+      "my_relevance": "LCL·계통 블록을 전달행렬로 묶어 전력·전압 출력을 Erf·δ 로 환원하는 방식은 우리 22차 상태공간의 LCL·계통 부분을 교차검증할 때 쓸 수 있다. 다만 DC단과 내부 전압·전류 루프가 없어 모델 구조 자체를 옮겨올 수는 없다."
+    },
+    {
+      "id": "C04",
+      "type": "assumption",
+      "statement": "핵심 결론은 두 가정 위에 서 있다 — (i) 유도성 리액턴스가 저항보다 지배적이면 AP 루프와 RAP 루프를 분리해 볼 수 있다, (ii) 계통이 이상적으로 유도성이다(식 (7)-(12) 에 Rg 가 없고, 저항은 Routh 배열의 미소 섭동 ε>0 로만 되돌아온다).",
+      "conditions": {
+        "루프 분리": "X >> R 일 때만 성립",
+        "저항 취급": "Rg 를 상태방정식에서 빼고 Routh 배열의 0 계수를 대체하는 ε 로만 반영"
+      },
+      "evidence": [
+        {"page": 3, "locator": "Sec. III-B 첫 문단(AP/RAP 분리 가정) 및 Fig. 3", "kind": "text"},
+        {"page": 4, "locator": "Sec. III-B, 식 (54) 아래 Routh 배열 — ε>0 도입 문단(수학적으로는 배열 정의, 물리적으로는 기생저항 반영)", "kind": "equation"}
+      ],
+      "evidence_strength": "analytical",
+      "verification": {"status": "auto_checked", "notes": "저항을 상태방정식이 아니라 Routh 배열의 섭동으로 넣는 처리는 정성적 설명에 가깝다 — ε 와 Rg(또는 X/R) 사이의 정량적 대응식은 본문에 없다."},
+      "tags": ["가정", "유도성계통", "ε섭동"],
+      "my_relevance": "우리 연구축은 X/R 1.0~1.5 의 저항성 계통이다. 이 논문 핵심 정리의 전제(X >> R)와 정반대 구간이므로 결론을 그대로 가져다 쓸 수 없다."
+    },
+    {
+      "id": "C05",
+      "type": "result",
+      "statement": "전압크기 V 되먹임이 없으면 전력 루프의 개루프 극점은 LCL 공진 주파수 ω1, ω2 와 동기 주파수 ωg 에 정확히 놓여 허수축 상에서 한계안정이고, 실제 기생저항이 이들을 좌반평면으로 밀어 최소위상이 되므로 0 dB 이득·-180도 위상 교차 기준을 신뢰할 수 있다.",
+      "quantities": [
+        {"name": "LCL 공진 주파수", "symbol": "ωLCL", "value": "ωn·sqrt((Lf+Lg)/(Lf·Cf·Lg))", "unit": "rad/s", "basis": "식 (44)"},
+        {"name": "동기 공진 주파수", "symbol": "ωLg", "value": "ωn·ωg", "unit": "rad/s", "basis": "식 (45)"},
+        {"name": "dq 기준틀 공진 극점", "symbol": "ω1, ω2", "value": "ωLCL-ωLg, ωLCL+ωLg", "unit": "rad/s", "basis": "식 (42)(43)"}
+      ],
+      "evidence": [
+        {"page": 4, "locator": "Sec. III-B, 식 (40)-(48) 및 그 아래 문단", "kind": "equation"}
+      ],
+      "evidence_strength": "analytical",
+      "verification": {"status": "auto_checked"},
+      "tags": ["개루프극점", "최소위상", "보드기준"]
+    },
+    {
+      "id": "C06",
+      "type": "result",
+      "statement": "RAP 루프에 전압크기 되먹임 ΔV 가 들어가면 개루프 전달함수 Gq(s) 에서 LCL 공진에 해당하는 det(B) 극점이 되먹임 상호작용으로 상쇄되고, 대신 s·det(B) + kq·Dq·NVE(s) = 0 라는 새 특성방정식이 개루프 극점을 결정한다 — s^4 항이 없는 5차식 s^5 + a3·s^3 + a2·s^2 + a1·s + a0 = 0 이다.",
+      "quantities": [
+        {"name": "a3", "value": "ω1^2 + ω2^2", "basis": "식 (55)"},
+        {"name": "a2", "value": "vd0·kq·Dq·ωLC^2/V0", "basis": "식 (56)"},
+        {"name": "a1", "value": "ω1^2·ω2^2 - 2·vq0·kq·Dq·ωLC^2·ωLg/V0", "basis": "식 (57)"},
+        {"name": "a0", "value": "vd0·kq·Dq·ωLC^2·ω1·ω2/V0", "basis": "식 (58)"},
+        {"name": "s^4 항 계수", "value": 0, "basis": "식 (54) — 이 0 계수 때문에 Routh 배열에 ε 를 넣는다"}
+      ],
+      "evidence": [
+        {"page": 4, "locator": "Sec. III-B, 식 (52)-(58)", "kind": "equation"}
+      ],
+      "evidence_strength": "analytical",
+      "verification": {"status": "auto_checked", "notes": "식 (56)-(58) 의 기호 ωLC 는 본문에서 정의되지 않는다(정의된 것은 식 (44) 의 ωLCL 이다). 식 (41)(51)(53) 을 직접 정리하면 ωLC^2 = ωn^2/(Lf·Cf) 로 떨어지지만 이는 내 유도이고 논문에 적힌 바 없다."},
+      "relations": [
+        {"type": "depends_on", "target": "C03"}
+      ],
+      "tags": ["극점상쇄", "특성방정식", "droop-I"]
+    },
+    {
+      "id": "C07",
+      "type": "result",
+      "statement": "Routh 판별을 적용하면 ε→0+ 에서 첫 열의 s^3 행 항 a3-a2/ε 이 음의 무한대로 발산하고 다음 s^2 행 항은 a2>0 로 돌아와 부호가 두 번 바뀌므로, 이상적 유도성 계통에서 droop-I RAP 루프는 계통·제어 파라미터와 무관하게 항상 최소 2개의 우반평면 개루프 극점을 가지며 이 불안정은 제어 이득 조정으로 제거할 수 없다.",
+      "conditions": {
+        "계통": "이상적 유도성 (Rg = 0, ε→0+)",
+        "원인": "RAP 루프 안쪽의 전압크기 ΔV 되먹임 — 구조적",
+        "파라미터 의존성": "없음 — a1, a0 의 부호와 무관하게 성립"
+      },
+      "quantities": [
+        {"name": "RHP 개루프 극점 개수(하한)", "value": 2, "unit": "개", "basis": "Routh 첫 열 부호변화 2회 — 식 (59)(60)"},
+        {"name": "lim(ε→0+) a3-a2/ε", "value": "-∞ (<0)", "basis": "식 (59)"},
+        {"name": "lim(ε→0+) a2-(a1·ε^2-a0·ε)/(a3·ε-a2)", "value": "a2 (>0)", "basis": "식 (60)"}
+      ],
+      "evidence": [
+        {"page": 4, "locator": "Sec. III-B, Routh 배열 및 식 (59)", "kind": "equation"},
+        {"page": 5, "locator": "Sec. III-B 상단, 식 (60) 및 '구조적 개루프 불안정 / 파라미터 조정으로 완화 불가' 문단", "kind": "text"}
+      ],
+      "evidence_strength": "analytical",
+      "verification": {"status": "auto_checked"},
+      "relations": [
+        {"type": "depends_on", "target": "C06"},
+        {"type": "depends_on", "target": "C04"},
+        {"type": "extends", "target": "chen2026lcl_slgfm#C10", "note": "저널판은 같은 비최소위상 전이를 파라미터 변화에 따른 근궤적으로 보였고, 이 claim 이 그것을 파라미터 무관 해석 증명으로 올린 부분이다 — Routh 판별은 저널판에 한 번도 나오지 않는다(전문 검색으로 확인)"}
+      ],
+      "tags": ["Routh", "개루프불안정", "구조적", "핵심"],
+      "my_relevance": "내 PSO 이득조정 신규성과 정면으로 부딪히는 대목이다 — 구조적 개루프 불안정은 이득 최적화로 없앨 수 없다. 다만 전제가 (i) 단일루프 + droop-I, (ii) 이상적 유도성 계통이라, 이중루프·저 X/R 인 우리 구조로 자동 확장되지 않는다. 같은 저자군이 저널판에서 '내부 전압-전류 제어가 있으면 추가 자유도로 비최소위상 거동을 일반적으로 제거할 수 있다'고 명시했으므로(chen2026lcl_slgfm#C14), 현재 근거로는 이 기구가 우리 2단 이중루프 구조로 옮겨지지 않는다고 보는 것이 맞다. 그래도 우리 22차 모델의 Q 채널 개루프 극점을 한 번 직접 확인해 두는 편이 안전하다."
+    },
+    {
+      "id": "C08",
+      "type": "result",
+      "statement": "저항이 있는 실제 계통에서는 ε 가 유한한 양수여서 항상 불안정하지는 않지만 a3-a2/ε 이 음이 되면 개루프 불안정 극점이 나타나고, RAP 적분이득 kq 가 커질수록 이 항이 작아져 불안정이 촉발된다 — RAP 루프 대역폭을 넓히는 것이 LCL 공진 불안정을 부르는 결합 경로다.",
+      "conditions": {
+        "계통": "유한 저항 (ε 유한 양수)",
+        "촉발 변수": "kq 증가 — a2 가 kq·Dq 에 비례"
+      },
+      "quantities": [
+        {"name": "개루프 불안정 촉발 조건", "value": "a3-a2/ε < 0  ⇔  ω1^2+ω2^2 < vd0·kq·Dq·ωLC^2/(V0·ε)", "basis": "식 (55)(56) 과 p.5 본문 서술을 결합해 내가 정리한 부등식 — 논문은 'a3-a2/ε 이 음이 될 수 있다'고만 쓰고 이 부등식 형태로 적지 않았다"},
+        {"name": "ε 와 Rg(X/R) 의 정량 대응", "value": "미제시", "basis": "p.5 — 'Rg 가 크면 ε 가 커진다'는 정성 서술만 있다"}
+      ],
+      "evidence": [
+        {"page": 5, "locator": "Sec. III-B, 'In practical systems, where the grid is not ideally inductive...' 문단", "kind": "text"}
+      ],
+      "evidence_strength": "analytical",
+      "verification": {"status": "auto_checked"},
+      "relations": [
+        {"type": "depends_on", "target": "C07"},
+        {"type": "same_as", "target": "chen2026lcl_slgfm#C06", "note": "저널판은 같은 Table I 조건(X/R=6)에서 임계값을 kq = 5.1(RAP 대역폭 6→17 Hz)로 정량화했다. 이 학회판은 임계 kq 숫자를 주지 않고 ε 를 통한 해석적 조건만 준다"}
+      ],
+      "tags": ["임계조건", "kq", "대역폭결합"],
+      "my_relevance": "'RAP 루프를 빠르게 하면 고주파 공진이 깨진다'는 이 경로는 우리 PSO 적합도에 이득 상한 제약으로 넣을 수 있는 형태다. 다만 임계값이 ε 로만 표현돼 X/R 로 환산된 설계식이 없다 — 그 빈 자리가 우리 SCR-X/R 경계 작업과 맞닿는다."
+    },
+    {
+      "id": "C09",
+      "type": "result",
+      "statement": "사례 1(Xg/Rg = 17)에서 kq = 1.5 일 때는 개루프 극점이 모두 좌반평면이고 Nyquist 가 (-1,0)을 감싸지 않아 안정하지만, t = 5 s 에 kq 를 4 로 올리면 공진 주파수 근처에 우반평면 극점쌍이 생기고 시뮬레이션에서 출력 p, q 가 공진 주파수로 발산 진동한다.",
+      "conditions": {"Xg/Rg": 17, "kq": "1.5 → 4 (t = 5 s)"},
+      "quantities": [
+        {"name": "개루프 극점 (kq=1.5, 안정)", "value": "-0.9±j5786.5, -0.6±j5158.4, -12±j314.3, -9.8", "unit": "1/s", "basis": "Table II"},
+        {"name": "개루프 극점 (kq=4, 불안정)", "value": "2.7±j5786.2, 3.5±j5158.7, -12.8±j314.4, -26.1", "unit": "1/s", "basis": "Table II — 앞 두 쌍이 RHP"},
+        {"name": "RHP 극점쌍 실수부", "value": "2.7, 3.5", "unit": "1/s", "basis": "Table II, kq=4"},
+        {"name": "불안정 진동 각주파수", "value": "약 5158~5786 (약 821~921 Hz)", "unit": "rad/s", "basis": "Table II 극점 허수부에서 읽음. Fig. 5 의 확대창(24.99~25.01 s)에서 주파수를 직접 읽지는 못했다"},
+        {"name": "임계 kq 구간 (X/R=17)", "value": "1.5 < kq_crit ≤ 4", "basis": "두 값만 시험했으므로 구간으로만 말할 수 있다"}
+      ],
+      "evidence": [
+        {"page": 5, "locator": "Sec. IV-A, Table II 및 Fig. 4(a)(b) Nyquist", "kind": "table"},
+        {"page": 5, "locator": "Fig. 5 — kq 증가 후 p, q 발산(확대창 24.99~25.01 s)", "kind": "figure"}
+      ],
+      "evidence_strength": "simulation",
+      "verification": {"status": "auto_checked"},
+      "relations": [{"type": "supports", "target": "C08"}],
+      "tags": ["사례연구", "X/R=17", "Nyquist"]
+    },
+    {
+      "id": "C10",
+      "type": "result",
+      "statement": "사례 2(Xg/Rg = 6)에서는 kq = 4 에서도 개루프 극점이 모두 좌반평면이고 kq 를 11 로 올려야 우반평면 극점이 나타난다 — 선로 저항이 커질수록(X/R 이 낮을수록) ε 가 커져 같은 불안정을 일으키는 데 더 큰 kq 가 필요하다.",
+      "conditions": {"Xg/Rg": 6, "kq": "4 → 11 (t = 5 s)"},
+      "quantities": [
+        {"name": "개루프 극점 (kq=4, 안정)", "value": "-2.95±j5786.2, -2.2±j5158.7, -34.1±j314.91, -26.26", "unit": "1/s", "basis": "Table II"},
+        {"name": "개루프 극점 (kq=11, 불안정)", "value": "7.8±j5785.2, 9.9±j5159.9, -34.3±j316.2, -71.6", "unit": "1/s", "basis": "Table II"},
+        {"name": "임계 kq 구간 (X/R=6)", "value": "4 < kq_crit ≤ 11", "basis": "두 값만 시험 — X/R=17 의 구간(1.5~4)보다 확실히 위쪽"},
+        {"name": "같은 kq=4 에서의 뒤바뀜", "value": "X/R=17 이면 불안정, X/R=6 이면 안정", "basis": "Table II 두 열 비교"}
+      ],
+      "evidence": [
+        {"page": 6, "locator": "Sec. IV-B, Fig. 6(a)(b) Nyquist, Fig. 7 시간영역 (극점값은 p.5 Table II)", "kind": "table"},
+        {"page": 6, "locator": "Sec. IV-B 본문 — 증가한 Rg 가 더 큰 ε 를 만들어 Routh 첫 열 부호변화를 막는다는 설명", "kind": "text"}
+      ],
+      "evidence_strength": "simulation",
+      "verification": {"status": "auto_checked"},
+      "relations": [
+        {"type": "supports", "target": "C08"},
+        {"type": "same_as", "target": "chen2026lcl_slgfm#C09", "note": "저널판은 같은 경향을 Xg/Rg 10→2 근궤적으로 보이고 Rg=0 을 고주파 공진의 최악조건으로 채택한다 — 두 편이 같은 방향이다. 그쪽은 X/R=2 까지 내려가므로 이 학회판(6)보다 한 단계 더 낮다"}
+      ],
+      "tags": ["사례연구", "X/R=6", "저항효과", "X/R민감도"],
+      "my_relevance": "우리 서사('X/R 이 낮을수록 어렵다')에 대한 반대 방향 근거다 — 이 고주파 공진 기구에 한해서는 저항이 많을수록 안정 여유가 커진다. 저 X/R(1.0~1.5)에서 어려워지는 것은 저주파 동기화·전력결합 쪽이므로, 두 기구를 분리해 쓰지 않으면 내 주장과 충돌한다. 단 이 논문은 X/R 을 6 아래로 내려보지 않았다."
+    },
+    {
+      "id": "C11",
+      "type": "limitation",
+      "statement": "불안정한 두 사례 모두 Nyquist 선도가 (-1,0)을 감싸지 않는다 — 전통적 0 dB 이득·-180도 위상 교차 기준으로는 여유가 있어 보이는데도 개루프 우반평면 극점 때문에 폐루프가 불안정해지므로, 그 기준만으로 SL-GFM droop-I 의 안정 여유를 판정하면 안 된다.",
+      "quantities": [
+        {"name": "불안정 사례의 (-1,0) 감김 수", "value": 0, "unit": "회", "basis": "Fig. 4(b), Fig. 6(b) — 개루프 RHP 극점이 2쌍이면 안정하려면 감김이 필요하다"}
+      ],
+      "evidence": [
+        {"page": 5, "locator": "Sec. IV-A, Fig. 4(b) 및 본문 — Nyquist 가 (-1,0)을 감싸지 않는데도 폐루프 불안정", "kind": "figure"},
+        {"page": 6, "locator": "Sec. IV-B, Fig. 6(b) 및 Sec. V Conclusion", "kind": "figure"}
+      ],
+      "evidence_strength": "simulation",
+      "verification": {"status": "auto_checked"},
+      "relations": [
+        {"type": "depends_on", "target": "C07"},
+        {"type": "same_as", "target": "chen2026lcl_slgfm#C11", "note": "저널판은 Table II 세 경우로 같은 논점(교차조건 만족에도 둘은 불안정)을 보인다"}
+      ],
+      "tags": ["보드기준무효", "Nyquist", "안정여유"],
+      "my_relevance": "이득여유·위상여유를 PSO 적합도 항으로 쓰는 설계는 개루프 RHP 극점이 있으면 무효가 된다. 우리가 여유 지표를 적합도에 넣는다면 개루프 극점 위치를 먼저 확인하는 절차를 붙여야 한다는 뜻이다."
+    },
+    {
+      "id": "C12",
+      "type": "limitation",
+      "statement": "LCL 동특성을 생략한 축약 모델은 이 불안정 기구를 담지 못하므로 그런 단순화 모델로 얻은 SL-GFM droop-I 안정도 결론의 타당성이 의심된다고 저자들은 주장한다.",
+      "evidence": [
+        {"page": 1, "locator": "Abstract — 'This instability challenges the validity of simplified models neglecting LCL dynamics'", "quote": "This instability challenges the validity of simplified models neglecting LCL dynamics", "kind": "text"},
+        {"page": 1, "locator": "Sec. I Introduction 2열 ([9] 인용 문단)", "kind": "text"}
+      ],
+      "evidence_strength": "analytical",
+      "verification": {"status": "auto_checked"},
+      "relations": [
+        {"type": "depends_on", "target": "C07"},
+        {"type": "same_as", "target": "chen2026lcl_slgfm#C04", "note": "저널판은 같은 논점을 '단순화 모델의 계단응답은 잘 맞지만 지배 모드를 놓친다'로 수치 비교까지 보인다"}
+      ],
+      "tags": ["축약모델", "모델타당성"],
+      "my_relevance": "우리 22차 상태공간이 LCL 상태를 실제로 포함하는지, 평균화로 날렸는지가 이 지적의 사정권이다. 포함돼 있다면 이 비판은 우리에게 해당하지 않고 오히려 상세 모델을 쓴 근거로 인용할 수 있다. 포함돼 있지 않다면 신규성 주장 전에 고주파 모드 점검이 필요하다."
+    },
+    {
+      "id": "C13",
+      "type": "future_work",
+      "statement": "저자들은 droop-I RAP 제어를 쓰는 SL-GFM 에는 공진 댐핑 구현이 필수이며 공진 불안정을 명시적으로 다루지 않는 한 널리 쓰이는 droop-I 를 권하지 않는다고 결론짓고, 가능한 댐핑 방안은 선행 연구 [15] 로 넘긴다 — 이 논문 자체는 댐핑 설계를 제시하지 않는다.",
+      "evidence": [
+        {"page": 5, "locator": "Sec. III-B 끝 — 'A viable damping strategy addressing this issue has been proposed in [15]'", "kind": "text"},
+        {"page": 6, "locator": "Sec. V Conclusion", "kind": "text"},
+        {"page": 6, "locator": "References [15] — M. Chen, Y. Xi, F. Blaabjerg, L. Cheng, I. Lestas, 'LCL resonance analysis and damping in single-loop grid-forming wind turbines,' arXiv:2504.06981, 2025", "kind": "text"}
+      ],
+      "evidence_strength": "assertion",
+      "verification": {"status": "auto_checked"},
+      "relations": [
+        {"type": "depends_on", "target": "C07"},
+        {"type": "extends", "target": "chen2026lcl_slgfm#C17", "note": "능동댐핑 설계(Gad(s) = kd·s/(Td·s+1), 5단계 설계절차)는 이 학회판에 없고 저널판 Sec. III 에 있다"}
+      ],
+      "tags": ["능동댐핑", "권고"]
+    },
+    {
+      "id": "C14",
+      "type": "comparison",
+      "statement": "저자들은 이 논문의 기여를 선행 연구 [15] 와 명시적으로 구분한다 — [15] 는 특정 파라미터 값에 의존하는 근궤적 정량 해석으로 개루프 불안정을 관찰했고, 이 논문은 Routh 판별에 기반한 정성적·해석적 접근으로 그 근본 원인(전압크기 되먹임이 만드는 내부 루프)을 규명한다.",
+      "conditions": {
+        "선행 연구 [15]": "arXiv:2504.06981 (2025) — 본문에서 'Our previous work' 로 지칭. 볼트의 chen2026lcl_slgfm (IEEE TIE early access) 과 같은 논문",
+        "시간 순서": "이 학회 논문이 [15] 를 선행으로 인용한다 — 즉 이 논문이 뒤다"
+      },
+      "evidence": [
+        {"page": 1, "locator": "Sec. I Introduction 2열 — 'Our previous work identified ... [15]' 및 '... analyzed through root-locus methods, which are dependent on specific parameter values' 와 이어지는 기여 문단", "kind": "text"},
+        {"page": 6, "locator": "References [15]", "kind": "text"}
+      ],
+      "evidence_strength": "literature",
+      "verification": {"status": "auto_checked", "notes": "볼트의 Chen_2026_LCL_Resonance_SingleLoop_GFM.pdf 메타데이터(arXiv:2504.06981v2, 제목 'LCL Resonance Analysis and Damping in Single-Loop Grid-Forming Wind Turbines')가 [15] 와 일치함을 확인했다. 그 PDF 전문에 'Routh' 는 한 번도 나오지 않고 근궤적·Nyquist 를 쓴다 — 이 논문의 자기 위치설정과 일치한다."},
+      "relations": [
+        {"type": "extends", "target": "chen2026lcl_slgfm#C10", "note": "방향 주의 — 이 2025 학회 논문은 저널판의 '선행 학회판'이 아니라 저널/arXiv 판을 선행으로 인용하는 후속 해석 논문이다"}
+      ],
+      "tags": ["선행연구대비", "Routh", "근궤적", "순서주의"],
+      "my_relevance": "두 편을 같이 인용할 때 순서를 뒤집으면 안 된다. '현상 발견·댐핑 설계·실험(저널판) → 파라미터 무관 해석 증명(이 학회판)' 순서로 써야 한다."
+    }
+  ],
+  "gaps": [
+    {
+      "id": "G01",
+      "description": "저 X/R 구간(1.0~1.5)이 비어 있다. 이 논문이 시험한 X/R 은 17 과 6 뿐이고, 저항이 커지면 ε 가 커져 안정해진다는 설명은 정성적이다 — ε 와 X/R 의 대응식도, 임계 kq 를 X/R 의 함수로 그린 경계도 없다. 배전급 저 X/R 에서 이 기구가 실질적으로 사라지는지 남는지는 미해결.",
+      "derived_from": ["C04", "C08", "C10"],
+      "counter_search": {
+        "status": "partially_addressed",
+        "queries": ["검색 아님 — 같은 볼트의 chen2026lcl_slgfm 레코드를 직접 대조"],
+        "found": ["chen2026lcl_slgfm#C09 — 저널판은 Xg/Rg 를 10 → 2 까지 내려 근궤적을 그리고 저항성 계통에서 공진 감쇠가 좋아짐을 보인다. 그래도 X/R < 2 는 다루지 않으므로 1.0~1.5 구간은 여전히 비어 있다"],
+        "date": "2026-10-14"
+      },
+      "priority": "high",
+      "target": "phd"
+    },
+    {
+      "id": "G02",
+      "description": "단일루프(SL-GFM)에 한정된 결과다. 이 논문 자체는 전압-전류 이중루프/다중루프 GFM 에서도 RAP 루프 내부의 전압크기 되먹임이 같은 구조적 개루프 불안정을 만드는지 다루지 않는다 — 2단 PV+ESS 이중루프로의 이전 가능성을 이 논문만으로는 판단할 수 없다.",
+      "derived_from": ["C03", "C07"],
+      "counter_search": {
+        "status": "already_addressed",
+        "queries": ["검색 아님 — 같은 볼트의 chen2026lcl_slgfm 레코드를 직접 대조"],
+        "found": ["chen2026lcl_slgfm#C14 — 같은 저자군이 저널판에서 '내부(전압-전류) 제어를 포함한 구조에서는 추가 제어 자유도로 비최소위상 거동을 일반적으로 제거할 수 있다'고 명시한다. 즉 이 기구는 내부 제어가 없는 단일루프에 특유하며 우리 이중루프 구조로 옮겨지지 않는다는 것이 저자들의 입장이다(해당 claim 의 근거는 저자 서술이므로 정량 증명은 아니다)"],
+        "date": "2026-10-14"
+      },
+      "priority": "high",
+      "target": "phd"
+    },
+    {
+      "id": "G03",
+      "description": "DC단이 모델에 없다. DC-link 전압 제어, PV 어레이·ESS 변환단 동특성, DC-AC 커플링이 이 개루프 불안정 기구와 어떻게 상호작용하는지 이 논문은 다루지 않는다.",
+      "derived_from": ["C03", "C04"],
+      "counter_search": {
+        "status": "partially_addressed",
+        "queries": ["검색 아님 — 같은 볼트의 chen2026lcl_slgfm 레코드를 직접 대조"],
+        "found": ["chen2026lcl_slgfm#C12, #C13 — 저널판은 DC-link PI 를 포함해 불안정해진 RAP 루프가 DC 루프까지 끌고 가는 것을 보이고, 불안정 출처가 RAP 루프이므로 DC 입력원이 달라져도 해석이 유효하다고 주장한다. 다만 그 대상은 PMSG 풍력이고 2단 PV+ESS 의 부스트단·ESS 충방전 동특성은 양쪽 모두 다루지 않는다"],
+        "date": "2026-10-14"
+      },
+      "priority": "medium",
+      "target": "phd"
+    },
+    {
+      "id": "G04",
+      "description": "이 학회판의 검증은 시간영역 시뮬레이션뿐이고 시뮬레이터조차 명시되지 않았다. 약 820~920 Hz 대역의 불안정은 디지털 제어지연·샘플링과 얽히므로 CHIL 급 검증이 따로 필요하다.",
+      "derived_from": ["C09", "C10"],
+      "counter_search": {
+        "status": "already_addressed",
+        "queries": ["검색 아님 — 같은 볼트의 chen2026lcl_slgfm 레코드를 직접 대조"],
+        "found": ["chen2026lcl_slgfm#C20, #C21 — 저널판은 3 kW/200 V 축소 하드웨어 실험으로 820 Hz·720 Hz 공진 발산과 댐핑 효과를 보였다(validation_level=실기). 다만 이 학회판의 X/R=17 사례를 재현한 실험은 아니다"],
+        "date": "2026-10-14"
+      },
+      "priority": "medium",
+      "target": "phd"
+    },
+    {
+      "id": "G05",
+      "description": "Routh 배열의 섭동 ε 가 물리 파라미터(Rg, X/R, 기생저항)와 어떻게 대응하는지 정의되지 않아, 해석 결과를 설계 기준(임계 kq 또는 허용 RAP 대역폭)으로 환산할 수 없다. ε(Rg) 를 정식화하면 X/R 평면 위의 안정 경계를 해석식으로 그릴 수 있다.",
+      "derived_from": ["C04", "C08"],
+      "counter_search": {"status": "not_searched"},
+      "priority": "high",
+      "target": "phd"
+    }
+  ]
+}
