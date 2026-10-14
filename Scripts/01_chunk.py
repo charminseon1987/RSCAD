@@ -20,6 +20,7 @@
     python scripts/01_chunk.py --strategy fixed --size 900 --overlap 150
 """
 
+import console_utf8  # noqa: F401 — stdout/stderr 을 UTF-8 로
 import argparse
 import json
 import re
@@ -48,15 +49,29 @@ SECTION_RE = re.compile(
 WS = re.compile(r'\s+')
 
 
+def doc_title(doc):
+    """PDF 메타데이터의 논문 제목. 없으면 None — 본문에서 추측하지 않는다.
+
+    첫 쪽의 큰 글씨를 제목으로 집는 방법도 있지만, 저널 머리글·학회명·저자
+    소속이 같은 크기로 섞여 들어온다. 틀린 제목이 인용에 실리는 것이 제목이
+    비어 있는 것보다 나쁘다.
+    """
+    t = ((doc.metadata or {}).get('title') or '').strip()
+    t = re.sub(r'</?[a-zA-Z][^>]{0,20}>', '', t)   # Salem 의 <bold>-</bold> 같은 마크업
+    t = WS.sub(' ', t).strip(' -–—')
+    return t or None
+
+
 def read_pdf(path):
     """페이지를 이어 붙이되, 줄바꿈으로 끊긴 단어를 되살린다.
 
-    쪽 경계를 함께 돌려준다. 인용이 '몇 쪽'을 가리켜야 리더에서 그 자리를
+    쪽 경계와 논문 제목을 함께 돌려준다. 인용이 '몇 쪽'을 가리켜야 리더에서 그 자리를
     열 수 있는데, 한 번 이어 붙이고 나면 되찾을 수 없기 때문이다.
     정리(하이픈·빈 줄)를 쪽마다 하므로 쪽을 걸친 하이픈 한 건은 복원되지
     않는다 — 쪽 번호를 얻는 값에 비하면 작은 대가다.
     """
     doc = fitz.open(path)
+    title = doc_title(doc)
     parts, bounds, pos = [], [], 0
     last = doc.page_count
     for i, page in enumerate(doc, 1):
@@ -67,7 +82,7 @@ def read_pdf(path):
         pos += len(t) + (1 if i < last else 0)   # 이음매 '\n' 한 글자
         bounds.append((i, pos))
     doc.close()
-    return '\n'.join(parts), bounds
+    return '\n'.join(parts), bounds, title
 
 
 def page_of(bounds, offset):
@@ -128,7 +143,7 @@ def split_section(text):
     for (s, title), (e, _) in zip(marks, marks[1:]):
         body = text[s:e].strip()
         if len(body) > 120:                    # 제목만 있는 조각 제외
-            out.append({'title': title, 'text': body})
+            out.append({'section': title, 'text': body})
     return out
 
 
@@ -178,7 +193,7 @@ def split_fixed(text, size, overlap):
             buf = (buf + ' ' + u).strip()
     if buf:
         out.append(buf)
-    return [{'title': None, 'text': c} for c in out]
+    return [{'section': None, 'text': c} for c in out]
 
 
 def main():
@@ -211,12 +226,15 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f'{args.strategy}.jsonl'
     print(f'  PDF       {pdf_dir}')
-    n_doc = n_chunk = n_fallback = n_split = n_drop = 0
+    n_doc = n_chunk = n_fallback = n_split = n_drop = n_notitle = 0
+    empty_docs = []
 
     with out_path.open('w', encoding='utf-8') as f:
         for p in pdfs:
             doc_id = p.stem
-            text, bounds = read_pdf(p)
+            text, bounds, paper_title = read_pdf(p)
+            if paper_title is None:
+                n_notitle += 1
             norm, idx = norm_map(text)
             cursor = 0
 
@@ -234,7 +252,7 @@ def main():
                             parts.append(sec)
                             continue
                         for sub in split_fixed(sec['text'], args.size, args.overlap):
-                            parts.append({'title': sec['title'], 'text': sub['text']})
+                            parts.append({'section': sec['section'], 'text': sub['text']})
                         n_split += 1
             else:
                 parts = split_fixed(text, args.size, args.overlap)
@@ -248,19 +266,34 @@ def main():
                 f.write(json.dumps({
                     'id': f'{doc_id}::{i}',
                     'doc': doc_id,
-                    'title': c['title'],
+                    # 'section' 은 절 제목, 'paper_title' 은 논문 제목이다. 예전에는
+                    # 둘을 'title' 하나로 묶어, 절 제목이 논문 제목인 양 노트·인용에
+                    # 실릴 수 있었다. 메타데이터에 제목이 없는 PDF 는 null 로 둔다.
+                    'section': c['section'],
+                    'paper_title': paper_title,
                     'page': page_of(bounds, off),   # 못 찾으면 null — 지어내지 않는다
                     'text': c['text'],
                     'n_char': len(c['text']),
                 }, ensure_ascii=False) + '\n')
+            if not kept:
+                # 스캔본이면 본문이 비어 나온다. 문서 수에만 세어 두면 '12편' 이
+                # 실제로 검색되는 편수를 과장한다 — 이름을 남겨 OCR 대상으로 돌린다.
+                empty_docs.append(doc_id)
             n_doc += 1
             n_chunk += len(kept)
 
     lens = [json.loads(l)['n_char'] for l in out_path.read_text(encoding='utf-8').splitlines()]
     lens.sort()
     print(f'  전략      {args.strategy}')
-    print(f'  문서      {n_doc}편')
-    print(f'  청크      {n_chunk}개  (문서당 {n_chunk/n_doc:.1f})')
+    n_live = n_doc - len(empty_docs)
+    print(f'  문서      {n_doc}편'
+          + (f'  (검색 가능 {n_live}편)' if empty_docs else ''))
+    print(f'  청크      {n_chunk}개  (문서당 {n_chunk/max(n_live, 1):.1f})')
+    if empty_docs:
+        print(f'  ⚠ 본문을 한 글자도 못 뽑은 문서 {len(empty_docs)}편 — 색인에 없다.')
+        for d in empty_docs:
+            print(f'     · {d}')
+        print('     스캔본이면 OCR 이 필요하다. 그 전까지 이 문서는 검색되지 않는다.')
     print(f'  길이      중앙값 {lens[len(lens)//2]}자  '
           f'최소 {lens[0]}  최대 {lens[-1]}')
     over = sum(1 for x in lens if x > args.max_chunk)
@@ -274,6 +307,9 @@ def main():
                   if json.loads(l).get('page') is None)
     if no_page:
         print(f'  ⚠ 쪽 번호를 못 찾은 청크 {no_page}개 — 그 인용은 쪽이 비어 나간다.')
+    if n_notitle:
+        print(f'  ⚠ 논문 제목이 비어 있는 문서 {n_notitle}편 — PDF 메타데이터에 없다.')
+        print('     인용에 쓰려면 사람이 채워야 한다. 본문에서 추측해 채우지 않는다.')
     if n_fallback:
         print(f'  ⚠ 절 인식 실패 {n_fallback}편 — 고정 길이로 대체했다.')
         print('     스캔본이거나 2단 조판이면 흔하다. 비율이 높으면 section 전략의')

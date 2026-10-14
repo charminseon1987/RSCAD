@@ -17,6 +17,7 @@ search.py — 논문 검색
 조연호 · 연세대 스마트그리드 연구실
 """
 
+import console_utf8  # noqa: F401 — stdout/stderr 을 UTF-8 로
 import argparse
 import sys
 from pathlib import Path
@@ -106,10 +107,16 @@ def main():
         print(f'\n  질문  {q}')
         print('  ' + '─' * 74)
         for cid, d, mt, s, doc in picked:
-            title = (mt or {}).get('title') or ''
+            mt = mt or {}
+            # 구 색인은 'title' 하나뿐이고 그 값은 절 제목이다. 그걸 논문
+            # 제목 자리에 올리지 않도록, 구 색인은 절 제목으로만 읽는다.
+            paper = mt.get('paper_title') or ''
+            section = mt.get('section') or mt.get('title') or ''
             print(f'\n  [{s:.3f} {band(s):>4}]  {cid}')
-            if title:
-                print(f'     {title}')
+            if paper:
+                print(f'     📄 {paper}')
+            if section:
+                print(f'     § {section}')
             body = d if args.full else d[:args.chars].replace('\n', ' ')
             for i in range(0, len(body), 88):
                 print(f'     {body[i:i+88]}')
