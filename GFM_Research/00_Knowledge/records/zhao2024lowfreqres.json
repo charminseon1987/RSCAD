@@ -152,7 +152,11 @@
       "evidence_strength": "literature",
       "verification": {"status": "auto_checked"},
       "tags": ["HFR", "LCL", "범위제한", "경계"],
-      "my_relevance": "※ 우리 모델의 'lcl' 대역(178 Hz 관측, ≈3 f1)은 이 논문이 명시적으로 제외한 HFR 영역이다. 따라서 이 논문의 어떤 결론(VR·VA·VI·PDC 의 감쇠 효과, SR/SSR 트레이드오프)도 우리 178 Hz 모드의 근거로 전용할 수 없다. 반대로 이 논문의 감쇠 기법들은 HPF/LPF(5~10 Hz 대) 로 고주파를 일부러 건드리지 않게 설계되어 있어, 저주파 감쇠를 올려도 LCL 대역 ζ 를 개선한다고 기대할 근거가 없다. 우리 논문에서 저주파(sync/control)와 LCL 대역을 한 문장으로 묶어 설명하면 이 지점에서 반박당한다."
+      "relations": [
+        {"type": "contradicts", "target": "chen2026lcl_slgfm#C20", "note": "이 논문은 '전력 측정 LPF 와 느린 외부루프 때문에 HFR 이 출력전력에 안 나타난다'는 이유로 HFR 을 범위에서 뺐지만, Chen 은 820 Hz 공진이 vdc·p·q 세 루프 모두에서 관측됐다고 실험으로 보고한다 — 전제가 구조(단일루프 droop-I)에 따라 깨진다"},
+        {"type": "contradicts", "target": "chen2026lcl_slgfm#C04", "note": "Chen 은 지배적 안정도 특징이 저주파 모드가 아니라 LCL 공진모드라고 본다 — 저주파만 보는 이 논문의 범위 설정이 구조에 따라 위험할 수 있다"}
+      ],
+      "my_relevance": "※ 요청 4번의 결론. 우리 모델의 'lcl' 대역(178 Hz 관측, ≈3 f1)은 이 논문이 명시적으로 제외한 HFR 영역이므로, 이 논문의 어떤 결론(VR·VA·VI·PDC 의 감쇠 효과, SR/SSR 트레이드오프, Table I~III 전체)도 우리 178 Hz 모드의 근거로 전용할 수 없다. 더구나 이 논문의 감쇠 기법은 HPF/LPF(5~10 Hz)로 고주파를 일부러 건드리지 않게 설계돼 있어, 저주파 감쇠를 올려도 LCL 대역 ζ 가 개선된다고 기대할 근거가 없다. 단, 이 논문이 HFR 을 제외한 '근거'(전력에는 HFR 이 안 나타난다)는 [[chen2026lcl_slgfm]] 의 실험과 충돌한다 — 즉 '저주파/LCL 을 분리해도 된다'는 전제 자체가 구조 의존적이다. 우리 22차 모델은 두 대역을 한 행렬에서 동시에 내므로, 분리하지 않는 쪽이 안전하고 그 선택의 근거를 이 충돌로 적을 수 있다. 우리 논문에서 저주파(sync/control)와 LCL 대역을 한 문장으로 묶어 '같은 현상'처럼 쓰면 이 논문에, 분리해서 '서로 무관'하다고 쓰면 Chen 에 반박당한다."
     },
     {
       "id": "C04",
@@ -198,9 +202,11 @@
       "evidence_strength": "analytical",
       "verification": {"status": "auto_checked"},
       "tags": ["SR", "X/R", "plant", "외부루프"],
-      "my_relevance": "※ 우리 연구가 겨냥하는 X/R 1.0~1.5 는 이 논문 기준으로 'SR 이 자연 감쇠되는' 쪽이다. 그러면 저 X/R 영역에서 우리가 찾는 강건성 경계의 주역은 SR 이 아니라 SSR·제어상호작용이어야 한다. 반대로 X/R 이 낮으면 같은 SCR 에서 X 가 작아지므로(C07) SSR 위험은 커진다 — 즉 SCR-X/R 평면에서 SR 위험과 SSR 위험이 서로 반대 방향으로 기울어진다는 가설을 이 논문이 지지한다. 이것은 우리 88포인트 스윕에서 '어느 코너가 최악인가'를 모드별로 따로 봐야 한다는 뜻이다.",
+      "my_relevance": "※ 우리 연구가 겨냥하는 X/R 1.0~1.5 는 이 논문 기준으로 'SR 이 자연 감쇠되는' 쪽이다. 그러면 저 X/R 영역에서 우리가 찾는 강건성 경계의 주역은 SR 이 아니라 SSR·제어상호작용이어야 한다. 반대로 X/R 이 낮으면 같은 SCR 에서 X 가 작아지므로(C07) SSR 위험은 커진다 — 즉 SCR-X/R 평면에서 SR 위험과 SSR 위험이 서로 반대 방향으로 기울어진다는 가설을 이 논문이 지지한다. 이것은 우리 88포인트 스윕에서 '어느 코너가 최악인가'를 모드별로 따로 봐야 한다는 뜻이다. ※ 그리고 가설에 반하는 증거를 같이 적어 둔다 — 이 논문, [[chen2026lcl_slgfm]](C09), [[chen2025slgfmopenloop]](C10) 셋 모두 '저 X/R(저항성 계통)이 감쇠에 유리하다'는 방향이다. 따라서 'X/R 1.0~1.5 가 어려운 코너'라는 서술을 그대로 쓰면 세 논문에 동시에 반박당한다. 우리 주장은 '저 X/R 자체가 위험하다'가 아니라 '저 X/R 에서는 위험의 주역이 SR·LCL 에서 SSR·제어상호작용으로 바뀌고, 그 전이 경계가 미지였다'로 좁혀야 한다.",
       "relations": [
-        {"type": "supports", "target": "C01"}
+        {"type": "supports", "target": "C01"},
+        {"type": "supports", "target": "chen2026lcl_slgfm#C09", "note": "Chen 도 Xg/Rg 를 10→2 로 낮추면 공진모드 감쇠가 좋아진다고 보고 — '낮은 X/R = 저항성 = 감쇠 유리' 방향이 저주파·고주파 양쪽에서 일치한다"},
+        {"type": "supports", "target": "chen2025slgfmopenloop#C10", "note": "X/R 이 낮을수록 개루프 불안정을 일으키기 어려워진다는 결과와 같은 방향"}
       ]
     },
     {
@@ -225,7 +231,8 @@
       "tags": ["VCC", "VVC", "SR", "감쇠부호"],
       "my_relevance": "※ 우리 22차 모델은 Kpv/Kiv(VVC)와 Kpc/Kic(VCC)를 모두 가진 closed-loop VVC + VCC 구조(이 논문 Fig. 1(b))다. 따라서 이 논문의 Table III 열이 그대로 우리에게 적용된다: VCC(Kpc=5.0 고정)가 SR 을 눌러 주므로 우리 모델에서 60 Hz 근방 SR 모드가 지배모드로 안 나오는 것이 설명된다. PSO 가 Kpv 를 올릴 때 SR 감쇠가 깎이는 방향이라는 것도 여기서 나온다 — 정량 이득값은 이 논문이 우리 파라미터로 주지 않으므로 부호 제약으로만 쓸 수 있다.",
       "relations": [
-        {"type": "contradicts", "target": "C14", "note": "VVC 의 P 이득은 SR 과 SSR 에 정반대 방향으로 작용한다"}
+        {"type": "contradicts", "target": "C14", "note": "VVC 의 P 이득은 SR 과 SSR 에 정반대 방향으로 작용한다"},
+        {"type": "supports", "target": "chen2026lcl_slgfm#C14", "note": "'내부 전압-전류 제어가 있으면 추가 자유도로 문제를 없앨 수 있다'는 방향과 일치 — 다만 기구가 다르다(여기서는 VCC 의 가상저항 효과로 SR 감쇠, Chen 은 비최소위상 제거)"}
       ]
     },
     {
@@ -462,7 +469,9 @@
       "tags": ["시간척도분리", "대역폭", "PSO제약", "모델차수"],
       "my_relevance": "※ 요청하신 2번 항목의 핵심. 두 가지가 나온다. (1) PSO 탐색공간 제약: BW(PSC) < BW(VVC) < BW(VCC) 순서를 부등식 제약으로 걸 수 있다 — 우리 변수로는 wc(전력 LPF) 와 Kpv(VVC), 고정된 Kpc(VCC) 사이의 순서다. (2) 모델 축약 금지 근거: 내부루프를 대수적으로 축약한 저차 모델은 SSR 모드를 통째로 놓친다. 즉 우리 22차 전차수 모델을 유지해야 하는 이유를 이 논문으로 인용할 수 있다. 다만 이 주장은 이 논문이 직접 유도한 것이 아니라 인용문헌 종합이라는 점을 밝혀야 한다.",
       "relations": [
-        {"type": "supports", "target": "C14"}
+        {"type": "supports", "target": "C14"},
+        {"type": "supports", "target": "chen2025slgfmopenloop#C02", "note": "'대역폭이 분리돼 있다는 이유로 LCL 을 생략해 왔다'는 비판과 같은 취지 — 시간척도 분리는 해석상 편의일 뿐이다"},
+        {"type": "supports", "target": "chen2025slgfmopenloop#C12", "note": "축약 모델이 불안정 기구를 담지 못한다는 결론과 같은 방향 → 우리 22차 전차수 유지의 근거"}
       ]
     },
     {
@@ -607,7 +616,7 @@
       "evidence_strength": "assertion",
       "verification": {"status": "auto_checked"},
       "tags": ["결론", "신규성충돌", "강건성"],
-      "my_relevance": "※ 요청 5번 — 내 신규성 주장과 정면으로 충돌하는 대목이다. '초약계통~강계통 전역 강건'이 이미 선언되어 있으므로, 'SCR 전역 강건성 확보'를 신규성으로 내세우면 리뷰어가 이 문장을 들고 온다. 다만 이 선언은 (a) X/R 을 변수로 다루지 않고, (b) 이산 SCR 3점(1.5/10/20)만 실험했으며, (c) evidence_strength 가 assertion 인 결론 문장이라는 세 가지 빈틈이 있다. 우리 쪽 방어선은 'SCR 단일축이 아니라 SCR-X/R 2차원 경계, 특히 저 X/R 1.0~1.5', '단단 VSC 가 아닌 2단 PV+ESS 의 DC단 포함 22차', '수동 최악조건 설계가 아닌 PSO 다목적', 'CHIL 검증' 이다.",
+      "my_relevance": "※ 요청 5번 — 내 신규성 주장과 정면으로 충돌하는 대목이다. '초약계통~강계통 전역 강건'이 이미 선언되어 있으므로, 'SCR 전역 강건성 확보'를 신규성으로 내세우면 리뷰어가 이 문장을 들고 온다. 다만 이 선언은 (a) X/R 을 변수로 다루지 않고, (b) 이산 SCR 3점(1.5/10/20)만 실험했으며, (c) evidence_strength 가 assertion 인 결론 문장이라는 세 가지 빈틈이 있다. 우리 쪽 방어선은 'SCR 단일축이 아니라 SCR-X/R 2차원 경계, 특히 저 X/R 1.0~1.5', '단단 VSC 가 아닌 2단 PV+ESS 의 DC단 포함 22차', '수동 최악조건 설계가 아닌 PSO 다목적', 'CHIL 검증' 이다. 관련 노트: [[salem2025gfmreview]] — GFM 능력·한계 리뷰와 교차 확인해 '이미 해결됐다'는 선언이 리뷰 사이에서 일관된지 봐야 한다.",
       "relations": [
         {"type": "depends_on", "target": "C20"},
         {"type": "depends_on", "target": "C18", "note": "같은 논문 안에서 VA 는 SCR=1.5 에서 전압 규정을 위반했다 — '전역 강건' 선언과 긴장 관계"}
@@ -658,7 +667,7 @@
       "evidence_strength": "assertion",
       "verification": {"status": "auto_checked"},
       "tags": ["한계", "범위", "X/R", "DC단", "2단구성"],
-      "my_relevance": "※ 우리 연구가 들어갈 자리를 정확히 가리킨다 — X/R 정량축, 2단 PV+ESS 의 DC단 상태(C_pv, L_pv, C_dc, L_ess), 연속 SCR 스윕, CHIL. 다만 '없다'는 주장은 내가 읽은 preprint 기준이므로 게재본 확인 전에는 공백 근거로 쓰기 전에 한 번 더 확인해야 한다.",
+      "my_relevance": "※ 우리 연구가 들어갈 자리를 정확히 가리킨다 — X/R 정량축, 2단 PV+ESS 의 DC단 상태(C_pv, L_pv, C_dc, L_ess), 연속 SCR 스윕, CHIL. 다만 '없다'는 주장은 내가 읽은 preprint 기준이므로 게재본 확인 전에는 공백 근거로 쓰기 전에 한 번 더 확인해야 한다. 관련 노트: [[pawar2021gfcpv]] — 2단 PV 의 DC-DC/DC링크 전압제어와 모드 전환을 다루지만 저주파 공진의 모드 귀속 해석은 하지 않는다. 이 논문(공진 해석 있음·DC단 없음)과 그 논문(DC단 있음·공진 해석 없음) 사이의 빈칸이 우리 22차 모델의 자리다. 검증 수준 쪽 공백은 [[singh2025gfmdll]] (RTDS CHIL·DLL 경로) 와 묶어 읽을 것 — 그쪽은 CHIL 은 하지만 소신호 교차검증 기준이 없다.",
       "relations": [
         {"type": "depends_on", "target": "C23"}
       ]
@@ -667,7 +676,7 @@
   "gaps": [
     {
       "id": "G01",
-      "description": "X/R 축의 정량화 공백 — SR 은 저항(낮은 X/R 유리), SSR 은 리액턴스(낮은 X/R 불리)에 반대로 의존한다는 메커니즘까지는 제시하지만, X/R 수치 조건도 X/R 스윕도 SCR-X/R 2차원 안정 경계도 없다. 특히 X/R 1.0~1.5 구간에서 두 공진 위험이 교차하는 지점은 미제시다.",
+      "description": "X/R 축의 정량화 공백 — SR 은 저항(낮은 X/R 유리), SSR 은 리액턴스(낮은 X/R 불리)에 반대로 의존한다는 메커니즘까지는 제시하지만, X/R 수치 조건도 X/R 스윕도 SCR-X/R 2차원 안정 경계도 없다. 특히 X/R 1.0~1.5 구간에서 두 공진 위험이 교차하는 지점은 미제시다. (반증 검색은 하지 않았지만, 볼트의 기존 레코드 chen2026lcl_slgfm#C09 와 chen2025slgfmopenloop#C10 이 X/R 을 각각 10→2, 17/6 의 이산점으로 다루며 '낮은 X/R 이 유리'하다는 같은 방향 결과를 이미 보고한다 — 즉 'X/R 을 아무도 안 봤다'로 쓰면 안 되고, 공백은 'X/R 연속 스윕과 SCR-X/R 2차원 경계'로 좁혀야 한다.)",
       "derived_from": ["C05", "C07", "C08", "C25"],
       "counter_search": {"status": "not_searched"},
       "priority": "high",
