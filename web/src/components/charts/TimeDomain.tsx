@@ -9,6 +9,19 @@ const STATE_LABELS: Record<string, string> = {
   i_od: 'i_od [A]', v_od: 'v_od [V]', v_dc: 'v_dc [V]',
 };
 
+// 모델이 쓰는 단위 → 위 라벨의 단위로 환산한다. 라벨만 붙이고 원값을 그대로
+// 그리면 1000배·57배 틀린 수를 보여주게 된다. 실제로 그랬다.
+//   delta  모델 rad          → deg    (0.7404 rad = 42.42° 이고 meta.delta_max_deg = 42.423 이다)
+//   dw     모델 rad/s        → Hz     (f[8] = dw 이고 delta 가 rad 이므로 dw 는 rad/s)
+//   Pf·Qf  모델 W·var        → kW·kvar (op.INP 의 Pref = 10e3 [W], 궤적 시작값이 정확히 10000)
+//   i_od·v_od·v_dc 는 이미 A·V 다 — 1.5 × 330 V × 20 A ≈ 10 kW 로 정격과 맞는다.
+const STATE_SCALE: Record<string, number> = {
+  delta: 180 / Math.PI,
+  dw: 1 / (2 * Math.PI),
+  Pf: 1e-3,
+  Qf: 1e-3,
+};
+
 export default function TimeDomain() {
   const [data, setData] = useState<any>(null);
   const [selectedState, setSelectedState] = useState(0);
@@ -25,24 +38,30 @@ export default function TimeDomain() {
   const t = data.t || [];
   const scrs = data.SCR_list || [];
 
+  const stateName = stateNames[selectedState] || `x${selectedState}`;
+  const label = STATE_LABELS[stateName] || stateName;
+  const scale = STATE_SCALE[stateName] ?? 1;
+
   // Build chart data for selected state
   // Downsample if too many time points
   const step = Math.max(1, Math.floor(t.length / 300));
   const chartData: any[] = [];
   for (let i = 0; i < t.length; i += step) {
     const row: any = { t: t[i] };
-    scrs.forEach((scr: number, si: number) => {
-      const trace = data.traces.find((tr: any) => tr.SCR === scr && tr.state_idx === selectedState);
+    scrs.forEach((scr: number) => {
+      // 이름으로 찾는다. 예전에는 tr.state_idx === selectedState 로 맞췄는데,
+      // selectedState 는 버튼 인덱스(0~6)이고 API 의 state_idx 는 22차 상태벡터
+      // 안의 위치(delta=8 · dw=9 · Pf=10 · Qf=11 · v_dc=4 · v_od=18 · i_od=20)다.
+      // 거의 모든 탭이 아무것도 못 찾아 빈 그래프가 됐고, 하필 v_dc(4)만 버튼 4번
+      // (i_od [A])에 걸려 **DC 링크 전압을 전류 라벨·단위로** 그렸다.
+      const trace = data.traces.find((tr: any) => tr.SCR === scr && tr.state === stateName);
       if (trace) {
-        row[`nl_${scr}`] = trace.nl[i];
-        if (trace.lin?.length) row[`lin_${scr}`] = trace.lin[i];
+        row[`nl_${scr}`] = trace.nl[i] * scale;
+        if (trace.lin?.length) row[`lin_${scr}`] = trace.lin[i] * scale;
       }
     });
     chartData.push(row);
   }
-
-  const stateName = stateNames[selectedState] || `x${selectedState}`;
-  const label = STATE_LABELS[stateName] || stateName;
 
   return (
     <div className="glass p-5">
