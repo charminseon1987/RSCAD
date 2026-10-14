@@ -27,6 +27,56 @@
 **"낮은 X/R(1.0~1.5) 영역에서, PSO 로 조정한 이득과 함께 본 강건성 경계"** 로 좁혀야 한다.
 세 편 모두 가장 직접적인 경쟁 선행연구다 — 말뭉치에 넣고 정독해야 한다.
 
+### ⚠ 그 좁힌 주장도 유지할 수 없다 (2026-10-14 2차 검색)
+
+**"낮은 X/R 영역이 비어 있다" 는 추론이 깨졌다.**
+
+**Q. Salem, R. Aljarrah, "Impact of Grid Strength on the Transient Dynamics of Droop-
+and VSM-Based Grid-Forming Converters,"** *Int. Trans. Electrical Energy Systems*,
+2026, doi `10.1155/etep/6807672` (gold OA, 19쪽). **초록 원문을 PDF 로 직접 확인했다:**
+
+> "A parameterized grid model defined by the short-circuit ratio (SCR) and impedance
+> ratio (X/R) is combined with comprehensive converter dynamics, inner control loop,
+> and primary control techniques... **X/R is changed from 0.1 to 10** to simulate
+> resistive, balanced, inductive, and highly inductive networks."
+
+이 저장소의 X/R 1.0·1.5 는 그 범위 **한가운데**다. Luo 의 R/X 0~30% 밖이 곧 비어 있다는
+추론은 성립하지 않는다. 같은 축에 더 있다 — Hong 2026(CPEEE, 배전망 낮은 X/R 전제로
+VSG P–Q 결합을 임피던스 각의 함수로), **Niu 2025 IEEE TPEL — 제목이 "Wide Range of
+SCR and X/R"**, 그 밖에 R/X 를 제목에 건 GFM 논문이 2024 이후 최소 4편.
+
+**그래도 남는 차별점은 '범위' 가 아니라 '무엇을 쟀는가' 다** (※ 내 판단 · 초록 기준):
+
+| | Salem 2026 | 이 저장소 |
+|---|---|---|
+| 지표 | 최대 주파수편차 · 주파수 정정시간 | **고유값 σ = −Re(λ) · 참여계수** |
+| 외란 | 2 Hz 주파수 스텝 · 60° 위상점프 (**대신호**) | **소신호 선형화** |
+| 도구 | MATLAB/Simulink 시간영역 비교 | 22차 상태공간 · 강건성 경계 작도 |
+
+즉 Salem 은 **대신호 과도응답 비교**이고 소신호 고유값 경계가 아니다.
+주장을 다시 좁히면 **"SCR–X/R 평면에서 소신호 고유값 기반 강건성 경계"** 가 된다.
+
+**다만 이 문장도 아직 확정할 수 없다 — 초록만 봤다.** Salem 본문에 고유값 해석이
+있는지 확인해야 한다. PDF 는 Cloudflare 가 `curl` 을 막아 **사람이 브라우저로
+저장해야 한다**: `https://onlinelibrary.wiley.com/doi/pdfdirect/10.1155/etep/6807672`
+
+### 축 4(PSO)도 잠식됐다
+
+- **Selim/Seo/Zhao 2026** (NREL+UConn, SSRN): 전압루프 PI 이득의 **안정영역 인증 +
+  SCR 스윕 + Bayesian 최적화 + HIL** 을 한 편에 묶는다. 초록에 X/R 축이 없는 것이
+  남은 차이다.
+- **Gafar 2026**: GFM 이득 튜닝에서 **NRBO 가 PSO 보다 낫다**고 보고한다.
+  "PSO 를 왜 골랐는가" 에 답할 준비가 필요하다.
+
+### 축 5(CHIL)는 여전히 열려 있다
+
+"루프 지연 보상 + 모델↔CHIL 교차검증" 을 한 편에 담은 2025~2026 GFM 논문을 **못 찾았다.**
+찾은 세 편은 전부 **PHIL** 이고 GFM 전용도 아니다. 1차 검색과 같은 결론이다.
+→ **지금 이 연구에서 가장 방어하기 좋은 축이다.**
+
+검색 전말은 `rag/new_papers_2026-10-14.md`. **레코드는 손대지 않았다** — 전부 초록
+기반이라 `G03`·`G04` 를 `already_addressed` 로 올리면 초록만으로 공백을 닫는 것이 된다.
+
 ### ④ PSO 도 같다
 
 "PSO 로 GFM 이득을 조정한 선행연구가 없다" 는 전제도 성립하지 않는다.
