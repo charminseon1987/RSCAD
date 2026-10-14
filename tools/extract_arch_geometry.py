@@ -13,6 +13,7 @@ HTML 안에 들어 있다. 그 기하 정보를 뽑아 spec 과 합쳐 하나의
 다이어그램을 새로 만들거나 spec 을 고쳐 archify 를 다시 돌렸으면 이 스크립트도
 다시 돌려야 한다 (HTML 이 바뀌면 기하 정보도 바뀐다).
 """
+import console_utf8  # noqa: F401 — stdout/stderr 을 UTF-8 로
 from __future__ import annotations
 
 import json

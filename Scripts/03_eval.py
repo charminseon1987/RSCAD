@@ -13,6 +13,7 @@
     python scripts/03_eval.py --strategy section --k 10
 """
 
+import console_utf8  # noqa: F401 — stdout/stderr 을 UTF-8 로
 import argparse
 import json
 from pathlib import Path

@@ -18,6 +18,7 @@ gold 는 청크 id 가 아니라 **문서 이름**이다 — Scripts/03_eval.py 
 """
 from __future__ import annotations
 
+import console_utf8  # noqa: F401 — stdout/stderr 을 UTF-8 로
 import argparse
 import json
 import pathlib

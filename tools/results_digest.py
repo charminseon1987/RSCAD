@@ -14,6 +14,7 @@ runner.py v3 가 남긴 results/<run>/meta.json + eigenvalue_results.json 을 �
 connect-ai: _agents/developer/tools/results_digest.py 와 _agents/business/tools/ 양쪽에 두고,
 developer 는 runner 실행 직후, business(판정자) 는 판정표 작성 시 호출한다.
 """
+import console_utf8  # noqa: F401 — stdout/stderr 을 UTF-8 로
 from __future__ import annotations
 
 import argparse

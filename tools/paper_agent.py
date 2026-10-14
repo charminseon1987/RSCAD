@@ -22,6 +22,7 @@
   python paper_agent.py "BIPV zero energy building PV sizing" --from-year 2019 --top 40 --vault ./vault
   python paper_agent.py "grid-forming inverter PSO" --llm ollama --context "PV+ESS 2단 GFM 인버터, PSO 파라미터 최적화"
 """
+import console_utf8  # noqa: F401 — stdout/stderr 을 UTF-8 로
 import argparse, csv, datetime, json, math, os, re, time, xml.etree.ElementTree as ET
 from io import BytesIO
 from pathlib import Path

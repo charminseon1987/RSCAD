@@ -10,6 +10,7 @@
 따른다 — 그 스킬과 이 도구가 같은 형식을 내야 Dataview 집계가 깨지지 않는다.
 의존성: pip install jsonschema
 """
+import console_utf8  # noqa: F401 — stdout/stderr 을 UTF-8 로
 import argparse, json, re, sys, glob
 from pathlib import Path
 from jsonschema import Draft202012Validator

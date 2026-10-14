@@ -23,6 +23,7 @@
 
 requests 를 쓰지 않는 것은 의도다 — Server/ 밖(ce_tool.py, 에이전트)에서도 설치 없이 쓴다.
 """
+import console_utf8  # noqa: F401 — stdout/stderr 을 UTF-8 로
 import json
 import os
 import re

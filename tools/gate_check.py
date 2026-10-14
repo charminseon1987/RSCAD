@@ -15,6 +15,7 @@ checkList.md 미러와의 불일치도 같이 검출한다 (YAML 이 진실원�
 connect-ai 연결:
   _agents/secretary/tools/gate_check.py 로 복사 → 아침 브리핑 첫 줄에 이 도구 stdout 을 붙인다.
 """
+import console_utf8  # noqa: F401 — stdout/stderr 을 UTF-8 로
 from __future__ import annotations
 
 import argparse
