@@ -119,8 +119,14 @@ def api_status():
 
 
 def _chunk_one(mod, path):
-    """PDF 한 편 → 청크 목록. 01_chunk.py 의 section 전략과 같은 순서로 자른다."""
-    text, bounds = mod.read_pdf(path)
+    """PDF 한 편 → 청크 목록. 01_chunk.py 의 section 전략과 같은 순서로 자른다.
+
+    01_chunk.py 와 **같은 필드**를 내야 한다. 한 컬렉션에 두 스키마가 섞이면
+    읽는 쪽이 어느 키를 봐야 할지 알 수 없다. 예전에는 여기만 title 하나를
+    썼고 그 title 의 내용은 절 제목이었다 — 논문 제목 자리에 절 제목이 실리던
+    그 버그가 이 경로에도 있었다.
+    """
+    text, bounds, paper_title = mod.read_pdf(path)
     if not text.strip():
         return [], '글자가 추출되지 않습니다 (스캔본) — OCR 이 필요합니다'
     norm, idx = mod.norm_map(text)
@@ -136,13 +142,18 @@ def _chunk_one(mod, path):
                 parts.append(sec)
             else:
                 for sub in mod.split_fixed(sec['text'], SIZE, OVERLAP):
-                    parts.append({'title': sec['title'], 'text': sub['text']})
+                    parts.append({'section': sec['section'], 'text': sub['text']})
+
+    # 참고문헌은 근거가 될 수 없는데 검색 점수는 높게 나온다. 여기서도 버린다 —
+    # 스크립트로 넣은 논문과 화면에서 넣은 논문이 다른 말뭉치가 되면 안 된다.
+    parts = [c for c in parts if not mod.is_reference(c.get('section'), c['text'])]
 
     rows = []
     for i, c in enumerate([x for x in parts if len(x['text']) >= MIN_CHUNK]):
         off, cursor = mod.locate(norm, idx, c['text'], cursor)
         rows.append({'id': f'{path.stem}::{i}', 'doc': path.stem,
-                     'title': c['title'], 'page': mod.page_of(bounds, off),
+                     'section': c['section'], 'paper_title': paper_title,
+                     'page': mod.page_of(bounds, off),
                      'text': c['text'], 'n_char': len(c['text'])})
     if not rows:
         return [], '쓸 만한 길이의 대목이 없습니다'
@@ -177,7 +188,11 @@ def _run(targets):
                     embeddings=[v.tolist() for v in vecs],
                     documents=[r['text'] for r in rows],
                     # Chroma 는 None 을 받지 않는다. 0 이 '쪽 모름'이다 (ask.py 와 같은 약속)
-                    metadatas=[{'doc': r['doc'], 'title': r['title'] or '',
+                    # 키는 02_index.py 와 같아야 한다 — 한 컬렉션에 두 스키마가 섞이면
+                    # 읽는 쪽이 어느 키를 봐야 할지 알 수 없다.
+                    metadatas=[{'doc': r['doc'],
+                                'section': r.get('section') or '',
+                                'paper_title': r.get('paper_title') or '',
                                 'page': r.get('page') or 0} for r in rows])
             # 청크 원본도 함께 남긴다 — 나중에 전략을 바꿔 다시 돌릴 때 쓴다
             CHUNKS_PATH.parent.mkdir(parents=True, exist_ok=True)

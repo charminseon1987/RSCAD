@@ -1,13 +1,13 @@
 {
   "strategy": "section",
   "model": "BAAI/bge-m3",
-  "k": 2,
+  "k": 5,
   "rerank": false,
   "n": 7,
   "base": {
-    "recall": 0.5,
-    "mrr": 0.5857142857142857,
-    "ndcg": 0.4634395637624166
+    "recall": 1.0,
+    "mrr": 0.7000000000000001,
+    "ndcg": 0.754550097625513
   },
   "after": null,
   "rows": [
@@ -17,24 +17,24 @@
         "henriquezauba2022arxiv"
       ],
       "base": [
-        "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
-        "Zhao_2024_LowFreq_Resonance_GFM",
-        "Salem_2025_GFM_Review",
-        "Chen_2026_LCL_Resonance_SingleLoop_GFM",
         "henriquezauba2022arxiv",
         "Taul_2020_CurrentLimiting_GFM",
+        "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
+        "Salem_2025_GFM_Review",
         "kenyon2020ibrstability",
-        "Singh_2025_CHIL_DLL_RTDS"
+        "Chen_2026_LCL_Resonance_SingleLoop_GFM",
+        "Singh_2025_CHIL_DLL_RTDS",
+        "Zhao_2024_LowFreq_Resonance_GFM"
       ],
       "after": [
-        "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
-        "Zhao_2024_LowFreq_Resonance_GFM",
-        "Salem_2025_GFM_Review",
-        "Chen_2026_LCL_Resonance_SingleLoop_GFM",
         "henriquezauba2022arxiv",
         "Taul_2020_CurrentLimiting_GFM",
+        "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
+        "Salem_2025_GFM_Review",
         "kenyon2020ibrstability",
-        "Singh_2025_CHIL_DLL_RTDS"
+        "Chen_2026_LCL_Resonance_SingleLoop_GFM",
+        "Singh_2025_CHIL_DLL_RTDS",
+        "Zhao_2024_LowFreq_Resonance_GFM"
       ]
     },
     {
@@ -49,11 +49,7 @@
         "henriquezauba2022arxiv",
         "Salem_2025_GFM_Review",
         "Zhao_2024_LowFreq_Resonance_GFM",
-        "kenyon2020ibrstability",
-        "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
-        "Liu 2025 datadriven cpes",
-        "DArco_2014_VSM_Droop",
-        "Singh_2025_CHIL_DLL_RTDS"
+        "kenyon2020ibrstability"
       ],
       "after": [
         "Taul_2020_CurrentLimiting_GFM",
@@ -61,11 +57,7 @@
         "henriquezauba2022arxiv",
         "Salem_2025_GFM_Review",
         "Zhao_2024_LowFreq_Resonance_GFM",
-        "kenyon2020ibrstability",
-        "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
-        "Liu 2025 datadriven cpes",
-        "DArco_2014_VSM_Droop",
-        "Singh_2025_CHIL_DLL_RTDS"
+        "kenyon2020ibrstability"
       ]
     },
     {
@@ -76,18 +68,14 @@
         "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
         "kenyon2020ibrstability",
         "Liu 2025 datadriven cpes",
-        "henriquezauba2022arxiv",
-        "Salem_2025_GFM_Review",
-        "Zhao_2024_LowFreq_Resonance_GFM"
+        "henriquezauba2022arxiv"
       ],
       "after": [
         "Chen_2026_LCL_Resonance_SingleLoop_GFM",
         "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
         "kenyon2020ibrstability",
         "Liu 2025 datadriven cpes",
-        "henriquezauba2022arxiv",
-        "Salem_2025_GFM_Review",
-        "Zhao_2024_LowFreq_Resonance_GFM"
+        "henriquezauba2022arxiv"
       ]
     },
     {
@@ -97,23 +85,21 @@
         "Liu 2025 datadriven cpes",
         "Salem_2025_GFM_Review",
         "Chen_2026_LCL_Resonance_SingleLoop_GFM",
-        "Taul_2020_CurrentLimiting_GFM",
         "Zhao_2024_LowFreq_Resonance_GFM",
         "kenyon2020ibrstability",
         "henriquezauba2022arxiv",
-        "Singh_2025_CHIL_DLL_RTDS",
-        "DArco_2014_VSM_Droop"
+        "Taul_2020_CurrentLimiting_GFM",
+        "Singh_2025_CHIL_DLL_RTDS"
       ],
       "after": [
         "Liu 2025 datadriven cpes",
         "Salem_2025_GFM_Review",
         "Chen_2026_LCL_Resonance_SingleLoop_GFM",
-        "Taul_2020_CurrentLimiting_GFM",
         "Zhao_2024_LowFreq_Resonance_GFM",
         "kenyon2020ibrstability",
         "henriquezauba2022arxiv",
-        "Singh_2025_CHIL_DLL_RTDS",
-        "DArco_2014_VSM_Droop"
+        "Taul_2020_CurrentLimiting_GFM",
+        "Singh_2025_CHIL_DLL_RTDS"
       ]
     },
     {
@@ -125,25 +111,17 @@
         "Chen_2026_LCL_Resonance_SingleLoop_GFM",
         "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
         "Taul_2020_CurrentLimiting_GFM",
-        "Zhao_2024_LowFreq_Resonance_GFM",
         "Salem_2025_GFM_Review",
-        "Liu 2025 datadriven cpes",
-        "Singh_2025_CHIL_DLL_RTDS",
-        "henriquezauba2022arxiv",
-        "DArco_2014_VSM_Droop",
-        "kenyon2020ibrstability"
+        "Zhao_2024_LowFreq_Resonance_GFM",
+        "Liu 2025 datadriven cpes"
       ],
       "after": [
         "Chen_2026_LCL_Resonance_SingleLoop_GFM",
         "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
         "Taul_2020_CurrentLimiting_GFM",
-        "Zhao_2024_LowFreq_Resonance_GFM",
         "Salem_2025_GFM_Review",
-        "Liu 2025 datadriven cpes",
-        "Singh_2025_CHIL_DLL_RTDS",
-        "henriquezauba2022arxiv",
-        "DArco_2014_VSM_Droop",
-        "kenyon2020ibrstability"
+        "Zhao_2024_LowFreq_Resonance_GFM",
+        "Liu 2025 datadriven cpes"
       ]
     },
     {
@@ -156,10 +134,7 @@
         "Liu 2025 datadriven cpes",
         "DArco_2014_VSM_Droop",
         "Taul_2020_CurrentLimiting_GFM",
-        "Chen_2026_LCL_Resonance_SingleLoop_GFM",
-        "Salem_2025_GFM_Review",
-        "henriquezauba2022arxiv",
-        "Singh_2025_CHIL_DLL_RTDS"
+        "Chen_2026_LCL_Resonance_SingleLoop_GFM"
       ],
       "after": [
         "kenyon2020ibrstability",
@@ -168,10 +143,7 @@
         "Liu 2025 datadriven cpes",
         "DArco_2014_VSM_Droop",
         "Taul_2020_CurrentLimiting_GFM",
-        "Chen_2026_LCL_Resonance_SingleLoop_GFM",
-        "Salem_2025_GFM_Review",
-        "henriquezauba2022arxiv",
-        "Singh_2025_CHIL_DLL_RTDS"
+        "Chen_2026_LCL_Resonance_SingleLoop_GFM"
       ]
     },
     {
@@ -185,11 +157,7 @@
         "Liu 2025 datadriven cpes",
         "Chen_2026_LCL_Resonance_SingleLoop_GFM",
         "henriquezauba2022arxiv",
-        "Salem_2025_GFM_Review",
-        "DArco_2014_VSM_Droop",
-        "Zhao_2024_LowFreq_Resonance_GFM",
-        "Singh_2025_CHIL_DLL_RTDS",
-        "Chen_2025_OpenLoopUnstable_SingleLoop_GFM"
+        "Salem_2025_GFM_Review"
       ],
       "after": [
         "kenyon2020ibrstability",
@@ -197,11 +165,7 @@
         "Liu 2025 datadriven cpes",
         "Chen_2026_LCL_Resonance_SingleLoop_GFM",
         "henriquezauba2022arxiv",
-        "Salem_2025_GFM_Review",
-        "DArco_2014_VSM_Droop",
-        "Zhao_2024_LowFreq_Resonance_GFM",
-        "Singh_2025_CHIL_DLL_RTDS",
-        "Chen_2025_OpenLoopUnstable_SingleLoop_GFM"
+        "Salem_2025_GFM_Review"
       ]
     },
     {
@@ -212,24 +176,12 @@
       "base": [
         "Singh_2025_CHIL_DLL_RTDS",
         "Taul_2020_CurrentLimiting_GFM",
-        "Zhao_2024_LowFreq_Resonance_GFM",
-        "Salem_2025_GFM_Review",
-        "Liu 2025 datadriven cpes",
-        "Chen_2026_LCL_Resonance_SingleLoop_GFM",
-        "DArco_2014_VSM_Droop",
-        "henriquezauba2022arxiv",
-        "kenyon2020ibrstability"
+        "Zhao_2024_LowFreq_Resonance_GFM"
       ],
       "after": [
         "Singh_2025_CHIL_DLL_RTDS",
         "Taul_2020_CurrentLimiting_GFM",
-        "Zhao_2024_LowFreq_Resonance_GFM",
-        "Salem_2025_GFM_Review",
-        "Liu 2025 datadriven cpes",
-        "Chen_2026_LCL_Resonance_SingleLoop_GFM",
-        "DArco_2014_VSM_Droop",
-        "henriquezauba2022arxiv",
-        "kenyon2020ibrstability"
+        "Zhao_2024_LowFreq_Resonance_GFM"
       ]
     },
     {
@@ -246,8 +198,7 @@
         "Singh_2025_CHIL_DLL_RTDS",
         "Zhao_2024_LowFreq_Resonance_GFM",
         "Liu 2025 datadriven cpes",
-        "DArco_2014_VSM_Droop",
-        "Chen_2025_OpenLoopUnstable_SingleLoop_GFM"
+        "DArco_2014_VSM_Droop"
       ],
       "after": [
         "Chen_2026_LCL_Resonance_SingleLoop_GFM",
@@ -258,8 +209,7 @@
         "Singh_2025_CHIL_DLL_RTDS",
         "Zhao_2024_LowFreq_Resonance_GFM",
         "Liu 2025 datadriven cpes",
-        "DArco_2014_VSM_Droop",
-        "Chen_2025_OpenLoopUnstable_SingleLoop_GFM"
+        "DArco_2014_VSM_Droop"
       ]
     },
     {
@@ -274,10 +224,7 @@
         "Salem_2025_GFM_Review",
         "DArco_2014_VSM_Droop",
         "kenyon2020ibrstability",
-        "Liu 2025 datadriven cpes",
-        "henriquezauba2022arxiv",
-        "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
-        "Singh_2025_CHIL_DLL_RTDS"
+        "Liu 2025 datadriven cpes"
       ],
       "after": [
         "Taul_2020_CurrentLimiting_GFM",
@@ -286,10 +233,7 @@
         "Salem_2025_GFM_Review",
         "DArco_2014_VSM_Droop",
         "kenyon2020ibrstability",
-        "Liu 2025 datadriven cpes",
-        "henriquezauba2022arxiv",
-        "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
-        "Singh_2025_CHIL_DLL_RTDS"
+        "Liu 2025 datadriven cpes"
       ]
     }
   ]

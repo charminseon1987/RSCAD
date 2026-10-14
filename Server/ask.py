@@ -54,8 +54,23 @@ LLM_MODEL = llm.local_model()
 #     주제 안  GFM 과전류 제한 0.6773 · VSM-droop 등가 0.6847 · LCL 공진 0.4992
 #     주제 밖  대동법 0.3613 · 김치찌개 0.3670 · 웹 프론트엔드 언어 0.4311
 # 0.45 가 둘을 가른다. Scripts/search.py 의 BANDS 가 '약함'으로 보는 선과 같다.
-# 표본이 6개뿐이라 경계가 넉넉하지 않다 — 그래서 화면에 유사도를 그대로 띄워
-# 사람이 직접 판단할 수 있게 둔다.
+#
+# 2026-10-14 에 10문항으로 다시 쟀다. **이 문턱이 무엇을 못 하는지가 분명해졌다.**
+#
+#   주제 밖      김치찌개 0.3447 · KTX 요금 0.4312          → 차단된다
+#   인접 분야    배터리 열폭주 0.4553                        → 통과한다
+#   근거 있음    정답 문서 최고 sim  0.5079 ~ 0.6441
+#   근거 없음    가짜 근거 최고 sim  0.5310 ~ 0.5854
+#
+# 뒤 두 줄이 **겹친다.** 말뭉치에 PSO 가 0회인데도 그 질문이 0.5310 을 받는다.
+# 문턱을 올려 0.5854 를 막으면 진짜 근거 7건 중 5건이 같이 막힌다.
+# z 점수(평균 대비 돌출도)와 상위 문서 집중도로도 갈라 봤지만 둘 다 겹쳤다.
+# 말뭉치가 GFM 소신호 안정도 한 주제뿐이라 임베딩 기하만으로는 가릴 수 없다.
+#
+# 그러므로 이 값은 **'도메인 바깥 차단기'이지 '근거 유무 판정기'가 아니다.**
+# 답이 근거에 붙어 있는지는 인용 번호(ask_llm 의 grounded)로만 알 수 있고,
+# 그 인용이 질문에 맞는지는 사람이 봐야 한다. 그래서 화면에 유사도를 그대로 띄운다.
+# 제대로 가리려면 교차인코더 리랭커가 필요하다 — 아직 재보지 않았다.
 MIN_SIM = float(os.environ.get('GFM_ASK_MIN_SIM', '0.45'))
 
 # 한 대목에서 모델에 넣을 최대 글자. 로컬 CPU 모델은 프롬프트가 길수록 느려진다.
@@ -204,8 +219,15 @@ def retrieve(q: str, n: int, docs: list = None) -> tuple:
                                      r['metadatas'][0], r['distances'][0]):
         sim = round(1 - dist, 4)
         page = int((meta or {}).get('page') or 0)
-        out.append({'id': cid, 'doc': (meta or {}).get('doc') or '',
-                    'title': (meta or {}).get('title') or '',
+        m = meta or {}
+        # 구 색인은 'title' 하나뿐이고 그 값은 **절 제목**이다. 논문 제목 자리에
+        # 올리지 않도록 section 쪽으로만 받는다. 화면이 쓰는 'title' 키는 그대로
+        # 두되, 보여줄 것은 논문 제목 → 없으면 절 제목 순으로 고른다.
+        section = m.get('section') or m.get('title') or ''
+        paper = m.get('paper_title') or ''
+        out.append({'id': cid, 'doc': m.get('doc') or '',
+                    'title': paper or section,
+                    'paper_title': paper, 'section': section,
                     'page': page or None,          # 0 은 '모름'이다
                     'sim': sim, 'text': text})
     out.sort(key=lambda x: -x['sim'])
@@ -288,7 +310,13 @@ def ask_llm(q: str, hits: list, timeout: int = 300, engine: str = None) -> dict:
 @bp.route('', methods=['POST'])
 @bp.route('/', methods=['POST'])
 def api_ask():
-    """질문 → 대목 검색 → 그 대목만으로 답. 근거가 약하면 답하지 않는다."""
+    """질문 → 대목 검색 → 그 대목만으로 답.
+
+    주제 밖 질문이면 답하지 않는다. 다만 **주제 안이면서 근거가 없는 질문**은
+    유사도로 가려지지 않는다 (MIN_SIM 주석의 측정을 볼 것). 그런 질문도 여기를
+    통과해 모델에 들어간다. 답이 근거에 붙어 있는지는 grounded(인용 번호)로만
+    알 수 있고, 그 인용이 질문에 맞는지는 사람이 확인해야 한다.
+    """
     d = request.json or {}
     q = (d.get('q') or '').strip()
     if len(q) < 2:
@@ -313,6 +341,10 @@ def api_ask():
         return jsonify({'status': 'ok', 'q': q, 'hits': strong, 'answer': '',
                         'grounded': False, 'enough': True, 'error': res['error']})
     notes = []
+    # 유사도가 문턱을 넘었다는 것은 '주제 안'이라는 뜻일 뿐, 근거가 있다는 뜻이
+    # 아니다. 이 말뭉치에서는 근거 없는 질문도 0.53~0.59 를 받는다 (MIN_SIM 주석).
+    # 그래서 인용이 붙어 있어도 그 인용이 질문에 맞는지는 사람이 봐야 한다.
+    notes.append('유사도는 주제가 맞는지만 가립니다 — 인용한 대목이 질문에 답하는지 직접 확인하세요')
     if not res['grounded']:
         notes.append('답에 근거 번호가 없습니다 — 발췌 밖의 말일 수 있으니 그대로 쓰지 마세요')
     if res['truncated']:

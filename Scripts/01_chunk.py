@@ -147,6 +147,31 @@ def split_section(text):
     return out
 
 
+# 참고문헌 한 줄에 거의 반드시 섞이는 표기들. 본문 산문에는 이렇게 모이지 않는다
+# ('[16]–[19] 에서 보였듯' 같은 인용은 vol./pp./doi 를 달고 다니지 않는다).
+BIB_MARK = re.compile(r'vol\.\s*\d|no\.\s*\d|pp\.\s*\d|doi:|IEEE Trans|Proc\.|in \d{4} IEEE', re.I)
+REF_HEAD = re.compile(r'^\s*(REFERENCES|BIBLIOGRAPHY|참고문헌)', re.I)
+
+
+def is_reference(section, text):
+    """참고문헌 목록인가. 색인에 넣으면 안 되는 대목이다.
+
+    왜 버리나 — 참고문헌은 '다른 논문 제목의 나열' 이라 도메인 단어가 빽빽하다.
+    그래서 검색 점수가 본문보다 높게 나오는데 정작 근거는 될 수 없다. 실제로
+    PSO 질문(말뭉치에 PSO 0회)을 던졌더니 상위 3개가 전부 참고문헌이었고,
+    유사도 0.558 로 '근거 충분' 문턱(0.45)까지 넘겼다. 모델이 붙어 있었다면
+    그 넷을 근거랍시고 받아 답을 썼을 것이다.
+
+    두 갈래로 잡는다. 절 제목이 REFERENCES 면 그것으로 끝이고, 제목이 안 잡힌
+    경우(Elsevier 식 편집은 SECTION_RE 에 안 걸려 앞 절에 묻힌다)는 서지 표기
+    밀도로 본다. 1163청크 전수 대조에서 라벨 129개 + 밀도 16개 = 145개를 잡았고
+    본문 오탐은 0개였다.
+    """
+    if REF_HEAD.match(section or ''):
+        return True
+    return len(BIB_MARK.findall(text)) >= 4
+
+
 def _hard_split(t, size):
     """문단도 문장도 없는 덩어리를 강제로 자른다. 마지막 수단."""
     return [t[i:i + size] for i in range(0, len(t), size)]
@@ -226,7 +251,8 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f'{args.strategy}.jsonl'
     print(f'  PDF       {pdf_dir}')
-    n_doc = n_chunk = n_fallback = n_split = n_drop = n_notitle = 0
+    n_doc = n_chunk = n_fallback = n_split = n_drop = n_notitle = n_ref = 0
+    ref_docs: dict = {}
     empty_docs = []
 
     with out_path.open('w', encoding='utf-8') as f:
@@ -257,9 +283,14 @@ def main():
             else:
                 parts = split_fixed(text, args.size, args.overlap)
 
+            # 참고문헌은 근거가 될 수 없는데 점수는 높게 나온다. 색인에 넣지 않는다.
+            body = [c for c in parts if not is_reference(c.get('section'), c['text'])]
+            n_ref += len(parts) - len(body)
+            ref_docs[doc_id] = ref_docs.get(doc_id, 0) + (len(parts) - len(body))
+
             # 제목만 남은 파편은 검색에 방해가 되므로 버린다.
-            kept = [c for c in parts if len(c['text']) >= args.min_chunk]
-            n_drop += len(parts) - len(kept)
+            kept = [c for c in body if len(c['text']) >= args.min_chunk]
+            n_drop += len(body) - len(kept)
 
             for i, c in enumerate(kept):
                 off, cursor = locate(norm, idx, c['text'], cursor)
@@ -299,6 +330,11 @@ def main():
     over = sum(1 for x in lens if x > args.max_chunk)
     if n_split:
         print(f'  분할      긴 절을 다시 나눈 문서 {n_split}편')
+    if n_ref:
+        print(f'  참고문헌  {n_ref}개 제외 — 근거가 될 수 없는데 점수는 높게 나온다')
+        for d, n in sorted(ref_docs.items(), key=lambda kv: -kv[1]):
+            if n:
+                print(f'     · {d}  {n}개')
     if n_drop:
         print(f'  제외      {args.min_chunk}자 미만 파편 {n_drop}개')
     if over:
