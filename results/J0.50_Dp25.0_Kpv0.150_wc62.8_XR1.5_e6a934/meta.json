@@ -50,7 +50,6 @@
   "SCR_list": [
     3.0,
     2.0,
-    2.0,
     1.5
   ],
   "XR": 1.5,
@@ -75,7 +74,7 @@
     "FD_TOL": 1e-06,
     "DELTA_WARN": 75.0
   },
-  "all_converged": false,
+  "all_converged": true,
   "all_stable": true,
   "score_min_all": 0.4088,
   "sigma_min_all": 1.63522,
@@ -100,5 +99,21 @@
   "delta_max_deg": 40.557,
   "delta_near_limit_SCR": [],
   "loadability_limit_SCR": [],
-  "nonconvergence_SCR": []
+  "nonconvergence_SCR": [],
+  "superseded_result": {
+    "date": "2026-10-14",
+    "reason": "SCR_list 중복이 all_converged 판정식(len(ok_runs)==len(SCR_list))을 뒤집었다. 수렴 실패가 아니라 입력 모양 문제다.",
+    "fixed_in": "a54a629fce491066aa55380b9a224b043370530b",
+    "values": {
+      "SCR_list": [
+        3.0,
+        2.0,
+        2.0,
+        1.5
+      ],
+      "all_converged": false
+    },
+    "unchanged": "고유값·σ·ζ·안정도 지표는 ok_runs 기반이라 처음부터 옳다. 재계산하지 않았다 (σ_min 회귀 대조 차이 0.00e+00)."
+  },
+  "deprecation_log": "GFM_Research/RSCAD/01_개념/폐기값_이력.md#12"
 }
