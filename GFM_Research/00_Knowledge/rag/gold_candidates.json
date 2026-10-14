@@ -15,6 +15,22 @@
         "hits": 39
       },
       {
+        "doc": "Chen_2026_LCL_Resonance_SingleLoop_GFM",
+        "hits": 31
+      },
+      {
+        "doc": "Zhao_2024_LowFreq_Resonance_GFM",
+        "hits": 28
+      },
+      {
+        "doc": "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
+        "hits": 12
+      },
+      {
+        "doc": "Singh_2025_CHIL_DLL_RTDS",
+        "hits": 10
+      },
+      {
         "doc": "Liu 2025 datadriven cpes",
         "hits": 9
       },
@@ -32,8 +48,16 @@
         "hits": 146
       },
       {
+        "doc": "Zhao_2024_LowFreq_Resonance_GFM",
+        "hits": 36
+      },
+      {
         "doc": "DArco_2014_VSM_Droop",
         "hits": 34
+      },
+      {
+        "doc": "Singh_2025_CHIL_DLL_RTDS",
+        "hits": 24
       },
       {
         "doc": "Taul_2020_CurrentLimiting_GFM",
@@ -46,6 +70,10 @@
       {
         "doc": "henriquezauba2022arxiv",
         "hits": 11
+      },
+      {
+        "doc": "Chen_2026_LCL_Resonance_SingleLoop_GFM",
+        "hits": 7
       }
     ]
   },
@@ -53,12 +81,24 @@
     "q": "단락비와 X/R 비를 함께 변화시킨 안정도 경계 분석",
     "candidates": [
       {
+        "doc": "Zhao_2024_LowFreq_Resonance_GFM",
+        "hits": 37
+      },
+      {
         "doc": "Salem_2025_GFM_Review",
         "hits": 35
       },
       {
+        "doc": "Chen_2026_LCL_Resonance_SingleLoop_GFM",
+        "hits": 19
+      },
+      {
         "doc": "Taul_2020_CurrentLimiting_GFM",
         "hits": 13
+      },
+      {
+        "doc": "Singh_2025_CHIL_DLL_RTDS",
+        "hits": 10
       },
       {
         "doc": "kenyon2020ibrstability",
@@ -66,6 +106,10 @@
       },
       {
         "doc": "henriquezauba2022arxiv",
+        "hits": 1
+      },
+      {
+        "doc": "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
         "hits": 1
       }
     ]
@@ -78,6 +122,22 @@
   {
     "q": "LCL 필터 공진 감쇠와 전류 제어 이득의 관계",
     "candidates": [
+      {
+        "doc": "Chen_2026_LCL_Resonance_SingleLoop_GFM",
+        "hits": 201
+      },
+      {
+        "doc": "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
+        "hits": 67
+      },
+      {
+        "doc": "Zhao_2024_LowFreq_Resonance_GFM",
+        "hits": 55
+      },
+      {
+        "doc": "Singh_2025_CHIL_DLL_RTDS",
+        "hits": 16
+      },
       {
         "doc": "Salem_2025_GFM_Review",
         "hits": 16
@@ -114,6 +174,10 @@
       {
         "doc": "kenyon2020ibrstability",
         "hits": 2
+      },
+      {
+        "doc": "Zhao_2024_LowFreq_Resonance_GFM",
+        "hits": 2
       }
     ]
   },
@@ -134,8 +198,16 @@
     "q": "실시간 시뮬레이터와 실물 제어기를 연동한 CHIL 검증 절차",
     "candidates": [
       {
+        "doc": "Singh_2025_CHIL_DLL_RTDS",
+        "hits": 73
+      },
+      {
         "doc": "Taul_2020_CurrentLimiting_GFM",
         "hits": 2
+      },
+      {
+        "doc": "Chen_2026_LCL_Resonance_SingleLoop_GFM",
+        "hits": 1
       }
     ]
   },
@@ -153,6 +225,10 @@
       {
         "doc": "Taul_2020_CurrentLimiting_GFM",
         "hits": 4
+      },
+      {
+        "doc": "Zhao_2024_LowFreq_Resonance_GFM",
+        "hits": 2
       }
     ]
   },
@@ -168,12 +244,28 @@
         "hits": 6
       },
       {
+        "doc": "Zhao_2024_LowFreq_Resonance_GFM",
+        "hits": 4
+      },
+      {
+        "doc": "Singh_2025_CHIL_DLL_RTDS",
+        "hits": 4
+      },
+      {
         "doc": "kenyon2020ibrstability",
         "hits": 3
       },
       {
         "doc": "DArco_2014_VSM_Droop",
         "hits": 3
+      },
+      {
+        "doc": "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
+        "hits": 3
+      },
+      {
+        "doc": "Chen_2026_LCL_Resonance_SingleLoop_GFM",
+        "hits": 1
       }
     ]
   }

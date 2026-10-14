@@ -1,10 +1,10 @@
-{"q": "그리드포밍 인버터의 소신호 상태공간 모델에서 DC 링크와 AC 측을 함께 다룬 연구", "gold": []}
-{"q": "약계통에서 가상 동기기 제어의 동기화 안정도 한계", "gold": []}
-{"q": "단락비와 X/R 비를 함께 변화시킨 안정도 경계 분석", "gold": []}
-{"q": "입자군집최적화로 인버터 제어 이득을 조정한 사례", "gold": []}
-{"q": "LCL 필터 공진 감쇠와 전류 제어 이득의 관계", "gold": []}
-{"q": "PV 부스트 컨버터와 ESS 를 공유 DC 링크로 묶은 2단 구성", "gold": []}
-{"q": "참여계수로 지배 모드의 물리적 정체를 규명한 방법", "gold": []}
-{"q": "실시간 시뮬레이터와 실물 제어기를 연동한 CHIL 검증 절차", "gold": []}
-{"q": "전력각이 커질 때 동기화계수가 변하는 방식", "gold": []}
-{"q": "가상 관성과 댐핑 계수가 과도 응답에 미치는 영향", "gold": []}
+{"q": "그리드포밍 인버터의 소신호 상태공간 모델에서 DC 링크와 AC 측을 함께 다룬 연구", "gold": ["henriquezauba2022arxiv"], "note": "dc-link 24회·state-space 13회, DC Voltage Control 블록 포함 EMT/QSP 모델 비교. kenyon2020ibrstability(dc 12·state-space 18)는 경계선 — 사람 판단 필요"}
+{"q": "약계통에서 가상 동기기 제어의 동기화 안정도 한계", "gold": ["Taul_2020_CurrentLimiting_GFM", "Salem_2025_GFM_Review"], "note": "Taul 은 고장 중 동기화 상실이 주제, Salem 은 동기화 안정도 리뷰(TSEC). 둘 다 본문 근거 있음"}
+{"q": "단락비와 X/R 비를 함께 변화시킨 안정도 경계 분석", "gold": [], "note": "2026-10-14 재확인 — 말뭉치 보강(8→11편) 후에도 근거 없음. X/R 이 전 말뭉치에 2회뿐이고 Chen_2026 의 1회는 고정 파라미터값(X/R=6)이지 스윕이 아니다. kenyon 의 1회는 종전과 같은 배전망 volt-watt 문맥. ※ 다만 연구 공백 자체는 닫혔다 — Luo 2024(doi 10.1049/icp.2024.4667, Fig.9 가 m_P–SCR 경계를 R/X 별로 작도)와 NREL PESGM 2025 가 이미 했다. 두 편 모두 봇 차단으로 PDF 수령 실패 → 말뭉치 공백은 '못 받았기 때문' 이고 '없기 때문' 이 아니다"}
+{"q": "입자군집최적화로 인버터 제어 이득을 조정한 사례", "gold": [], "note": "2026-10-14 재확인 — 여전히 0회. ※ 연구 공백은 닫혔다: Pournazarian IEEE TSG 2022(doi 10.1109/TSG.2022.3186165, 인용 76)이 PSO 로 VSG 파라미터+가상임피던스를 동시 최적화한다. Aalto 리포지터리 사본 2건이 Cloudflare 차단으로 수령 실패"}
+{"q": "LCL 필터 공진 감쇠와 전류 제어 이득의 관계", "gold": ["Chen_2026_LCL_Resonance_SingleLoop_GFM"], "note": "2026-10-14 말뭉치 보강 후 기입. Chen_2026 은 §III 전체가 능동댐핑 설계이고 Gad(s)=k_d·s/(T_d·s+1) 로 이득을 명시한다. §I 은 'LCL resonance ... interaction with the current control loop and the design of active damping' 로 이 질의를 직접 다룬다. Chen_2025(학회 선행판)·Zhao_2024(저주파 공진)는 인접 주제라 gold 에 넣지 않았다 — Chen_2025 는 droop-I 무효전력 루프의 개루프 불안정이 주제이고 전류제어 이득이 아니다"}
+{"q": "PV 부스트 컨버터와 ESS 를 공유 DC 링크로 묶은 2단 구성", "gold": [], "note": "2026-10-14 재확인 — 근거 없음 유지. two-stage 11회가 전부 Salem 의 'two-stage current limiting control'(전력변환 2단이 아님). boost converter·shared dc 0회. ※ 이 주제는 아직 반증 검색을 돌리지 않았다 — not_searched 다"}
+{"q": "참여계수로 지배 모드의 물리적 정체를 규명한 방법", "gold": ["henriquezauba2022arxiv"], "note": "participation factor 3회 모두 실제 분석 — 불안정 고유값의 지배 상태를 e'q·Efd, IM 회전자 쇄교자속으로 규명"}
+{"q": "실시간 시뮬레이터와 실물 제어기를 연동한 CHIL 검증 절차", "gold": ["Singh_2025_CHIL_DLL_RTDS"], "note": "2026-10-14 말뭉치 보강 후 기입. 키워드에 'Control-Hardware-in-the-Loop (cHIL)' 명시, 초록이 '제어기 DLL + RTDS 와 연동하는 테스트벤치 개발' 이다. 주의 — 본문에 delay·GTNET·cross-validation 이 0회다(paper-searcher 용어검색 확인). 루프 지연 보상과 모델↔CHIL 교차검증 절차는 이 논문이 주지 않는다. CHIL 구조·DLL 빌드 절차까지가 근거 범위다"}
+{"q": "전력각이 커질 때 동기화계수가 변하는 방식", "gold": ["kenyon2020ibrstability"], "note": "식(2)로 동기화 토크 Ts / 댐핑 토크 Td 를 분해하고 p.17 에서 고부하 시 동기화 토크 감소를 논함. 전력각 9회 동일 맥락"}
+{"q": "가상 관성과 댐핑 계수가 과도 응답에 미치는 영향", "gold": ["DArco_2014_VSM_Droop"], "note": "swing equation 기반 관성 에뮬레이션과 댐핑 계수가 논문 주제 자체(13청크 전체). Taul(가상관성 5회)·Salem(6회)은 부차 — 사람 판단 필요"}
