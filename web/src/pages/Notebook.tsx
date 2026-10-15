@@ -33,6 +33,10 @@ interface Report {
   grounded: boolean; truncated: boolean; verified: boolean; model: string;
   hits: { doc: string; page: number | null; sim: number; title: string }[]; created: string;
 }
+interface Book {
+  id: string; label: string; sources: string[];
+  source_count: number; clips: number; reports: number; created: string;
+}
 interface Kind { kind: string; label: string; hint: string; ask: string }
 interface Section { id: string; title: string }
 interface Clip {
@@ -111,6 +115,12 @@ export default function Notebook() {
   const [clipKinds, setClipKinds] = useState<Record<string, string>>({});
   const [clipSec, setClipSec] = useState('?');
 
+  /* 노트북 — 연구 과제 하나에 통 하나. 마지막에 본 통을 기억한다. */
+  const [books, setBooks] = useState<Book[]>([]);
+  const [nb, setNb] = useState<string>(() => {
+    try { return localStorage.getItem('rscad.nb') || ''; } catch { return ''; }
+  });
+
   const [busy, setBusy] = useState('');
   const [err, setErr] = useState('');
   const [msg, setMsg] = useState('');
@@ -121,10 +131,19 @@ export default function Notebook() {
 
   const loadItems = () => fetchJSON('/scholar/inbox').then(d => setItems(d.items || [])).catch(() => {});
   const loadAttach = () => fetchJSON('/scholar/attachments').then(d => setAttach(d.attachments || {})).catch(() => {});
-  const loadClips = () => fetchJSON('/notebook/clips').then(d => {
+  /* 발췌·산출물은 고른 노트북 것만 읽는다. nb 가 비면 전부 — 서버가 그렇게 받는다. */
+  const nbq = (base: string) => base + (nb ? `${base.includes('?') ? '&' : '?'}nb=${nb}` : '');
+  const loadClips = () => fetchJSON(nbq('/notebook/clips')).then(d => {
     setClips(d.clips || []); setSections(d.sections || []); setClipKinds(d.kinds || {});
   }).catch(() => {});
-  const loadReports = () => fetchJSON('/notebook/reports').then(d => setReports(d.reports || [])).catch(() => {});
+  const loadReports = () => fetchJSON(nbq('/notebook/reports'))
+    .then(d => setReports(d.reports || [])).catch(() => {});
+  const loadBooks = () => fetchJSON('/notebook/books').then(d => {
+    const bs: Book[] = d.books || [];
+    setBooks(bs);
+    // 기억해 둔 통이 사라졌으면 첫 통으로. 아무 통도 없으면 빈 채로 둔다.
+    setNb(cur => (bs.some(b => b.id === cur) ? cur : (bs[0]?.id || '')));
+  }).catch(() => {});
   const loadAsk = () => fetchJSON('/scholar/ask/status').then(setSt).catch(() => {});
   const loadIdx = () => fetchJSON('/index/status').then(setIdx).catch(() => {});
   const loadEngines = () => fetchJSON('/doc/actions')
@@ -132,11 +151,20 @@ export default function Notebook() {
     .catch(() => {});
 
   useEffect(() => {
-    loadItems(); loadAttach(); loadClips(); loadReports(); loadIdx(); loadEngines();
+    loadItems(); loadAttach(); loadIdx(); loadEngines(); loadBooks();
     fetchJSON('/notebook/report-kinds').then(d => setKinds(d.kinds || [])).catch(() => {});
     fetchJSON('/scholar/vault-papers').then(d => setVaultOnly(d.papers || [])).catch(() => {});
     loadAsk();
   }, []);
+
+  /* 통을 바꾸면 그 통의 발췌·산출물을 다시 읽고, 대화는 비운다.
+     안 비우면 박사 소스로 받은 답이 석사 화면에 그대로 남아 출처를 오해한다.
+     체크해 둔 소스도 푼다 — 다른 통의 논문이 범위에 묻어 들어간다. */
+  useEffect(() => {
+    loadClips(); loadReports();
+    setTurns([]); setPicked({}); setFocus(''); setErr('');
+    try { if (nb) localStorage.setItem('rscad.nb', nb); } catch { /* 사생활 모드 */ }
+  }, [nb]);
 
   /* 색인이 도는 동안만 들여다본다. 끝나면 색인 목록을 새로 읽어 '미색인' 을 지운다. */
   useEffect(() => {
@@ -163,6 +191,17 @@ export default function Notebook() {
   const chosenDocs = useMemo(
     () => chosen.map(i => docOf(i.key)).filter(Boolean).filter(d => st?.docs.some(x => x.doc === d)),
     [chosen, attach, st]);
+
+  /* ── 범위 ──
+     노트북이 범위의 바닥이고, 소스를 체크하면 그 안에서 더 좁아진다.
+     전에는 아무것도 안 고르면 색인 전체(27편)가 범위였다 — 석사 질문에
+     박사 논문 25편이 섞여 들어왔다. 노트북을 고르면 그 통의 sources 가
+     바닥이 된다. 노트북이 비어 있으면 범위도 비어 있다 — '아직 안 골랐다'
+     를 '전부' 로 바꿔 읽지 않는다. */
+  const book = useMemo(() => books.find(b => b.id === nb) || null, [books, nb]);
+  const scopeDocs = useMemo(
+    () => (chosenDocs.length ? chosenDocs : (book?.sources || [])),
+    [chosenDocs, book]);
   const keyOfDoc = (doc: string) =>
     items.find(i => docOf(i.key) === doc)?.key || doc;
 
@@ -241,7 +280,7 @@ export default function Notebook() {
     if (!st?.ollama.ok) { setErr('Ollama 가 꺼져 있습니다 — 터미널에서 `ollama serve`'); return; }
     setBusy('ask'); setErr(''); setAsk('');
     postJSON('/scholar/ask', {
-      q: question, n: 4, engine, ...(chosenDocs.length ? { docs: chosenDocs } : {}),
+      q: question, n: 4, engine, ...(scopeDocs.length ? { docs: scopeDocs } : {}),
     }).then(d => setTurns(t => [...t, {
       q: question, answer: d.answer || '', hits: d.hits || [], grounded: !!d.grounded,
       enough: d.enough !== false, truncated: !!d.truncated, error: d.error,
@@ -272,7 +311,7 @@ export default function Notebook() {
   /* ── 발췌 보관 — 답이 아니라 '근거로 쓰인 대목' 을 담는다 ── */
   const clip = (h: Hit, note = '') => postJSON('/notebook/clips', {
     cite_key: keyOfDoc(h.doc), doc: h.doc, page: h.page, text: h.text,
-    note, section: clipSec, kind: 'quote', source: 'ask', sim: h.sim,
+    note, section: clipSec, kind: 'quote', source: 'ask', sim: h.sim, notebook_id: nb,
   }).then(d => {
     setClips(d.clips);
     flash(d.note || `발췌를 보관했습니다 — ${keyOfDoc(h.doc)}${h.page ? ` p.${h.page}` : ''}`);
@@ -280,10 +319,16 @@ export default function Notebook() {
 
   /* ── 산출물 ── */
   const generate = (kind: string) => {
-    if (!chosenDocs.length) { setErr('색인된 소스를 하나 이상 고르세요'); return; }
+    if (!scopeDocs.length) {
+      setErr(book
+        ? `${book.label} 노트북에 색인된 소스가 없습니다 — 왼쪽에서 소스를 고르거나 색인에 넣으세요`
+        : '색인된 소스를 하나 이상 고르세요');
+      return;
+    }
     if (!st?.ollama.ok) { setErr('Ollama 가 꺼져 있습니다'); return; }
     setBusy(kind); setErr('');
-    postJSON('/notebook/generate', { kind, docs: chosenDocs, focus: focus.trim() })
+    postJSON('/notebook/generate',
+      { kind, docs: scopeDocs, focus: focus.trim(), notebook_id: nb })
       .then(d => { setReports(d.reports); setOpenRep(d.report.id); flash(d.note || `${d.report.label} 을 만들었습니다`); })
       .catch(fail).finally(() => setBusy(''));
   };
@@ -303,8 +348,30 @@ export default function Notebook() {
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div style={{ maxWidth: 680 }}>
             <h1 className="t-title" style={{ color: 'var(--s-accent-ink)' }}>노트북</h1>
+
+            {/* ── 연구 과제별 통 ──
+                통마다 소스·대화·산출물·발췌가 따로 산다. 섞여 있으면 한쪽이
+                비어 있다는 사실이 다른 쪽 숫자에 가려 안 보인다. */}
+            {books.length > 1 && (
+              <div className="flex gap-2 flex-wrap" style={{ margin: '10px 0 8px' }}>
+                {books.map(b => (
+                  <button key={b.id} className={'s-chip' + (b.id === nb ? ' s-chip-on' : '')}
+                    aria-pressed={b.id === nb} onClick={() => setNb(b.id)}
+                    title={`소스 ${b.source_count}편 · 발췌 ${b.clips} · 산출물 ${b.reports}`}>
+                    {b.label}
+                    <span style={{ opacity: .65, marginLeft: 8, fontVariantNumeric: 'tabular-nums' }}>
+                      {b.source_count}편
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
             <p className="t-body" style={{ color: 'var(--ink-2)', marginTop: 4 }}>
-              왼쪽에서 고른 소스가 대화와 산출물의 범위가 됩니다.{' '}
+              {book
+                ? <>지금 <strong>{book.label}</strong> 통을 보고 있습니다 — 소스 {book.source_count}편이
+                    질문의 범위입니다. 왼쪽에서 체크하면 그 안에서 더 좁아집니다.{' '}</>
+                : <>왼쪽에서 고른 소스가 대화와 산출물의 범위가 됩니다.{' '}</>}
               {engine === 'local'
                 ? '색인도 모델도 이 기기에 있어 원문이 밖으로 나가지 않습니다.'
                 : <strong style={{ color: 'var(--s-interp)' }}>
@@ -527,7 +594,11 @@ export default function Notebook() {
           <h2 className="s-zone">
             <span className="s-zone-n">2</span> 묻고 근거 담기
             <span style={{ marginLeft: 'auto', fontWeight: 400, letterSpacing: 0 }}>
-              {chosenDocs.length ? `범위 · 고른 ${chosenDocs.length}편` : '범위 · 색인 전체'}
+              {chosenDocs.length
+                ? `범위 · 고른 ${chosenDocs.length}편`
+                : book
+                  ? `범위 · ${book.label} ${scopeDocs.length}편`
+                  : '범위 · 색인 전체'}
             </span>
           </h2>
 
@@ -634,7 +705,10 @@ export default function Notebook() {
           <div className="s-panel" style={{ padding: 14 }}>
             <div className="t-head">만들기</div>
             <p className="t-meta" style={{ marginTop: 4 }}>
-              고른 소스 {chosenDocs.length}편을 묶어 정리합니다. 근거가 모자라면 만들지 않습니다.
+              {chosenDocs.length
+                ? `고른 소스 ${chosenDocs.length}편`
+                : `${book?.label || '색인'} ${scopeDocs.length}편`}을 묶어 정리합니다.
+              근거가 모자라면 만들지 않습니다.
             </p>
             <input className="s-input" style={{ marginTop: 8 }} value={focus}
               placeholder="초점 (선택) — 예: 약계통 조건만"
@@ -642,7 +716,7 @@ export default function Notebook() {
             <div className="flex gap-2 flex-wrap mt-2">
               {kinds.map(k => (
                 <button key={k.kind} className="s-chip s-chip-sm" title={k.hint}
-                  disabled={!!busy || !chosenDocs.length}
+                  disabled={!!busy || !scopeDocs.length}
                   onClick={() => generate(k.kind)}>
                   {busy === k.kind ? '만드는 중…' : k.label}
                 </button>

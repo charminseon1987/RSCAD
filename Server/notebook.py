@@ -35,6 +35,29 @@ bp = Blueprint('notebook', __name__, url_prefix='/api/notebook')
 
 CLIPS_PATH = ROOT / 'Server' / 'paper_clips.json'
 REPORTS_PATH = ROOT / 'Server' / 'paper_reports.json'
+NOTEBOOKS_PATH = ROOT / 'Server' / 'notebooks.json'
+
+# ═══════════════════════════════════════════════
+# 노트북 — 연구 과제 하나에 통 하나
+#
+#   전까지는 통이 전역 하나였다. 그래서 석사(ZEB 전력부하)와 박사(GFM 소신호
+#   안정도)의 소스·대화·산출물·발췌가 한데 섞였고, 수집함이 "박사 27 · 석사 0"
+#   으로 보였다. 섞여 있으면 **비어 있다는 사실이 안 보인다** — 석사 쪽이
+#   소스 2편뿐이라는 것을 박사 25편이 가린다.
+#
+#   sources 는 색인 문서명(= PDF 파일 이름) 목록이고, 그대로 질문의 검색 범위가
+#   된다 (ask.retrieve 의 docs 인자). 빈 목록은 '아직 안 골랐다' 는 뜻이지
+#   '전부' 가 아니다 — 전부로 해석하면 통을 나눈 의미가 없어진다.
+# ═══════════════════════════════════════════════
+
+# 처음 만들 때 석사로 보낼 논문. ZEB 질의로 받아 온 것이라 확실하다.
+# 나머지 색인 문서는 박사로 간다 — 기본값일 뿐이고 화면에서 옮길 수 있다.
+SEED_MASTER_DOCS = ('kamble2026from', 'kara2026dynamic')
+
+SEED_NOTEBOOKS = (
+    {'id': 'phd', 'label': '박사 — GFM 소신호 안정도'},
+    {'id': 'ms', 'label': '석사 — 공공청사 ZEB 전력부하'},
+)
 
 # 내 논문의 절. MyPaper.tsx 의 SECTIONS 와 같은 기호를 쓴다 — 두 화면이
 # 같은 말을 해야 '어느 절에 쓸 발췌인지'가 통한다.
@@ -95,22 +118,141 @@ def _now() -> str:
 
 
 # ═══════════════════════════════════════════════
+# 노트북 저장소
+# ═══════════════════════════════════════════════
+def _index_docs() -> list:
+    """색인에 들어 있는 문서명. 못 읽으면 빈 목록 — 씨앗을 지어내지 않는다."""
+    try:
+        import ask
+        st = ask._index()
+        if st['error'] or st['col'] is None:
+            return []
+        return sorted(d['doc'] for d in ask._docs_in_index(st['col']))
+    except Exception:                                        # noqa: BLE001
+        return []
+
+
+def load_notebooks() -> list:
+    """노트북 목록. 없으면 석사·박사 둘을 만들어 두고 색인 문서를 나눠 담는다.
+
+    나누는 규칙은 한 줄이다 — SEED_MASTER_DOCS 는 석사, 나머지는 박사.
+    색인을 못 읽으면 sources 를 비워 두고 사용자가 고르게 한다. 추측해서
+    채우면 "이 노트북에 그 논문이 있다" 는 거짓말이 된다.
+    """
+    rows = _load(NOTEBOOKS_PATH, 'notebooks')
+    if rows:
+        return rows
+
+    docs = _index_docs()
+    master = [d for d in docs if d in SEED_MASTER_DOCS]
+    rest = [d for d in docs if d not in SEED_MASTER_DOCS]
+    seeded = {'phd': rest, 'ms': master}
+    rows = [{**nb, 'sources': seeded.get(nb['id'], []), 'created': _now()}
+            for nb in SEED_NOTEBOOKS]
+    save_notebooks(rows)
+    return rows
+
+
+def save_notebooks(rows: list) -> None:
+    _save(NOTEBOOKS_PATH, 'notebooks', rows)
+
+
+def find_notebook(nb_id: str):
+    return next((n for n in load_notebooks() if n['id'] == nb_id), None)
+
+
+def _scoped(rows: list, nb_id: str) -> list:
+    """?nb= 가 오면 그 노트북 것만. 없으면 전부 — 기존 화면이 그대로 돈다."""
+    if not nb_id:
+        return rows
+    return [r for r in rows if (r.get('notebook_id') or '') == nb_id]
+
+
+@bp.route('/books')
+def api_books_list():
+    """노트북 목록과 각 통에 든 것의 수. 비어 있으면 비어 있다고 보인다."""
+    books = load_notebooks()
+    clips, reports = load_clips(), load_reports()
+    out = []
+    for b in books:
+        out.append({**b,
+                    'source_count': len(b.get('sources') or []),
+                    'clips': len(_scoped(clips, b['id'])),
+                    'reports': len(_scoped(reports, b['id']))})
+    return jsonify({'status': 'ok', 'books': out,
+                    'path': 'Server/notebooks.json',
+                    'note': ('sources 가 그대로 질문의 검색 범위입니다. '
+                             '빈 목록은 아직 고르지 않았다는 뜻이고 전부가 아닙니다.')})
+
+
+@bp.route('/books', methods=['POST'])
+def api_books_add():
+    d = request.json or {}
+    label = (d.get('label') or '').strip()
+    if not label:
+        return jsonify({'status': 'error', 'error': '노트북 이름이 필요합니다'}), 400
+    rows = load_notebooks()
+    nb_id = (d.get('id') or '').strip() or uuid.uuid4().hex[:8]
+    if any(n['id'] == nb_id for n in rows):
+        return jsonify({'status': 'error', 'error': f'이미 있는 id 입니다: {nb_id}'}), 409
+    nb = {'id': nb_id, 'label': label[:120],
+          'sources': [s for s in (d.get('sources') or []) if isinstance(s, str)],
+          'created': _now()}
+    rows.append(nb)
+    save_notebooks(rows)
+    return jsonify({'status': 'ok', 'book': nb, 'books': rows})
+
+
+@bp.route('/books/<nb_id>', methods=['PATCH', 'DELETE'])
+def api_books_edit(nb_id):
+    rows = load_notebooks()
+    i = next((n for n, b in enumerate(rows) if b['id'] == nb_id), None)
+    if i is None:
+        return jsonify({'status': 'error', 'error': '없는 노트북입니다'}), 404
+
+    if request.method == 'DELETE':
+        # 안에 든 것이 있으면 지우지 않는다. 발췌는 인용의 근거라 말없이 사라지면 안 된다.
+        held = len(_scoped(load_clips(), nb_id)) + len(_scoped(load_reports(), nb_id))
+        if held and not (request.args.get('force') == '1'):
+            return jsonify({'status': 'error', 'held': held,
+                            'error': f'발췌·산출물 {held}건이 들어 있습니다 — '
+                                     '옮기거나 지운 뒤에 삭제하세요'}), 409
+        rows.pop(i)
+        save_notebooks(rows)
+        return jsonify({'status': 'ok', 'books': rows})
+
+    d = request.json or {}
+    if 'label' in d and (d.get('label') or '').strip():
+        rows[i]['label'] = d['label'].strip()[:120]
+    if 'sources' in d:
+        rows[i]['sources'] = [s for s in (d.get('sources') or []) if isinstance(s, str)]
+    save_notebooks(rows)
+    return jsonify({'status': 'ok', 'book': rows[i], 'books': rows})
+
+
+# ═══════════════════════════════════════════════
 # ① 발췌 보관함 — 내 논문에 쓸 대목
 # ═══════════════════════════════════════════════
 @bp.route('/clips')
 def api_clips_list():
     """절·논문으로 걸러 돌려준다. 내논문 화면이 절별로 가져가는 입구다."""
-    rows = load_clips()
+    # ?nb= 는 선택이다. 안 주면 지금처럼 전부 — 내논문·쓰기 화면이 그대로 돈다.
+    nb = request.args.get('nb') or ''
+    rows = _scoped(load_clips(), nb)
+    scope = list(rows)
     sec = request.args.get('section')
     key = request.args.get('key')
     if sec:
         rows = [c for c in rows if (c.get('section') or '?') == sec]
     if key:
         rows = [c for c in rows if c.get('cite_key') == key]
+    # 절별 집계는 **고른 노트북 안에서** 센다. 전체로 세면 석사 화면에 박사
+    # 발췌 수가 찍혀서, 통을 나눈 것이 화면에서 다시 섞인다.
     by_section = {s['id']: 0 for s in PAPER_SECTIONS}
-    for c in load_clips():
+    for c in scope:
         by_section[c.get('section') or '?'] = by_section.get(c.get('section') or '?', 0) + 1
-    return jsonify({'status': 'ok', 'clips': rows, 'total': len(load_clips()),
+    return jsonify({'status': 'ok', 'clips': rows, 'total': len(scope),
+                    'notebook_id': nb, 'all_total': len(load_clips()),
                     'by_section': by_section, 'sections': PAPER_SECTIONS,
                     'kinds': CLIP_KINDS, 'path': 'Server/paper_clips.json'})
 
@@ -144,6 +286,7 @@ def api_clips_add():
         'text': text[:4000],                        # 원문 그대로 — 고치지 않는다
         'note': (d.get('note') or '').strip()[:1000],   # ※ 내 판단
         'section': sec,
+        'notebook_id': (d.get('notebook_id') or '').strip(),
         'kind': d.get('kind') if d.get('kind') in CLIP_KINDS else 'quote',
         'source': d.get('source') or 'manual',      # reader · ask · manual
         'sim': d.get('sim'),
@@ -421,7 +564,10 @@ def api_report_kinds():
 
 @bp.route('/reports')
 def api_reports_list():
-    return jsonify({'status': 'ok', 'reports': load_reports(),
+    nb = request.args.get('nb') or ''
+    rows = _scoped(load_reports(), nb)
+    return jsonify({'status': 'ok', 'reports': rows, 'notebook_id': nb,
+                    'all_total': len(load_reports()),
                     'path': 'Server/paper_reports.json'})
 
 
@@ -472,6 +618,7 @@ def api_generate():
     used_docs = sorted({h['doc'] for h in strong})
     rep = {
         'id': uuid.uuid4().hex[:10],
+        'notebook_id': (d.get('notebook_id') or '').strip(),
         'kind': kind,
         'label': spec['label'],
         'title': (d.get('title') or '').strip() or f'{spec["label"]} — {", ".join(used_docs)[:60]}',

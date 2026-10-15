@@ -1,0 +1,45 @@
+{
+  "notebooks": [
+    {
+      "id": "phd",
+      "label": "박사 — GFM 소신호 안정도",
+      "sources": [
+        "Bui_2026_DynamicDroop_Specification",
+        "CIGRE_B4101_GFM_ESS_Survey",
+        "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
+        "Chen_2026_LCL_Resonance_SingleLoop_GFM",
+        "DArco_2014_VSM_Droop",
+        "DeCarne_2026_PHIL_Guidelines",
+        "Eid_2025_PHIL_Hinf",
+        "Gafar_2026_NRBO_vs_PSO_GFM_Tuning",
+        "Ghimire_2025_WindEnergySci",
+        "Gupta_2026_JVSM",
+        "Kroposki_2026_UNIFI_Specifications_v3",
+        "Liu 2025 datadriven cpes",
+        "Pournazarian_2021_Access_PSO_GFM",
+        "Pournazarian_2022_TSG_PSO_GFM",
+        "Report_24-06",
+        "Salem_2025_GFM_Review",
+        "Salem_2026_GridStrength_Transient_GFM",
+        "Singh_2025_CHIL_DLL_RTDS",
+        "Taul_2020_CurrentLimiting_GFM",
+        "Wang_2026_TPEL_UltraWeak_GFM_ESS",
+        "Zhao_2024_LowFreq_Resonance_GFM",
+        "Zhao_2025_Adaptive_JD_PV_Storage_GFM",
+        "Zhou_2026_LVDN_GFM_PV_ESS_ChaoticPSO",
+        "henriquezauba2022arxiv",
+        "kenyon2020ibrstability"
+      ],
+      "created": "2026-10-15T19:51:27"
+    },
+    {
+      "id": "ms",
+      "label": "석사 — 공공청사 ZEB 전력부하",
+      "sources": [
+        "kamble2026from",
+        "kara2026dynamic"
+      ],
+      "created": "2026-10-15T19:51:27"
+    }
+  ]
+}

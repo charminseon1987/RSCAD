@@ -24,26 +24,25 @@ const NAV: (Leaf | Group)[] = [
   {
     label: '연구', base: '/research',
     children: [
-      /* 화면을 둘로 줄였다. 같은 일을 하는 입구가 다섯 군데라 "어디서 시작하나" 를
-         알 수 없었다. 모으고·읽기는 노트북이, 쓰기는 쓰기 화면이 맡는다.
-         옛 경로는 라우트로 살려 둬 북마크가 깨지지 않는다. */
-      {
-        to: '/research/notebook', label: '모으고·읽기',
-        children: [
-          { to: '/research/notebook', label: '노트북 (소스·대화·산출물)' },
-          { to: '/research/scholar/flow', label: '원문 읽기 (PDF·하이라이트)' },
-          { to: '/research/scholar/compare', label: '비교표' },
-        ],
-      },
-      {
-        to: '/research/docs', label: '쓰기',
-        children: [
-          { to: '/research/docs', label: '내 논문 (문서·댓글·판)' },
-          { to: '/research/scholar/write', label: '연구일지 · 합치기 (.md)' },
-          { to: '/research/my-paper', label: '인용 자료 · 진행' },
-        ],
-      },
-      { to: '/research/knowledge', label: '지식화' },
+      /* 2026-10-15 — 중첩을 걷어내고 평평하게 폈다.
+         전에는 3단인데 1단이 가짜였다: 부모 '모으고·읽기' 가 /research/notebook
+         이고 첫 자식 '노트북' 도 같은 곳이라 같은 줄이 두 번 나왔다.
+         라벨도 내용과 어긋나 있었다 — '연구일지·합치기' 는 실제로 주장 카드를
+         고르는 화면이고, '인용 자료·진행' 이 진짜 내 논문이다.
+
+         노트북이 먼저 온다. 소스·대화·산출물 3단이 들어 있어 연구의 기본
+         작업대다. 비교표는 이미 산출물 종류라 사이드바에서 뺐다 — 노트북
+         오른쪽에서 만든다.
+
+         아직 안 한 것: 원문 읽기를 '소스를 누르면 열린다' 로 옮기는 일.
+         그때까지 입구를 남겨 둔다 — 지금 빼면 PDF 하이라이트로 가는 길이
+         끊기고 문헌 노트를 만들 수 없게 된다.
+         뺀 항목의 라우트는 그대로 살아 있다 — 북마크가 깨지지 않는다. */
+      { to: '/research/notebook', label: '노트북' },
+      { to: '/research/scholar/flow', label: '원문 읽기' },
+      { to: '/research/knowledge', label: '지식' },
+      { to: '/research/my-paper', label: '내 논문' },
+      { to: '/research/docs', label: '초안' },
     ],
   },
   {
