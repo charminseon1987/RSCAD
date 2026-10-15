@@ -47,6 +47,21 @@ const FOLDER_COLORS: [RegExp, string][] = [
   [/claims/, '#e64980'],
   [/ToDoList|00_Raw/, '#868e96'],
 ];
+/* 범례이자 필터. 키는 FOLDER_COLORS 의 패턴과 같은 것을 쓴다 —
+   두 군데서 따로 정하면 색과 필터가 어긋난다. */
+const GROUPS: { key: string; label: string; re: RegExp }[] = [
+  { key: '01_개념', label: '개념', re: /01_개념/ },
+  { key: '02_방법론', label: '방법론', re: /02_방법론/ },
+  { key: '00_MOC', label: 'MOC', re: /00_MOC/ },
+  { key: 'Phase0', label: 'Phase', re: /Phase0/ },
+  { key: 'literature', label: '문헌', re: /literature|06_문헌/ },
+  { key: 'claims', label: '주장', re: /claims/ },
+];
+const ETC = '기타';
+
+const groupOf = (folder: string) =>
+  GROUPS.find(g => g.re.test(folder))?.key ?? ETC;
+
 const colorOf = (folder: string, exists = true) => {
   if (!exists) return 'var(--outline-variant)';
   for (const [re, c] of FOLDER_COLORS) if (re.test(folder)) return c;
@@ -114,10 +129,21 @@ function ForceGraph({ graph, onPick, active }: {
   const s = simRef.current;
   if (!s) return <p className="mono-clock" style={{ color: 'var(--outline)' }}>레이아웃 계산 중...</p>;
 
-  const xs = s.nodes.map(n => n.x || 0), ys = s.nodes.map(n => n.y || 0);
+  /* viewBox 를 절대 min/max 로 잡으면 척력에 멀리 튕긴 노드 서넛이 화면을
+     통째로 늘려서, 정작 읽어야 할 가운데 뭉치가 점이 된다 (노트 106개일 때
+     실제로 그랬다). 백분위로 자른다 — 2~98% 범위를 담고, 밖으로 나간 노드는
+     가장자리에 걸쳐 보이되 배율을 지배하지 못한다. */
+  const span = (vals: number[]) => {
+    const v = [...vals].sort((a, b) => a - b);
+    const at = (q: number) => v[Math.min(v.length - 1, Math.max(0, Math.round((v.length - 1) * q)))];
+    const lo = at(0.02), hi = at(0.98);
+    return hi - lo < 1 ? [lo - 100, hi + 100] : [lo, hi];
+  };
+  const [loX, hiX] = span(s.nodes.map(n => n.x || 0));
+  const [loY, hiY] = span(s.nodes.map(n => n.y || 0));
   const pad = 40;
-  const minX = Math.min(...xs) - pad, maxX = Math.max(...xs) + pad;
-  const minY = Math.min(...ys) - pad, maxY = Math.max(...ys) + pad;
+  const minX = loX - pad, maxX = hiX + pad;
+  const minY = loY - pad, maxY = hiY + pad;
 
   const r = (n: GNode) => (n.exists ? 4 + Math.sqrt(n.backlinks) * 2.4 : 3.5);
   const hub = [...s.nodes].filter(n => n.exists).sort((a, b) => b.backlinks - a.backlinks).slice(0, 10);
@@ -165,6 +191,12 @@ export default function Knowledge() {
   const [graph, setGraph] = useState<Graph | null>(null);
   const [note, setNote] = useState<NoteDetail | null>(null);
   const [view, setView] = useState<View>('graph');
+
+  /* 그래프 필터 — 106개를 한 번에 그리면 읽을 수 없다. 기본값은 전부 켜 둔다:
+     볼트 전체를 보는 도구라 처음부터 숨기면 "없는 줄" 알게 된다. 대신 끌 수
+     있게 하고, 몇 개가 보이는지 숫자로 띄운다. */
+  const [off, setOff] = useState<Set<string>>(new Set());
+  const [hideStub, setHideStub] = useState(false);   // 미작성(링크만 있는) 노드
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<any[] | null>(null);
   const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({});
@@ -213,6 +245,25 @@ export default function Knowledge() {
     () => (tree ? tree.folders.flatMap(f => f.notes.map(n => ({ ...n, folder: f.folder }))) : []),
     [tree],
   );
+
+  /* 폴더별 노드 수 — 칩에 띄워서 "끄면 몇 개가 사라지는지" 를 먼저 보여 준다 */
+  const counts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const n of graph?.nodes || []) m.set(groupOf(n.folder), (m.get(groupOf(n.folder)) || 0) + 1);
+    return m;
+  }, [graph]);
+
+  /* 화면에 그릴 그래프. 끈 폴더의 노드를 빼고, 그 노드에 걸린 링크도 함께 뺀다 —
+     한쪽 끝이 사라진 선을 남기면 허공으로 뻗은 선이 된다. */
+  const shown = useMemo<Graph>(() => {
+    const empty = { nodes: [], edges: [], stats: { notes: 0, missing: 0, edges: 0, resolved: 0, unresolved: 0 } };
+    if (!graph) return empty;
+    const nodes = graph.nodes.filter(n =>
+      !off.has(groupOf(n.folder)) && !(hideStub && !n.exists));
+    const ids = new Set(nodes.map(n => n.id));
+    const edges = graph.edges.filter(e => ids.has(e.from) && ids.has(e.to));
+    return { nodes, edges, stats: graph.stats };
+  }, [graph, off, hideStub]);
 
   return (
     <div className="max-w-[1600px] mx-auto px-10 py-10 space-y-7">
@@ -315,14 +366,38 @@ export default function Knowledge() {
                   크기 = 백링크 수 · 점선 = 아직 안 쓴 노트 · 클릭하면 열린다
                 </span>
               </div>
-              <ForceGraph graph={graph} active={note?.path ?? null} onPick={openNote} />
-              <div className="flex flex-wrap gap-3 mt-2">
-                {[['01_개념', '개념'], ['02_방법론', '방법론'], ['00_MOC', 'MOC'], ['Phase0', 'Phase'], ['literature', '문헌'], ['claims', '주장']].map(([k, label]) => (
-                  <span key={k} className="mono-clock flex items-center gap-1" style={{ fontSize: 15, color: 'var(--outline)' }}>
-                    <span style={{ color: colorOf(k) }}>●</span> {label}
-                  </span>
-                ))}
+              <ForceGraph graph={shown} active={note?.path ?? null} onPick={openNote} />
+
+              {/* 범례가 곧 필터다. 색과 끄고 켜는 자리가 같아야 "이 색이 뭐였지" 가 없다. */}
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                {[...GROUPS, { key: ETC, label: ETC, re: /(?:)/ }].map(g => {
+                  const n = counts.get(g.key) || 0;
+                  const on = !off.has(g.key);
+                  return (
+                    <button key={g.key} className={'s-chip s-chip-sm' + (on ? ' s-chip-on' : '')}
+                      aria-pressed={on} disabled={!n}
+                      title={n ? `${g.label} ${n}개 — 눌러서 숨기기` : '이 폴더에 노트가 없습니다'}
+                      onClick={() => setOff(s => {
+                        const t = new Set(s);
+                        t.has(g.key) ? t.delete(g.key) : t.add(g.key);
+                        return t;
+                      })}>
+                      <span style={{ color: colorOf(g.key), opacity: on ? 1 : .35 }}>●</span>{' '}
+                      {g.label} <span style={{ opacity: .6 }}>{n}</span>
+                    </button>
+                  );
+                })}
+                <button className={'s-chip s-chip-sm' + (hideStub ? ' s-chip-on' : '')}
+                  aria-pressed={hideStub} onClick={() => setHideStub(v => !v)}
+                  title="[[링크]]만 있고 아직 쓰지 않은 노트를 숨깁니다">
+                  미작성 숨기기 <span style={{ opacity: .6 }}>{graph.stats.missing}</span>
+                </button>
               </div>
+              <p className="mono-clock mt-2" style={{ fontSize: 15, color: 'var(--outline)' }}>
+                보이는 노트 {shown.nodes.length} / {graph.nodes.length} · 링크 {shown.edges.length} / {graph.edges.length}
+                {shown.nodes.length === graph.nodes.length && graph.nodes.length > 60
+                  && ' — 한 번에 다 그리면 겹쳐 보입니다. 위에서 폴더를 꺼 보세요.'}
+              </p>
             </>
           ) : <p className="mono-clock" style={{ color: 'var(--outline)' }}>그래프를 불러오는 중...</p>)}
 
