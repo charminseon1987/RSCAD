@@ -1,0 +1,53 @@
+{
+  "_설명": [
+    "문헌 노트의 cite_key 와 RAG 색인의 문서명(= PDF 파일 이름)이 다르다.",
+    "PDF 이름을 바꾸면 색인 2,163청크를 다시 만들어야 하므로 표 하나로 잇는다.",
+    "여기 없는 노트는 '색인에 그 논문이 없다'는 뜻이다 — 추측해서 채우지 않는다.",
+    "evidence 는 이 쌍을 무엇으로 확인했는지다. 파일명만 보고 넣지 않았다."
+  ],
+  "_확인일": "2026-10-15",
+  "aliases": {
+    "chen2025slgfmopenloop": {
+      "doc": "Chen_2025_OpenLoopUnstable_SingleLoop_GFM",
+      "evidence": "PDF 1쪽 제목 'Open-Loop Unstable Behavior in A Class of Single-Loop Grid-Forming Control' 이 노트 title 과 같다"
+    },
+    "chen2026lcl_slgfm": {
+      "doc": "Chen_2026_LCL_Resonance_SingleLoop_GFM",
+      "evidence": "색인 paper_title 과 노트 title 이 완전히 같다 (j=1.00)"
+    },
+    "kenyon2020ibrstability": {
+      "doc": "kenyon2020ibrstability",
+      "evidence": "이름이 같고 색인 paper_title 도 노트 title 과 같다 (j=1.00)"
+    },
+    "salem2025gfmreview": {
+      "doc": "Salem_2025_GFM_Review",
+      "evidence": "색인 paper_title 과 노트 title 이 완전히 같다 (j=1.00)"
+    },
+    "singh2025gfmdll": {
+      "doc": "Singh_2025_CHIL_DLL_RTDS",
+      "evidence": "청크 본문 머리에 노트 title 'Developing grid-forming converter controller DLL...' 과 DOI 10.1007/s00502-024-01302-0 이 있다"
+    },
+    "zhao2024lowfreqres": {
+      "doc": "Zhao_2024_LowFreq_Resonance_GFM",
+      "evidence": "PDF 1쪽 제목 'Low-frequency Resonances in Grid-Forming Converters: Causes and Damping Control' 이 노트 title 과 같다"
+    },
+    "DArco_2014_VSM_Droop": {
+      "doc": "DArco_2014_VSM_Droop",
+      "evidence": "이름이 같다. 색인 paper_title 'Equivalence of Virtual Synchronous Machines and Frequency-Droops...' 이 노트 주제(VSM-Droop 등가성)와 같다"
+    },
+    "Liu_2025_DataDriven_CPES": {
+      "doc": "Liu 2025 datadriven cpes",
+      "evidence": "색인 paper_title 'Survey on data-driven control and its application in cyber-physical energy systems' 이 노트 주제(데이터기반 제어 서베이)와 같다"
+    }
+  },
+  "_색인에_없음": {
+    "Chen_2024_Electronics": "papers/ 에 해당 PDF 가 없다",
+    "Dong_2026_GFM_SVR": "노트는 pdf_status: have 라고 적었지만 papers/ 에 없다 — 확인 필요",
+    "Ganguly_2025_preprint": "papers/ 에 해당 PDF 가 없다",
+    "Zhao_2023_Aalborg": "papers/ 에 해당 PDF 가 없다",
+    "pawar2021gfcpv": "노트 pdf_status: none",
+    "qu2025industrial": "노트 pdf_status: none",
+    "zhan2024industrial": "노트 pdf_status: none",
+    "settling_time_standards_survey": "단일 논문 노트가 아니다 (표준 조사 노트)"
+  }
+}

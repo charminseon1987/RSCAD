@@ -205,6 +205,25 @@ def unpaywall_pdf(doi):
     return ((d.get("best_oa_location") or {}).get("url_for_pdf")) or ""
 
 
+# ── RSCAD 추가: 인용키 ─────────────────────────────────────────────────────
+# S4 를 구조적으로 막는다. PDF 파일명 = 색인 doc id = 인용키 = 노트 파일명이
+# 같아야 초안의 [@key] 가 색인이 돌려주는 출처와 맞물린다. 기존 말뭉치는
+# 파일명이 Author_Year_Topic 이고 인용키는 소문자 압축형이라 16개 노트 중
+# 2개만 일치했다 — 새로 받는 논문부터는 어긋나지 않게 한 곳에서 만든다.
+def cite_key(rec):
+    """surname + year + 제목 첫 실질어. 예: chen2026lcl"""
+    authors = rec.get("authors") or ""
+    first = authors.split(";")[0].split(",")[0].strip() if authors else ""
+    surname = (first.split()[-1] if first else "anon")
+    surname = re.sub(r"[^a-z]", "", surname.lower()) or "anon"
+    year = str(rec.get("year") or "0000")
+    stop = {"a", "an", "the", "on", "of", "for", "and", "in", "to", "with", "using"}
+    words = [w for w in re.findall(r"[a-z]+", (rec.get("title") or "").lower())
+             if w not in stop and len(w) > 2]
+    tail = words[0][:12] if words else "paper"
+    return f"{surname}{year}{tail}"
+
+
 def grab_fulltext(rec, pdf_dir):
     url = rec["pdf_url"] if rec["pdf_url"].lower().endswith(".pdf") or "arxiv.org/pdf" in rec["pdf_url"] else ""
     url = url or unpaywall_pdf(rec["doi"]) or rec["pdf_url"]
@@ -216,7 +235,7 @@ def grab_fulltext(rec, pdf_dir):
     try:
         from pypdf import PdfReader
         pdf_dir.mkdir(parents=True, exist_ok=True)
-        path = pdf_dir / f"{rec['year']}_{slug(rec['title'], 50)}.pdf"
+        path = pdf_dir / f"{cite_key(rec)}.pdf"
         path.write_bytes(resp.content)
         text = "\n".join((p.extract_text() or "") for p in PdfReader(BytesIO(resp.content)).pages[:30])
     except Exception:
@@ -369,6 +388,9 @@ def main():
     ap.add_argument("--llm", choices=["none", "ollama", "anthropic"], default="none")
     ap.add_argument("--context", default="", help="내 연구 설명 (요약의 '연결' 항목에 사용)")
     ap.add_argument("--vault", default="./vault")
+    # S1: 받은 PDF 는 색인(01_chunk.py · indexer.py)이 읽는 곳에 바로 넣는다.
+    ap.add_argument("--pdf-dir", default="GFM_Research/00_Knowledge/papers",
+                    help="받은 PDF 를 둘 곳. 기본값은 색인이 읽는 정규 경로다.")
     a = ap.parse_args()
 
     vault = Path(a.vault); vault.mkdir(parents=True, exist_ok=True)
@@ -402,7 +424,7 @@ def main():
 
     for i, r in enumerate(top, 1):
         if not a.no_fulltext:
-            grab_fulltext(r, vault / "PDFs")
+            grab_fulltext(r, Path(a.pdf_dir))
         summarize(r, a.llm, a.context)
         print(f"[4-5] {i:>2}/{len(top)} [{r['score']}] {'📄' if r['fulltext'] else '  '} {r['year']} {r['title'][:65]}")
 

@@ -1124,6 +1124,158 @@ def render_note(key: str, it: dict, links: list) -> str:
     return '\n'.join(fm + body) + '\n'
 
 
+# ═══════════════════════════════════════════════
+# 레코드 — 노트와 함께 쓴다 (CLAUDE.md 논문 지식 파이프라인)
+#
+#   노트(.md)만 쓰고 끝내면 ce_tool 이 그 논문을 영영 못 본다. validate 로
+#   무결성을 보지 못하고, gaps 로 공백을 세지 못하고, verify 로 서지를 못 고친다.
+#   실제로 노트 16편 중 11편이 레코드 없이 만들어져 있었다 (2026-10-15).
+#
+#   하지만 paper-reader 가 쓰는 레코드와 같은 것을 만들 수는 없다. 저쪽은
+#   전문을 읽고 claim 의 type·evidence_strength·my_relevance 를 사람이 판단해
+#   채운다. 하이라이트에는 그 정보가 없다. 없는 것을 채우면 날조다.
+#
+#   그래서 여기서 만드는 레코드는 **하이라이트에서 나온 것만** 담는다
+#     · statement  = 사용자가 칠한 원문 그대로 (해석 아님)
+#     · type       = 사용자가 고른 **색**이 정한다 (설정에서 바꾼다)
+#     · page       = PDF 실제 쪽
+#     · verification.status = unverified — 칠하기만 했지 확인한 게 아니다
+#       CLAUDE.md 에 따라 unverified 주장은 인용 근거로 쓰지 않는다
+#     · paper.ingest.method 에 '웹 PDF 리더 하이라이트' 라고 남긴다
+#   비는 칸은 비워 둔다. 모르는 값을 넣지 않는다.
+# ═══════════════════════════════════════════════
+RECORD_DIR = VAULT / '00_Knowledge' / 'records'
+
+# 색(=섹션) → claim type. 사용자가 칠할 때 이미 고른 것이라 추측이 아니다.
+# '내 의문(unknown)' 은 논문의 주장이 아니므로 claim 으로 올리지 않는다.
+SECTION_CLAIM_TYPE = {
+    'core': 'result',
+    'quote': 'result',
+    'method': 'method',
+    'background': 'problem',
+}
+
+# context 로 옮길 축 필드 — 스키마가 허용하는 이름만 쓴다
+CONTEXT_FIELDS = ('target_system', 'paper_type', 'control_scheme', 'model_order',
+                  'analysis_method', 'tuning_method', 'scr_range', 'xr_range',
+                  'validation_level', 'hardware', 'extraction_depth',
+                  'dc_ac_coupling')
+
+
+SCHEMA_PATH = ROOT / 'tools' / 'claim_evidence.schema.json'
+
+
+def _valid_context(ctx: dict) -> dict:
+    """context 값을 스키마로 직접 검사해 통과하는 것만 남긴다.
+
+    여기 필드 상당수가 enum 이다 (target_system 은 WTG/PV/ESS/PV+ESS/일반).
+    수집함에는 자유 입력이 들어올 수 있어, 그대로 넣으면 레코드 전체가
+    validate 에서 떨어진다. enum 목록을 여기에 베껴 두면 스키마가 바뀔 때
+    조용히 어긋나므로, 스키마를 읽어서 판단한다. 못 읽으면 context 를 비운다 —
+    통과 못 할 값을 넣느니 없는 게 낫다.
+    """
+    if not ctx:
+        return {}
+    try:
+        import jsonschema
+        props = (json.loads(SCHEMA_PATH.read_text(encoding='utf-8'))
+                 ['properties']['context']['properties'])
+    except Exception:                                        # noqa: BLE001
+        return {}
+    out = {}
+    for k, v in ctx.items():
+        sub = props.get(k)
+        if sub is None:
+            continue
+        try:
+            jsonschema.validate(v, sub)
+        except Exception:                                    # noqa: BLE001
+            continue                       # 안 맞는 값은 버린다. 바꿔 넣지 않는다.
+        out[k] = v
+    return out
+
+
+def build_record(key: str, it: dict):
+    """하이라이트에서 claim-evidence 레코드를 만든다. 칠한 게 없으면 None.
+
+    스키마가 claims 를 최소 1개 요구한다 — 칠하지 않은 논문은 레코드를 만들 수
+    없다. 이건 제약이 아니라 사실의 반영이다. 아직 읽지 않은 논문이다.
+    """
+    p = it.get('paper') or {}
+    means = {h['section']: h.get('mean', '')
+             for h in (load_settings().get('highlights') or []) if h.get('section')}
+
+    claims, n = [], 0
+    for h in it.get('highlights') or []:
+        text = (h.get('text') or '').strip()
+        sec = h.get('section') or 'background'
+        if not text or sec not in SECTION_CLAIM_TYPE:
+            continue                       # 'unknown'(내 의문) 은 주장이 아니다
+        page = h.get('page')
+        if not isinstance(page, int) or page < 1:
+            continue                       # 쪽 없는 근거는 근거가 아니다
+        n += 1
+        claims.append({
+            # 스키마가 ^C[0-9]{2,3}$ 를 요구한다. 출처는 id 가 아니라 tags 로 밝힌다.
+            'id': f'C{n:02d}',
+            'type': SECTION_CLAIM_TYPE[sec],
+            # 원문 발췌다. 스키마가 인용에 200자를 두므로 같은 선을 지킨다.
+            'statement': text[:200],
+            'evidence': [{'page': page, 'kind': 'text',
+                          'locator': f'하이라이트 · {means.get(sec) or sec}'}],
+            'verification': {
+                'status': 'unverified',
+                'date': datetime.date.today().isoformat(),
+                'notes': ('웹 PDF 리더에서 칠한 원문 발췌다. 요약·해석이 아니며 '
+                          '사람이 내용을 확인한 상태도 아니다.'),
+            },
+            'tags': ['출처:하이라이트', f'색:{sec}'],
+        })
+    if not claims:
+        return None
+
+    authors = [a.strip() for a in (p.get('authors') or '').split(',') if a.strip()]
+    paper = {'id': key, 'title': p.get('title') or '', 'authors': authors,
+             'year': int(p['year']) if str(p.get('year') or '').isdigit() else 0,
+             'venue': p.get('venue') or '',
+             'ingest': {'method': '웹 PDF 리더 하이라이트 (Server/scholar.py)',
+                        'date': datetime.date.today().isoformat(),
+                        'notes': ('하이라이트만 옮겼다. 전문 정독 레코드가 아니다 — '
+                                  'paper-reader 로 다시 읽으면 이 파일을 덮어쓴다.')}}
+    if p.get('doi'):
+        paper['doi'] = p['doi']
+    if p.get('url'):
+        paper['source_url'] = p['url']
+
+    ctx = _valid_context({f: it[f] for f in CONTEXT_FIELDS
+                          if it.get(f) not in (None, '', [], {})})
+    rec = {'schema_version': '1.0', 'paper': paper, 'claims': claims}
+    if ctx:
+        rec['context'] = ctx
+    return rec
+
+
+def save_record(key: str, it: dict) -> dict:
+    """레코드를 쓰고 무엇을 했는지 그대로 돌려준다. 실패를 삼키지 않는다."""
+    rec = build_record(key, it)
+    if rec is None:
+        return {'written': False,
+                'why': '칠한 하이라이트가 없어 레코드를 만들지 않았습니다 '
+                       '(④ 정독 화면에서 칠하면 그때 만들어집니다)'}
+    try:
+        RECORD_DIR.mkdir(parents=True, exist_ok=True)
+        fp = RECORD_DIR / f'{key}.json'
+        fp.write_text(json.dumps(rec, ensure_ascii=False, indent=2) + '\n',
+                      encoding='utf-8')
+    except OSError as e:
+        return {'written': False, 'why': f'레코드를 쓰지 못했습니다 — {e}'}
+    return {'written': True, 'path': f'00_Knowledge/records/{key}.json',
+            'claims': len(rec['claims']),
+            'why': (f'하이라이트 {len(rec["claims"])}건을 레코드로 옮겼습니다. '
+                    'verification 은 모두 unverified 입니다 — 인용 근거로 쓰기 전에 '
+                    '원문을 확인하세요.')}
+
+
 def suggest_links(it: dict, limit: int = 6) -> list:
     """볼트의 기존 노트 중 주제어가 겹치는 것을 고른다. 없는 노트로는 링크하지 않는다."""
     p = it['paper']
@@ -1218,8 +1370,14 @@ def api_note_save():
     it['note_path'] = rel
     it['links'] = links
     it['stage'] = max(it.get('stage', 2), 5)
+
+    # 노트와 같은 순간에 레코드도 쓴다. 노트만 쓰면 ce_tool 이 이 논문을 못 본다
+    # (validate·gaps·verify 가 전부 레코드만 읽는다). 레코드가 안 만들어졌으면
+    # 왜 안 됐는지 그대로 돌려준다 — 조용히 넘어가면 다음에도 모른다.
+    rec = save_record(it['key'], it)
+    it['record_path'] = rec.get('path') or ''
     save_inbox(items)
-    return jsonify({'status': 'ok', 'path': rel, 'item': it})
+    return jsonify({'status': 'ok', 'path': rel, 'item': it, 'record': rec})
 
 
 # ═══════════════════════════════════════════════
