@@ -26,3 +26,38 @@ Server/doc_comments.json
 
 # Playwright MCP 가 스크린샷·스냅샷을 여기에 남긴다 (앱을 띄워 확인할 때 생긴다)
 .playwright-mcp/
+
+# ── ResearchStudio 산출물 (microsoft/ResearchStudio) ──────────────────────────
+# 번들은 60MB 인데 그중 50MB 가 렌더 결과물이다. 전부 재생성된다 —
+# 입력(assets/figures, assets/meta)과 최종 문서는 남기고, 미디어만 뺀다.
+# 재생성: paper2assets → paper2poster → paper2video (NEXT.md 참조)
+GFM_Research/00_Knowledge/researchstudio/*/*.mp4
+GFM_Research/00_Knowledge/researchstudio/*/assets/video_clips/
+GFM_Research/00_Knowledge/researchstudio/*/assets/video_slides/
+GFM_Research/00_Knowledge/researchstudio/*/assets/audio/*.mp3
+GFM_Research/00_Knowledge/researchstudio/*/assets/video_audio/*.mp3
+# 폰트 서브셋·pptx 빌드 중간물 — render_poster.py / html2pptx 가 다시 만든다
+GFM_Research/00_Knowledge/researchstudio/*/assets/fonts/
+GFM_Research/00_Knowledge/researchstudio/*/assets/_pptx_build/
+
+# ppt-master 작업 프로젝트 — svg_output/ 과 notes/ 가 덱의 원본이라 남기고,
+# 내보내기와 자동 백업은 뺀다
+.claude/projects/*/exports/
+.claude/projects/*/backup/
+
+# ── ZEB 석사연구 — 내부 설계도서 보안 (지시서 Ⅶ) ─────────────────────────
+# 공공건축 설계도서·계산서·내역서·시방서는 비공개 업무자료다. 기관 보안규정과
+# 연구목적 사용승인 확인 전에는 저장소에 올리지 않는다. 자료가 들어오기 전에
+# 규칙을 먼저 건다 — 들어온 뒤에 거는 건 늦다.
+ZEB_Research/03_설계자료/**
+!ZEB_Research/03_설계자료/**/
+!ZEB_Research/03_설계자료/**/README.md
+!ZEB_Research/03_설계자료/**/*.대장.md
+# 원본 제도자료(hwp/hwpx/pdf)도 배포권이 확인되기 전에는 올리지 않는다.
+# 추출한 텍스트·인용은 01_제도법령/ 에 남긴다.
+ZEB_Research/01_제도법령/원본/**
+# EnergyPlus 8,760시간 산출물 — 용량이 크고 재생성된다 (C드라이브 여유 5.5GB)
+ZEB_Research/05_결과/**/*.csv
+ZEB_Research/05_결과/**/*.sql
+ZEB_Research/05_결과/**/*.eso
+ZEB_Research/05_결과/**/*.err
