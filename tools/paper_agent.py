@@ -23,7 +23,7 @@
   python paper_agent.py "grid-forming inverter PSO" --llm ollama --context "PV+ESS 2단 GFM 인버터, PSO 파라미터 최적화"
 """
 import console_utf8  # noqa: F401 — stdout/stderr 을 UTF-8 로
-import argparse, csv, datetime, json, math, os, re, time, xml.etree.ElementTree as ET
+import argparse, csv, datetime, json, math, os, re, sys, time, xml.etree.ElementTree as ET
 from io import BytesIO
 from pathlib import Path
 
@@ -38,6 +38,7 @@ _src_cache = {}
 
 # ───────────────────────── 공통 ─────────────────────────
 def http_get(url, params=None, as_json=True, wait=0.3, tries=4):
+    why = "요청 제한이 끝까지 안 풀림"
     for i in range(tries):
         try:
             r = requests.get(url, params=params, headers=UA, timeout=40)
@@ -45,10 +46,18 @@ def http_get(url, params=None, as_json=True, wait=0.3, tries=4):
                 time.sleep(wait)
                 return r.json() if as_json else r
             if r.status_code in (429, 503):
+                # 요청 제한은 기다리면 풀린다. 다만 끝까지 안 풀리면 아래에서 말한다.
                 time.sleep(3 * (i + 1)); continue
+            # 4xx 는 기다려도 안 풀린다 — 대개 내가 보낸 질의가 틀린 것이다.
+            # 전에는 조용히 None 을 돌려줬고, 호출부가 (d or {}) 로 받아 "0편" 으로
+            # 보였다. from_publication_year 오타가 그래서 오래 숨어 있었다.
+            print(f"    ⚠ {url.rsplit('/', 1)[-1]} {r.status_code} — "
+                  f"{(r.text or '')[:160]}", file=sys.stderr)
             return None
-        except requests.RequestException:
+        except requests.RequestException as e:
+            why = type(e).__name__
             time.sleep(2 * (i + 1))
+    print(f"    ⚠ {url.rsplit('/', 1)[-1]} {tries}회 모두 실패 — {why}", file=sys.stderr)
     return None
 
 
@@ -97,7 +106,10 @@ def from_openalex(w, source):
 
 
 def search_openalex(q, y, n):
-    d = http_get(f"{OPENALEX}/works", {"search": q, "filter": f"from_publication_year:{y}",
+    # from_publication_year 는 OpenAlex 에 없는 필드다. 400 이 오는데 http_get 이
+    # None 으로 삼켜서, 이 함수는 **언제나 0편**을 돌려주고 있었다 (2026-10-16 발견).
+    # Server/scholar.py 의 같은 함수와 표기를 맞춘다 — 한 저장소에 두 표기를 두지 않는다.
+    d = http_get(f"{OPENALEX}/works", {"search": q, "filter": f"publication_year:>{int(y) - 1}",
                                         "sort": "relevance_score:desc", "per-page": min(n, 50), "mailto": EMAIL})
     return [from_openalex(w, "openalex") for w in (d or {}).get("results", [])]
 
