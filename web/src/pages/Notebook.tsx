@@ -8,6 +8,7 @@
    나가지 않는다). 그래도 AI 생성물이라 ※ 로만 다루고, 인용할 대목은 답이 아니라
    '근거로 쓰인 대목' 에서 골라 발췌 보관함에 담는다 — 그게 내 논문으로 간다. */
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { fetchJSON, postJSON } from '../lib/api';
 
 interface Paper {
@@ -556,12 +557,15 @@ export default function Notebook() {
                     <button className="s-chip s-chip-sm"
                       disabled={!!busy} onClick={() => introduce(it)}>이 논문 설명</button>
                     {attach[it.key]?.ok && (
-                      /* 읽기는 한 곳에서만 한다 — 리더와 하이라이트는 저쪽이 맡는다 */
-                      <a className="s-chip s-chip-sm" style={{ textDecoration: 'none' }}
+                      /* 읽기는 한 곳에서만 한다 — 리더와 하이라이트는 저쪽이 맡는다.
+                         <a href> 면 SPA 가 통째로 다시 뜬다 (색인 상태·대화·고른
+                         소스가 전부 날아간다). Link 로 보내면 저쪽 ScholarFlow 가
+                         ?key= 를 읽어 그 논문을 ④ 정독 단계로 바로 연다. */
+                      <Link className="s-chip s-chip-sm" style={{ textDecoration: 'none' }}
                         title="PDF 를 열어 끌어서 칠합니다"
-                        href={`/research/scholar/flow?key=${encodeURIComponent(it.key)}&step=4`}>
+                        to={`/research/scholar/flow?key=${encodeURIComponent(it.key)}&step=4`}>
                         원문 읽기 ↗
-                      </a>
+                      </Link>
                     )}
                     {!attach[it.key]?.ok && (
                       <>

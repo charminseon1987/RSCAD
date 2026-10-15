@@ -34,12 +34,11 @@ const NAV: (Leaf | Group)[] = [
          작업대다. 비교표는 이미 산출물 종류라 사이드바에서 뺐다 — 노트북
          오른쪽에서 만든다.
 
-         아직 안 한 것: 원문 읽기를 '소스를 누르면 열린다' 로 옮기는 일.
-         그때까지 입구를 남겨 둔다 — 지금 빼면 PDF 하이라이트로 가는 길이
-         끊기고 문헌 노트를 만들 수 없게 된다.
+         원문 읽기도 뺐다. 노트북 소스 카드의 '원문 읽기 ↗' 가 그 논문을
+         ④ 정독 단계로 바로 연다 (ScholarFlow 가 ?key= 를 읽는다). 입구를
+         둘로 두면 "어느 쪽에서 열어야 하나" 가 다시 생긴다.
          뺀 항목의 라우트는 그대로 살아 있다 — 북마크가 깨지지 않는다. */
       { to: '/research/notebook', label: '노트북' },
-      { to: '/research/scholar/flow', label: '원문 읽기' },
       { to: '/research/knowledge', label: '지식' },
       { to: '/research/my-paper', label: '내 논문' },
       { to: '/research/docs', label: '초안' },

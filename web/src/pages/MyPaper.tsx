@@ -5,6 +5,7 @@
    같은 보관함(Server/paper_clips.json)을 두 화면이 본다. */
 import { useEffect, useState } from 'react';
 import { fetchJSON, postJSON } from '../lib/api';
+import Write from './Write';
 
 const SECTIONS = [
   { id: 'I', title: 'Introduction', desc: 'GFM 필요성, 기존 한계, 차별화 4축', deps: ['claims/', 'literature/'], icon: '📖' },
@@ -183,6 +184,12 @@ function CitationClips() {
 }
 
 export default function MyPaper() {
+  /* 쓰기가 세 군데에 흩어져 있었다 — 주장 고르기(/research/scholar/write),
+     에이전트 초안(/research/docs), 진행표(여기). 그중 둘은 사이드바 이름이
+     내용과 달라 어디로 가야 하는지 알 수 없었다. 주장 고르기를 여기 탭으로
+     들인다. 옛 라우트는 그대로 살아 있다 — 북마크가 깨지지 않는다. */
+  const [tab, setTab] = useState<'progress' | 'claims'>('progress');
+
   const stepStyle = (s: string) =>
     s === 'done'
       ? { borderColor: 'var(--primary)', background: 'var(--primary-container)' }
@@ -198,6 +205,17 @@ export default function MyPaper() {
           Grid-Forming 인버터 소신호 안정도 최적화: 다중 운전점 PSO와 DC-AC 커플링 모델링
         </p>
       </div>
+
+      <div className="flex gap-2 flex-wrap">
+        {([['progress', '진행'], ['claims', '주장 고르기']] as const).map(([k, label]) => (
+          <button key={k} className={'s-chip' + (tab === k ? ' s-chip-on' : '')}
+            aria-pressed={tab === k} onClick={() => setTab(k)}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'claims' ? <Write /> : <>
 
       <CitationClips />
 
@@ -283,6 +301,8 @@ export default function MyPaper() {
           </div>
         </div>
       </div>
+
+      </>}
     </div>
   );
 }
