@@ -1,0 +1,679 @@
+{
+  "run": "J0.50_Dp20.0_Kpv0.050_wc62.8_XR1.0_c9ed38",
+  "model_version": "v3-22state",
+  "tuned_at": {
+    "XR": 1.0,
+    "SCR_list": [
+      3.0,
+      2.0,
+      1.5
+    ]
+  },
+  "grid": {
+    "SCR": [
+      3.0,
+      2.5,
+      2.0,
+      1.5,
+      1.0
+    ],
+    "XR": [
+      5.0,
+      3.0,
+      2.0,
+      1.5,
+      1.0,
+      0.5
+    ]
+  },
+  "sigma_ref": 4.0,
+  "zeta_floor": 0.1,
+  "caution": "모델(22차 고유값) 격자다. SIL·RTDS 교차검증은 별도(A9). 조정점 밖은 외삽이다.",
+  "cases": [
+    {
+      "name": "기준 이득 (meta.ctrl_params)",
+      "ctrl": {
+        "Kp_vpv": 0.14,
+        "Ki_vpv": 10.0,
+        "Kp_ipv": 0.001,
+        "Ki_ipv": 0.1,
+        "Kp_vdc": 0.54,
+        "Ki_vdc": 36.0,
+        "Kp_iess": 0.001,
+        "Ki_iess": 0.1,
+        "J": 0.5,
+        "Dp": 20.0,
+        "wc": 62.83,
+        "nq": 0.001,
+        "Kpv": 0.05,
+        "Kiv": 10.0
+      },
+      "points": [
+        {
+          "SCR": 3.0,
+          "XR": 5.0,
+          "state": "unstable",
+          "score": -1.7770111681722378,
+          "sigma_min": -7.108044672688951,
+          "zeta_min": -0.029853802456185796,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.5,
+          "XR": 5.0,
+          "state": "fail",
+          "score": 0.06443527771607793,
+          "sigma_min": 1.6286221341708114,
+          "zeta_min": 0.006443527771607793,
+          "binding": "zeta",
+          "error": null
+        },
+        {
+          "SCR": 2.0,
+          "XR": 5.0,
+          "state": "fail",
+          "score": 0.4438878355046819,
+          "sigma_min": 2.6698559143157117,
+          "zeta_min": 0.04438878355046819,
+          "binding": "zeta",
+          "error": null
+        },
+        {
+          "SCR": 1.5,
+          "XR": 5.0,
+          "state": "fail",
+          "score": 0.4396531632860534,
+          "sigma_min": 1.7586126531442137,
+          "zeta_min": 0.08212115366432098,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.0,
+          "XR": 5.0,
+          "state": "fail",
+          "score": 0.1670867891844931,
+          "sigma_min": 0.6683471567379724,
+          "zeta_min": 0.11589971200343871,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 3.0,
+          "XR": 3.0,
+          "state": "fail",
+          "score": 0.8281505938731224,
+          "sigma_min": 4.68114106140834,
+          "zeta_min": 0.08281505938731225,
+          "binding": "zeta",
+          "error": null
+        },
+        {
+          "SCR": 2.5,
+          "XR": 3.0,
+          "state": "fail",
+          "score": 0.9293369077890612,
+          "sigma_min": 3.717347631156245,
+          "zeta_min": 0.12510012322138145,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.0,
+          "XR": 3.0,
+          "state": "fail",
+          "score": 0.7018328850583935,
+          "sigma_min": 2.807331540233574,
+          "zeta_min": 0.17068002426966647,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.5,
+          "XR": 3.0,
+          "state": "fail",
+          "score": 0.4770704594852384,
+          "sigma_min": 1.9082818379409536,
+          "zeta_min": 0.20344487517642174,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.0,
+          "XR": 3.0,
+          "state": "fail",
+          "score": 0.22297959428093786,
+          "sigma_min": 0.8919183771237514,
+          "zeta_min": 0.20360566323922102,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 3.0,
+          "XR": 2.0,
+          "state": "pass",
+          "score": 1.189295221152539,
+          "sigma_min": 4.757180884610156,
+          "zeta_min": 0.20308818106107668,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.5,
+          "XR": 2.0,
+          "state": "fail",
+          "score": 0.9513606421144459,
+          "sigma_min": 3.8054425684577837,
+          "zeta_min": 0.2031808668340769,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.0,
+          "XR": 2.0,
+          "state": "fail",
+          "score": 0.7275700508768703,
+          "sigma_min": 2.9102802035074813,
+          "zeta_min": 0.20329026229887268,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.5,
+          "XR": 2.0,
+          "state": "fail",
+          "score": 0.5078445091159994,
+          "sigma_min": 2.0313780364639977,
+          "zeta_min": 0.20342184361015972,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.0,
+          "XR": 2.0,
+          "state": "fail",
+          "score": 0.266804479242531,
+          "sigma_min": 1.067217916970124,
+          "zeta_min": 0.2035849296612833,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 3.0,
+          "XR": 1.5,
+          "state": "pass",
+          "score": 1.1892123382243611,
+          "sigma_min": 4.7568493528974445,
+          "zeta_min": 0.20305606917689442,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.5,
+          "XR": 1.5,
+          "state": "fail",
+          "score": 0.9573672813200899,
+          "sigma_min": 3.8294691252803594,
+          "zeta_min": 0.2031506391429322,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.0,
+          "XR": 1.5,
+          "state": "fail",
+          "score": 0.7395104454207881,
+          "sigma_min": 2.9580417816831526,
+          "zeta_min": 0.20326270030794177,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.5,
+          "XR": 1.5,
+          "state": "fail",
+          "score": 0.5259646364817708,
+          "sigma_min": 2.1038585459270833,
+          "zeta_min": 0.20339787958383646,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.0,
+          "XR": 1.5,
+          "state": "fail",
+          "score": 0.29444758001869403,
+          "sigma_min": 1.1777903200747761,
+          "zeta_min": 0.2035651591971818,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 3.0,
+          "XR": 1.0,
+          "state": "pass",
+          "score": 1.1609071877482222,
+          "sigma_min": 4.643628750992889,
+          "zeta_min": 0.20299061163691895,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.5,
+          "XR": 1.0,
+          "state": "fail",
+          "score": 0.944924232545627,
+          "sigma_min": 3.779696930182508,
+          "zeta_min": 0.20308987637006393,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.0,
+          "XR": 1.0,
+          "state": "fail",
+          "score": 0.7413073032248464,
+          "sigma_min": 2.9652292128993856,
+          "zeta_min": 0.20320858667978245,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.5,
+          "XR": 1.0,
+          "state": "fail",
+          "score": 0.5409314282362973,
+          "sigma_min": 2.163725712945189,
+          "zeta_min": 0.20335275644562106,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.0,
+          "XR": 1.0,
+          "state": "fail",
+          "score": 0.32412300170270764,
+          "sigma_min": 1.2964920068108305,
+          "zeta_min": 0.20353103951407975,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 3.0,
+          "XR": 0.5,
+          "state": "pass",
+          "score": 1.0657698423727378,
+          "sigma_min": 4.263079369490951,
+          "zeta_min": 0.2028371308309538,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.5,
+          "XR": 0.5,
+          "state": "fail",
+          "score": 0.8867392909768621,
+          "sigma_min": 3.5469571639074484,
+          "zeta_min": 0.20295241797787633,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.0,
+          "XR": 0.5,
+          "state": "fail",
+          "score": 0.7146930832945092,
+          "sigma_min": 2.858772333178037,
+          "zeta_min": 0.2030945458174038,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.5,
+          "XR": 0.5,
+          "state": "fail",
+          "score": 0.5411852048130242,
+          "sigma_min": 2.164740819252097,
+          "zeta_min": 0.2032709651205459,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.0,
+          "XR": 0.5,
+          "state": "fail",
+          "score": 0.34822661349846384,
+          "sigma_min": 1.3929064539938554,
+          "zeta_min": 0.2034885350809851,
+          "binding": "sigma",
+          "error": null
+        }
+      ],
+      "seconds": 2.1
+    },
+    {
+      "name": "조정 이득 (pso_C3s3.json, 조정점 score 1.1895)",
+      "ctrl": {
+        "Kp_vpv": 0.03871248875234336,
+        "Ki_vpv": 24.195706736601156,
+        "Kp_ipv": 0.0009490235845298569,
+        "Ki_ipv": 0.16213174920367254,
+        "Kp_vdc": 0.5517720240519538,
+        "Ki_vdc": 3.9111111111111128,
+        "Kp_iess": 0.0010712395056903157,
+        "Ki_iess": 2.3148148148148153,
+        "J": 0.42217159850974084,
+        "Dp": 3.518096654247841,
+        "wc": 182.33221923178056,
+        "nq": 0.0007892053644314401,
+        "Kpv": 0.005555555555555555,
+        "Kiv": 0.40810083883693854
+      },
+      "points": [
+        {
+          "SCR": 3.0,
+          "XR": 5.0,
+          "state": "unstable",
+          "score": -6.534402526743354,
+          "sigma_min": -26.137610106973415,
+          "zeta_min": -0.49066154249086924,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.5,
+          "XR": 5.0,
+          "state": "unstable",
+          "score": -6.326336653446267,
+          "sigma_min": -25.30534661378507,
+          "zeta_min": -0.4167382360121791,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.0,
+          "XR": 5.0,
+          "state": "unstable",
+          "score": -5.874006423538411,
+          "sigma_min": -23.496025694153644,
+          "zeta_min": -0.3273959983029594,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.5,
+          "XR": 5.0,
+          "state": "unstable",
+          "score": -4.946131863442897,
+          "sigma_min": -19.784527453771588,
+          "zeta_min": -0.22127599837285483,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.0,
+          "XR": 5.0,
+          "state": "unstable",
+          "score": -3.6434526948706543,
+          "sigma_min": -14.573810779482617,
+          "zeta_min": -0.11868347390650627,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 3.0,
+          "XR": 3.0,
+          "state": "unstable",
+          "score": -4.888773155554429,
+          "sigma_min": -19.555092622217717,
+          "zeta_min": -0.38508508992588686,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.5,
+          "XR": 3.0,
+          "state": "unstable",
+          "score": -4.437489849313468,
+          "sigma_min": -17.74995939725387,
+          "zeta_min": -0.30532023508100814,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.0,
+          "XR": 3.0,
+          "state": "unstable",
+          "score": -3.698152635448189,
+          "sigma_min": -14.792610541792756,
+          "zeta_min": -0.21465839769980402,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.5,
+          "XR": 3.0,
+          "state": "unstable",
+          "score": -2.3400252447140777,
+          "sigma_min": -9.36010097885631,
+          "zeta_min": -0.10954341286143775,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.0,
+          "XR": 3.0,
+          "state": "fail",
+          "score": 0.12375868648370252,
+          "sigma_min": 1.429527254607806,
+          "zeta_min": 0.012375868648370252,
+          "binding": "zeta",
+          "error": null
+        },
+        {
+          "SCR": 3.0,
+          "XR": 2.0,
+          "state": "unstable",
+          "score": -3.0226146658586313,
+          "sigma_min": -12.090458663434525,
+          "zeta_min": -0.2522088050739045,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.5,
+          "XR": 2.0,
+          "state": "unstable",
+          "score": -2.332749986862096,
+          "sigma_min": -9.330999947448383,
+          "zeta_min": -0.1681372177843629,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.0,
+          "XR": 2.0,
+          "state": "unstable",
+          "score": -1.3904682684848888,
+          "sigma_min": -5.561873073939555,
+          "zeta_min": -0.08390311396066283,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.5,
+          "XR": 2.0,
+          "state": "fail",
+          "score": 0.12326263310494659,
+          "sigma_min": 1.0073588858812492,
+          "zeta_min": 0.01232626331049466,
+          "binding": "zeta",
+          "error": null
+        },
+        {
+          "SCR": 1.0,
+          "XR": 2.0,
+          "state": "pass",
+          "score": 1.0400503991615389,
+          "sigma_min": 4.160201596646155,
+          "zeta_min": 0.14071073092237713,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 3.0,
+          "XR": 1.5,
+          "state": "unstable",
+          "score": -1.3639230813212568,
+          "sigma_min": -5.455692325285027,
+          "zeta_min": -0.1200403148624243,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.5,
+          "XR": 1.5,
+          "state": "unstable",
+          "score": -0.4758750192864962,
+          "sigma_min": -1.903500077145985,
+          "zeta_min": -0.035473645692808184,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.0,
+          "XR": 1.5,
+          "state": "fail",
+          "score": 0.2919491366213911,
+          "sigma_min": 1.8866663816240052,
+          "zeta_min": 0.02919491366213911,
+          "binding": "zeta",
+          "error": null
+        },
+        {
+          "SCR": 1.5,
+          "XR": 1.5,
+          "state": "pass",
+          "score": 1.1392119231539377,
+          "sigma_min": 4.574712889218777,
+          "zeta_min": 0.11392119231539378,
+          "binding": "zeta",
+          "error": null
+        },
+        {
+          "SCR": 1.0,
+          "XR": 1.5,
+          "state": "pass",
+          "score": 1.0509905404491362,
+          "sigma_min": 4.203962161796545,
+          "zeta_min": 0.17855052791060774,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 3.0,
+          "XR": 1.0,
+          "state": "pass",
+          "score": 1.1903939087868451,
+          "sigma_min": 4.761575635147381,
+          "zeta_min": 0.1207238908421333,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.5,
+          "XR": 1.0,
+          "state": "pass",
+          "score": 1.6732576134588957,
+          "sigma_min": 7.007507249526013,
+          "zeta_min": 0.16732576134588958,
+          "binding": "zeta",
+          "error": null
+        },
+        {
+          "SCR": 2.0,
+          "XR": 1.0,
+          "state": "pass",
+          "score": 1.3710735781617795,
+          "sigma_min": 5.484294312647118,
+          "zeta_min": 0.17832443881547602,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.5,
+          "XR": 1.0,
+          "state": "pass",
+          "score": 1.189475726654866,
+          "sigma_min": 4.757902906619464,
+          "zeta_min": 0.17826992665602176,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.0,
+          "XR": 1.0,
+          "state": "pass",
+          "score": 1.068205326989026,
+          "sigma_min": 4.272821307956104,
+          "zeta_min": 0.17820295102020636,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 3.0,
+          "XR": 0.5,
+          "state": "unstable",
+          "score": -0.021568002185006704,
+          "sigma_min": -0.04053536833622351,
+          "zeta_min": -0.0021568002185006706,
+          "binding": "zeta",
+          "error": null
+        },
+        {
+          "SCR": 2.5,
+          "XR": 0.5,
+          "state": "fail",
+          "score": 0.6036122675752449,
+          "sigma_min": 2.4144490703009795,
+          "zeta_min": 0.12979513825008954,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 2.0,
+          "XR": 0.5,
+          "state": "pass",
+          "score": 1.3604269672968519,
+          "sigma_min": 5.4417078691874075,
+          "zeta_min": 0.17791889432898314,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.5,
+          "XR": 0.5,
+          "state": "pass",
+          "score": 1.267535450591141,
+          "sigma_min": 5.070141802364564,
+          "zeta_min": 0.17783110626543275,
+          "binding": "sigma",
+          "error": null
+        },
+        {
+          "SCR": 1.0,
+          "XR": 0.5,
+          "state": "pass",
+          "score": 1.0952303461628352,
+          "sigma_min": 4.380921384651341,
+          "zeta_min": 0.17773852782105154,
+          "binding": "sigma",
+          "error": null
+        }
+      ],
+      "seconds": 0.1
+    }
+  ],
+  "timestamp": "2026-10-16T20:39:47"
+}
