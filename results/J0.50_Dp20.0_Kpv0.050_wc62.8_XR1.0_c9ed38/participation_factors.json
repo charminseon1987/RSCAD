@@ -1,0 +1,113 @@
+{
+  "run": "J0.50_Dp20.0_Kpv0.050_wc62.8_XR1.0_c9ed38",
+  "model_version": "v3-22state",
+  "XR": 1.0,
+  "timestamp": "2026-10-16 10:05:08",
+  "ctrl_params": {
+    "Kp_vpv": 0.14,
+    "Ki_vpv": 10.0,
+    "Kp_ipv": 0.001,
+    "Ki_ipv": 0.1,
+    "Kp_vdc": 0.54,
+    "Ki_vdc": 36.0,
+    "Kp_iess": 0.001,
+    "Ki_iess": 0.1,
+    "J": 0.5,
+    "Dp": 20.0,
+    "wc": 62.83,
+    "nq": 0.001,
+    "Kpv": 0.05,
+    "Kiv": 10.0
+  },
+  "delta_state": "delta",
+  "omega_state": "dw",
+  "by_SCR": {
+    "3": {
+      "sync_mode": {
+        "re": -4.643628750992889,
+        "im": 0.0,
+        "oscillatory": false,
+        "sigma": 4.643628750992889,
+        "f_hz": null,
+        "zeta": null
+      },
+      "p_delta": 0.8169050085011511,
+      "p_omega": 0.10729052361142775,
+      "p_sum": 0.9241955321125789,
+      "top_states": [
+        {
+          "state": "delta",
+          "p": 0.8169050085011511
+        },
+        {
+          "state": "dw",
+          "p": 0.10729052361142775
+        },
+        {
+          "state": "Pf",
+          "p": 0.06519402229213175
+        }
+      ],
+      "delta_deg": 22.415,
+      "A_omega_delta": 0.0
+    },
+    "2": {
+      "sync_mode": {
+        "re": -2.9652292128994686,
+        "im": 0.0,
+        "oscillatory": false,
+        "sigma": 2.9652292128994686,
+        "f_hz": null,
+        "zeta": null
+      },
+      "p_delta": 0.8808035827615844,
+      "p_omega": 0.07052249707296224,
+      "p_sum": 0.9513260798345466,
+      "top_states": [
+        {
+          "state": "delta",
+          "p": 0.8808035827615844
+        },
+        {
+          "state": "dw",
+          "p": 0.07052249707296224
+        },
+        {
+          "state": "Pf",
+          "p": 0.04362807173720827
+        }
+      ],
+      "delta_deg": 32.58,
+      "A_omega_delta": 0.0
+    },
+    "1.5": {
+      "sync_mode": {
+        "re": -2.1637257129451832,
+        "im": 0.0,
+        "oscillatory": false,
+        "sigma": 2.1637257129451832,
+        "f_hz": null,
+        "zeta": null
+      },
+      "p_delta": 0.912490002919379,
+      "p_omega": 0.052182148462686845,
+      "p_sum": 0.9646721513820659,
+      "top_states": [
+        {
+          "state": "delta",
+          "p": 0.912490002919379
+        },
+        {
+          "state": "dw",
+          "p": 0.052182148462686845
+        },
+        {
+          "state": "Pf",
+          "p": 0.03254490415514735
+        }
+      ],
+      "delta_deg": 42.423,
+      "A_omega_delta": 0.0
+    }
+  }
+}
