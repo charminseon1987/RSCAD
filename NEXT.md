@@ -8,6 +8,40 @@
 
 ---
 
+## 맥에서 이어서 하기 (2026-10-16 기준)
+
+```bash
+git pull origin main            # 720e4fa50 다음 커밋까지 받는다
+cd RSCAD
+python Simulation/param_bounds.py                       # 범위 표 + ζ 교차검증
+python Simulation/pso.py --bounds Simulation/param_bounds.json --tag X --seed 0
+```
+
+**바로 할 수 있는 결정 하나** — 아래 §P4 의 "드룹 하한" 절. 가정 `A7` 이다.
+
+### 맥에서 다를 수 있는 것
+
+- **콘솔 인코딩**: `Simulation/console_utf8.py` 는 윈도 cp949 대응이고 맥에선
+  무해하게 통과한다. 반대로 **윈도에서는** `PYTHONIOENCODING=utf-8` 을 줘야
+  `▸`·`σ` 출력이 터지지 않는다 — 맥에선 필요 없다.
+- **줄끝**: 이 윈도 저장소는 `core.autocrlf=true` 다. 맥에서 받으면 LF 로 오고
+  정상이다. 맥에서 커밋한 뒤 윈도로 돌아오면 `LF will be replaced by CRLF`
+  경고가 뜨는데 내용 차이는 아니다.
+- **파이썬**: 윈도 쪽은 3.12.10. `sympy`·`numpy`·`scipy` 가 필요하다.
+- **느린 지점**: `param_bounds.py` 가 20초쯤 걸린다. 대부분은 `model.py` 의
+  심볼 구축이라 `--no-crosscheck` 로는 **6초만** 줄어든다 (`op.py` 가 import
+  시 `lambdify_all()` 을 돌리는 몫).
+- **경로**: `--bounds` 는 저장소 루트 기준과 `Simulation/` 기준을 **둘 다**
+  받는다 (`720e4fa50` 에서 고쳤다). 한쪽만 되던 때가 있었다.
+
+### 재현에 쓸 런
+
+전부 `results/J0.50_Dp20.0_Kpv0.050_wc62.8_XR1.0_c9ed38/` 안에 있고 커밋돼 있다.
+**고유값 런을 다시 돌릴 필요는 없다** — `meta.json` 이 있으면 `param_bounds.py`
+와 `pso.py` 가 바로 돈다.
+
+---
+
 ## P4. 탐색범위를 닫았더니 요구가 서로 안 맞는다 (2026-10-16)
 
 일지: `GFM_Research/RSCAD/03_실험/일지/2026-10-16_P4_탐색범위_B안_14of14.md`
@@ -53,24 +87,66 @@ P-f 드룹 0.59 % 로, 통상 3~5 % 보다 5~8배 뻣뻣하다. 이 모델에서
   (범위 8 %)로 안쪽에 들어온다. 게다가 절단면에서 **H 3.0 s 밑은 불안정**이라
   J 하한이 안정성 벽과 겹친다 → **J 완화는 듣지 않는다**
 
-선택지 (수치는 측정값):
+### 드룹 하한 — 표준을 찾았다. 임의값이 아니었다 (2026-10-16)
+
+**찾은 표 (원문 확인)** — IEEE 1547-2018 **Table 24** "Parameters of
+Frequency-Droop Operation" 의 `kOF`·`kUF`:
+
+| | 기본값 | Cat I | Cat II | **Cat III** |
+|---|---|---|---|---|
+| `kOF`, `kUF` | 0.05 | 0.03~0.05 | 0.03~0.05 | **0.02~0.05** |
+| `dbOF`, `dbUF` [Hz] | 0.036 | 0.017~1.0 | 0.017~1.0 | 0.017~1.0 |
+
+그 표의 각주가 방향을 못박는다 (원문):
+> "For the frequency droop values (kOF, kUF) ranges, **the lower value is a
+> limiting requirement (the setting shall not be set to lower values)** and the
+> upper value is a minimum requirement (the setting may be set to greater values)."
+
+→ **하한은 못 내려가고, 상한 5 % 는 더 소프트하게 둬도 된다.**
+
+확인 경로: NERC, *Reliability Guideline — Bulk Power System Reliability
+Perspectives on the Adoption of IEEE 1547-2018*, 2023-03, **Table 2.6**
+(IEEE 1547-2018 Table 24 전재). ※ **IEEE 1547-2018 본문 자체는 못 봤다** —
+NERC 가 전재한 표를 봤다. 투고 전에 원 표준으로 재확인해야 한다.
+
+대조용 — IEEE 2800-2022 (송전연계 IBR 플랜트) PFR: `kUF`·`kOF` 기본 5 % ·
+**최소 2 %** · 최대 5 %. 확인 경로: MISO, *Inverter-Based Resource Performance
+Requirements (IEEE 2800) (PAC-2024-2)*, IPWG, 2024-03-12, slide 28 표
+"Ranges of available settings". ※ IEEE 2800-2022 본문 미확인.
+※ 이 플랜트는 10 kVA 로 **배전급**이라 1547 쪽이 맞는 틀이다.
+
+### ⇒ 결정이 "숫자 고르기" 에서 "범주 고르기" 로 바뀌었다
+
+**내가 쓰던 3 % 는 임의값이 아니라 Category I·II 의 법정 하한이었다.**
+2 % 는 규정 위반이 아니라 **Category III** 의 하한이다.
+
+| 범주 | 드룹 하한 | PSO 최선 | t_s | 목표 1.0 |
+|---|---|---|---|---|
+| Cat I · II | 3 % | 0.8198 | 1.22 s | **못 넘음** |
+| **Cat III** | **2 %** | **1.1246** | **0.889 s** | **넘음** |
+
+즉 (a) 는 "규정을 완화한다" 가 아니라 **"어느 성능범주를 주장하느냐"** 다.
+→ 코드에 `--category {I,II,III,2800}` 으로 넣었다. 기본값은 보수적으로 `II`.
+가정 **A7 = `사용자 결정 대기`** 가 이것이다.
+
+```bash
+python Simulation/param_bounds.py --category III          # 드룹 2~5 %
+python Simulation/pso.py --bounds Simulation/param_bounds.json --tag B14d2 --seed 0
+```
+
+Cat III 로 가면 부수효과도 좋다 — ζ_min 이 0.0832(floor 밑) → 0.1390(floor 위),
+J 가 경계에서 안쪽(H 3.269 s)으로 들어온다. 대표 런 `pso_B14d2.json`, 그때 쓴
+범위는 `param_bounds_droop2-5.json` 로 같은 폴더에 있다.
+**단 2 % 에서도 Dp 가 상한에 붙는다** — 표준이 더 못 내려가게 막는 쪽이다.
+
+남은 선택지:
 
 | | 무엇 | 필요한 양 | 대가 |
 |---|---|---|---|
-| **(a)** | 드룹 하한 완화 | **3 % → 2 %** 로 충분 (1.1246, t_s 0.889 s) | 2 % 드룹의 규정 근거 |
 | (b) | `T_S_SPEC` 완화 | 1.0 s → **1.220 s** | `metrics.py` 주기준 변경 — 과거 런 `metric_pass` 전부 재계산 |
 | (c) | `Kpc` 완화 | **미측정** | 가정 A1 이 깨져 B안 재유도. 런을 새로 만들어야 재 본다 |
 
-(a) 가 가장 작고 부수효과도 좋다 — ζ_min 이 0.0832(floor 밑) → 0.1390(floor 위).
-대표 런 `pso_B14d2.json`, 그때 쓴 범위는 `param_bounds_droop2-5.json` 로 같은
-폴더에 남겼다. **단 2 % 에서도 Dp 가 상한에 붙는다** — 더 풀면 더 좋아지므로
-어디서 멈출지는 규정이 정해야 한다. 목적함수에 맡기면 드룹이 0 으로 간다.
-
-```bash
-# (a) 를 고르면: param_bounds.py 의 --droop 기본값을 2 5 로 바꾼다
-python Simulation/param_bounds.py --droop 2 5
-python Simulation/pso.py --bounds Simulation/param_bounds.json --tag B14d2 --seed 0
-```
+Cat III 를 주장할 수 있으면 (b)·(c) 는 필요 없다.
 
 ⚠ **"상자 안에 해가 없다" 를 논문 주장으로 쓰려면 아직 부족하다** — PSO 6회
 관측이고 상자 내부를 격자로 쓸지 않았다. 1번(드룹 결정)만 하면 되는 길과, 3번

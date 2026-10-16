@@ -67,11 +67,23 @@ Dp ← 주파수 드룹 규정
     잡는다. 감쇠(ζ)는 목적함수가 이미 보고 있으므로 범위로 또 묶으면 같은
     요구를 두 번 거는 셈이다.
 
-        Dp = S / (w0²·droop)                droop 3~5% 가 통상
+        Dp = S / (w0²·droop)
 
-    환산해 보면 기준값 Dp=20 은 드룹 0.35%, 규정보다 10배 뻣뻣하다. A안 배율
-    범위 [5, 80] 은 전 구간이 1.4% 이하라 규정 범위와 겹치지 않는다. 이 범위로
-    바꾸면 PSO 가 보는 영역 자체가 달라진다 — 그게 이 유도의 요점이다.
+    드룹 하한은 **표준이 정한다 — 통상값이 아니다.** 2026-10-16 에 원문 표를
+    확인했다 (DROOP_FLOOR 참조). IEEE 1547-2018 Table 24 는 kOF·kUF 의 하한을
+    성능범주별로 다르게 둔다. Category I·II 는 0.03, Category III 는 0.02 다.
+    그 표의 각주가 **하한은 limiting requirement** 라고 명시한다 — "the setting
+    shall not be set to lower values". 즉 범주를 고르면 하한이 따라온다.
+    상한 0.05 는 반대로 minimum requirement 라서 더 소프트하게 둬도 된다.
+
+    환산해 보면 기준값 Dp=20 은 드룹 0.35%, 어느 범주로도 설명되지 않는다.
+    A안 배율 범위 [5, 80] 은 전 구간이 1.4% 이하라 규정 범위와 겹치지 않는다.
+    이 범위로 바꾸면 PSO 가 보는 영역 자체가 달라진다 — 그게 이 유도의 요점이다.
+
+    ⚠ 범주 선택이 결과를 가른다. Category I·II(3%)에서는 PSO 최선이 score
+    0.82(t_s 1.22 s)로 목표 1.0 에 못 미치고, Category III(2%)에서는 1.12
+    (t_s 0.89 s)로 넘는다. 측정 근거는 results/<run>/pso_B14*.json 이다.
+    어느 범주를 주장할지는 논문이 정해야 하고, 코드가 정할 일이 아니다.
 
 nq ← 전압 규정
     v_od_ref = V_ref - nq·(Qf - Qref) 이므로 무효전력 1 pu 에서의 전압 변화가
@@ -117,6 +129,35 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 HZ = 1.0 / (2 * math.pi)
+
+# P-f 드룹 하한 [%] — 표준 원문 표에서 받아 적었다. 통상값이 아니다.
+#
+# IEEE 1547-2018 Table 24 "Parameters of Frequency-Droop Operation" 의 kOF·kUF:
+#   기본값 0.05 (전 범주) · 허용범위 Cat I 0.03~0.05 / Cat II 0.03~0.05 /
+#   Cat III 0.02~0.05.
+#   각주 원문: "For the frequency droop values (kOF, kUF) ranges, the lower
+#   value is a limiting requirement (the setting shall not be set to lower
+#   values) and the upper value is a minimum requirement (the setting may be
+#   set to greater values)."
+#   → 하한은 못 내려가고, 상한 5% 는 더 소프트하게 둬도 된다.
+#   확인 경로: NERC, "Reliability Guideline — Bulk Power System Reliability
+#   Perspectives on the Adoption of IEEE 1547-2018," March 2023, Table 2.6
+#   (= IEEE 1547-2018 Table 24 를 전재). **표 원문 확인.**
+#   ※ IEEE 1547-2018 본문 자체는 못 봤다 — NERC 가 전재한 표를 봤다.
+#
+# IEEE 2800-2022 (송전연계 IBR 플랜트) PFR: kUF·kOF 기본 5% · 최소 2% · 최대 5%.
+#   확인 경로: MISO, "Inverter-Based Resource Performance Requirements
+#   (IEEE 2800) (PAC-2024-2)," Interconnection Process Working Group,
+#   2024-03-12 (updated 3/13), slide 28 표 "Ranges of available settings".
+#   **표 원문 확인.** ※ IEEE 2800-2022 본문 자체는 미확인.
+#   ※ 이 플랜트는 10 kVA 로 배전급이라 1547 쪽이 맞는 틀이다. 2800 은 대조용.
+DROOP_FLOOR = {
+    'I':    (3.0, 'IEEE 1547-2018 Table 24 · Category I · kUF/kOF ≥ 0.03'),
+    'II':   (3.0, 'IEEE 1547-2018 Table 24 · Category II · kUF/kOF ≥ 0.03'),
+    'III':  (2.0, 'IEEE 1547-2018 Table 24 · Category III · kUF/kOF ≥ 0.02'),
+    '2800': (2.0, 'IEEE 2800-2022 PFR · kUF/kOF 최소 2% (송전연계 — 대조용)'),
+}
+DROOP_CEIL = 5.0   # 세 표준 공통. 상한은 minimum requirement 라 넘어도 된다.
 
 
 def plant_from(meta):
@@ -257,15 +298,31 @@ def main():
                     help='견뎌야 할 전력 불평형 [pu] (기본 0.1)')
     ap.add_argument('--p-hdr', type=float, default=0.3,
                     help='ESS 과도출력 여유 [pu] (기본 0.3 — 연구 가정)')
-    ap.add_argument('--droop', type=float, nargs=2, default=[3.0, 5.0],
-                    metavar=('LO', 'HI'), help='P-f 드룹 범위 [%%] (기본 3 5)')
+    # 드룹은 숫자가 아니라 **범주**로 고르게 둔다. 숫자를 기본값으로 박으면
+    # 어느 표준의 어느 범주였는지가 코드에서 사라진다.
+    ap.add_argument('--category', choices=sorted(DROOP_FLOOR), default='II',
+                    help='DER 성능범주 — 드룹 하한이 여기서 나온다 (기본 II)')
+    ap.add_argument('--droop', type=float, nargs=2, default=None,
+                    metavar=('LO', 'HI'),
+                    help='P-f 드룹 범위 [%%] 를 직접 준다 (--category 를 덮는다)')
     ap.add_argument('--vdroop', type=float, nargs=2, default=[2.0, 5.0],
                     metavar=('LO', 'HI'), help='전압 드룹 범위 [%%] (기본 2 5)')
     ap.add_argument('--no-crosscheck', action='store_true',
                     help='ζ 교차검증을 건너뛴다 (op import 6초쯤 아낀다)')
     a = ap.parse_args()
+    floor, droop_basis = DROOP_FLOOR[a.category]
+    if a.droop:
+        droop = list(a.droop)
+        droop_basis = f'직접 지정 ({droop[0]:g}~{droop[1]:g}%) — 범주 하한 {floor:g}% 를 덮었다'
+        if min(droop) < floor:
+            print(f'  ⚠ 드룹 하한 {min(droop):g}% 가 Category {a.category} 의 '
+                  f'한계 {floor:g}% 보다 낮다. 표준은 이 하한을 "shall not be set '
+                  f'to lower values" 로 못박는다 — 규정 밖 값이라고 기록된다.')
+    else:
+        droop = [floor, DROOP_CEIL]
     req = {'dP_pu': a.dp_step, 'rocof': a.rocof, 'p_hdr_pu': a.p_hdr,
-           'droop': list(a.droop), 'vdroop': list(a.vdroop)}
+           'droop': droop, 'vdroop': list(a.vdroop),
+           'der_category': a.category, 'droop_basis': droop_basis}
 
     import pso  # 실행 폴더 규칙을 두 곳에 두지 않는다
     run = pso.resolve_run(a.run)
@@ -277,8 +334,9 @@ def main():
 
     print(f'  실행 폴더: {run.name}   분리비 {a.sep_lo:g}~{a.sep_hi:g}배')
     print(f'  요구사항: RoCoF ≤ {a.rocof:g} Hz/s · ΔP {a.dp_step:g} pu · '
-          f'ESS 여유 {a.p_hdr:g} pu · 드룹 {a.droop[0]:g}~{a.droop[1]:g}% · '
-          f'전압 {a.vdroop[0]:g}~{a.vdroop[1]:g}%\n')
+          f'ESS 여유 {a.p_hdr:g} pu · 드룹 {droop[0]:g}~{droop[1]:g}% · '
+          f'전압 {a.vdroop[0]:g}~{a.vdroop[1]:g}%')
+    print(f'  드룹 근거: {droop_basis}\n')
     print(f"  {'대역 사슬':<18}{'rad/s':>20}{'Hz':>18}")
     print('  ' + '-' * 56)
     print(f"  {'LCL 공진':<18}{chain['w_res_LCL']:>20.0f}{chain['w_res_LCL']*HZ:>18.1f}")
@@ -373,14 +431,17 @@ def main():
              'text': 'J·Dp·nq 를 요구사항에서 유도했다. 더는 A안 배율을 쓰지 '
                      '않는다 — 14개 전부가 B안 범위를 받는다. 남은 미검증은 '
                      '요구값 자체이며 A4 에 적는다.'},
-            {'id': 'A4', 'status': '미검증',
-             'text': f'RoCoF 한계 {a.rocof:g} Hz/s · 불평형 {a.dp_step:g} pu · '
-                     f'드룹 {a.droop[0]:g}~{a.droop[1]:g}% · 전압 드룹 '
-                     f'{a.vdroop[0]:g}~{a.vdroop[1]:g}% 는 통상값으로 넣었고 '
-                     '계통 규정 출처를 아직 달지 못했다. 인용 근거로 쓰면 안 '
-                     '되고, 투고 전에 적용 규정(또는 논문이 주장할 값)으로 '
-                     '바꿔야 한다. 숫자는 --rocof·--dp-step·--droop·--vdroop '
-                     '로 바꾸고 다시 유도한다.'},
+            {'id': 'A4', 'status': '부분 확인 (2026-10-16)',
+             'text': f'드룹 {droop[0]:g}~{droop[1]:g}% — **표 원문 확인**. '
+                     f'{droop_basis}. 하한은 표준이 "shall not be set to lower '
+                     'values" 로 못박은 limiting requirement 이고, 상한 5% 는 '
+                     'minimum requirement 라 더 소프트하게 둬도 된다. '
+                     '다만 IEEE 1547-2018 본문이 아니라 NERC Reliability '
+                     'Guideline(2023-03) Table 2.6 이 전재한 표를 봤다. '
+                     f'남은 미검증: RoCoF 한계 {a.rocof:g} Hz/s · 불평형 '
+                     f'{a.dp_step:g} pu · 전압 드룹 {a.vdroop[0]:g}~'
+                     f'{a.vdroop[1]:g}% 는 여전히 통상값이고 출처가 없다. '
+                     '이 셋은 인용 근거로 쓰면 안 된다.'},
             {'id': 'A5', 'status': '연구 가정',
              'text': f'ESS 과도출력 여유를 {a.p_hdr:g} pu 로 뒀다 — J 상한이 '
                      '여기서 나온다. 모델에 ESS 정격이 없어 유도할 수 없었다. '
@@ -392,6 +453,13 @@ def main():
                      '1.5·Vg²·cos δ₀/(X_f+X_g) 로 봤다 (δ₀ = 45°). 범위를 '
                      '정하는 데는 쓰지 않고 ζ_floor 위반 여부만 본다. '
                      '정확한 ζ 는 22차 고유값(metrics.py)이 낸다.'},
+            {'id': 'A7', 'status': '사용자 결정 대기',
+             'text': f'DER 성능범주를 Category {a.category} 로 두었다. '
+                     '이 선택이 결과를 가른다 — Cat I·II(드룹 ≥3%)에서는 PSO '
+                     '최선이 score 0.82(t_s 1.22 s)로 목표 1.0 미달이고, '
+                     'Cat III(≥2%)에서는 1.12(t_s 0.89 s)로 넘는다. '
+                     '논문이 어느 범주를 주장할지 정해야 하며, 정하기 전에는 '
+                     '어느 best 도 설계값이 아니다. 근거 런: pso_B14*.json.'},
         ],
         'timestamp': datetime.now().isoformat(timespec='seconds'),
     }

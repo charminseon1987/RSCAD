@@ -16,7 +16,9 @@
     "vdroop": [
       2.0,
       5.0
-    ]
+    ],
+    "der_category": "II",
+    "droop_basis": "IEEE 1547-2018 Table 24 · Category II · kUF/kOF ≥ 0.03"
   },
   "plant": {
     "L1": 0.002,
@@ -210,8 +212,8 @@
     },
     {
       "id": "A4",
-      "status": "미검증",
-      "text": "RoCoF 한계 1 Hz/s · 불평형 0.1 pu · 드룹 3~5% · 전압 드룹 2~5% 는 통상값으로 넣었고 계통 규정 출처를 아직 달지 못했다. 인용 근거로 쓰면 안 되고, 투고 전에 적용 규정(또는 논문이 주장할 값)으로 바꿔야 한다. 숫자는 --rocof·--dp-step·--droop·--vdroop 로 바꾸고 다시 유도한다."
+      "status": "부분 확인 (2026-10-16)",
+      "text": "드룹 3~5% — **표 원문 확인**. IEEE 1547-2018 Table 24 · Category II · kUF/kOF ≥ 0.03. 하한은 표준이 \"shall not be set to lower values\" 로 못박은 limiting requirement 이고, 상한 5% 는 minimum requirement 라 더 소프트하게 둬도 된다. 다만 IEEE 1547-2018 본문이 아니라 NERC Reliability Guideline(2023-03) Table 2.6 이 전재한 표를 봤다. 남은 미검증: RoCoF 한계 1 Hz/s · 불평형 0.1 pu · 전압 드룹 2~5% 는 여전히 통상값이고 출처가 없다. 이 셋은 인용 근거로 쓰면 안 된다."
     },
     {
       "id": "A5",
@@ -222,7 +224,12 @@
       "id": "A6",
       "status": "연구 가정",
       "text": "ζ 교차검증은 스윙 모드를 2차로 근사하고 Ks 를 1.5·Vg²·cos δ₀/(X_f+X_g) 로 봤다 (δ₀ = 45°). 범위를 정하는 데는 쓰지 않고 ζ_floor 위반 여부만 본다. 정확한 ζ 는 22차 고유값(metrics.py)이 낸다."
+    },
+    {
+      "id": "A7",
+      "status": "사용자 결정 대기",
+      "text": "DER 성능범주를 Category II 로 두었다. 이 선택이 결과를 가른다 — Cat I·II(드룹 ≥3%)에서는 PSO 최선이 score 0.82(t_s 1.22 s)로 목표 1.0 미달이고, Cat III(≥2%)에서는 1.12(t_s 0.89 s)로 넘는다. 논문이 어느 범주를 주장할지 정해야 하며, 정하기 전에는 어느 best 도 설계값이 아니다. 근거 런: pso_B14*.json."
     }
   ],
-  "timestamp": "2026-10-16T15:22:41"
+  "timestamp": "2026-10-16T17:22:45"
 }
