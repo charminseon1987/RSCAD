@@ -9,26 +9,32 @@ pso.py — 14-파라미터 PSO 예비실험 (P4)
 없던 것은 **탐색기와 탐색 범위** 둘뿐이었다. 이 파일이 그 둘을 채운다.
 
 ─────────────────────────────────────────────────────────────────────
-이 실행은 A안이다 — 범위에 물리 근거가 없다
+범위는 두 갈래다 — 어느 쪽으로 돌렸는지가 결과의 의미를 바꾼다
 ─────────────────────────────────────────────────────────────────────
-범위를 기준값의 [base/4, base*4] 로 둔다. 임의로 고른 값이고 관성 사양·
-측정 대역·전압 규정 같은 물리 제약을 반영하지 않는다. 그래서 여기서 나온
-best 를 **설계값이라고 부르면 안 된다.**
+A안 (--bounds 없이) : 범위를 기준값의 [base/span, base*span] 으로 둔다. 임의로
+    고른 값이고 관성 사양·측정 대역·전압 규정 같은 물리 제약을 반영하지 않는다.
+    그래서 여기서 나온 best 를 **설계값이라고 부르면 안 된다.** 이 실행의
+    산출물은 best 가 아니라 **민감도**다 — 어느 파라미터가 F 를 움직이는지 알면
+    B안에서 어디에 공을 들여야 하는지가 정해진다.
 
-이 실행의 산출물은 best 가 아니라 **민감도**다. 어느 파라미터가 F 를 움직이고
-어느 것이 안 움직이는지 알면, B안(파라미터마다 물리 근거를 달아 범위를 정하는
-일)에서 어디에 공을 들여야 하는지가 정해진다. 안 움직이는 파라미터의 범위를
-정밀하게 따지는 것은 낭비다.
+B안 (--bounds param_bounds.json) : 범위가 플랜트 상수와 요구사항에서 나온다.
+    param_bounds.py 가 만든다. 14개 전부가 유도되면 best 를 설계 후보로 읽을 수
+    있지만, 그 전에 param_bounds.json 의 assumptions 를 봐야 한다 — 요구값
+    (RoCoF·드룹·전압 규정)은 아직 '미검증' 이다 (가정 A4).
+
+어느 쪽이었는지는 출력 파일의 `mode` 가 말한다: A-relative / B-mixed (n/14
+A안) / B-physical. 라벨을 손으로 적지 않는다 — bounds_source 에서 센다.
 
 로그 공간에서 탐색한다. 이득이 0.001 에서 36 까지 네 자릿수에 걸쳐 있어
 선형 공간에서는 큰 값이 탐색을 독점한다.
 
 실행:
-    python Simulation/pso.py                    # LATEST.json 이 가리키는 실행
+    python Simulation/pso.py                    # A안, LATEST.json 의 실행
     python Simulation/pso.py results/J0.50_...
     python Simulation/pso.py --swarm 24 --iters 40 --span 4
+    python Simulation/pso.py --bounds Simulation/param_bounds.json --tag B14
 
-출력: results/<run>/pso_A.json
+출력: results/<run>/pso_<tag>.json   (--tag 기본 A)
 
 조연호 · 연세대 스마트그리드 연구실
 """
@@ -201,7 +207,15 @@ def main():
     if a.bounds:
         bp = Path(a.bounds)
         if not bp.is_absolute():
-            bp = Path(__file__).resolve().parent / bp
+            # 상대경로 기준이 두 곳이다 — resolve_run 은 저장소 루트를, 예전
+            # 코드는 스크립트 폴더를 썼다. 둘 다 받는다. 한쪽만 받으면
+            # 'Simulation/param_bounds.json' 과 'param_bounds.json' 중
+            # 하나가 조용히 FileNotFound 로 떨어진다.
+            tried = [ROOT / bp, Path(__file__).resolve().parent / bp]
+            bp = next((c for c in tried if c.is_file()), None)
+            if bp is None:
+                raise SystemExit('--bounds 파일을 찾지 못했다:\n  '
+                                 + '\n  '.join(str(t) for t in tried))
         bounds_doc = json.loads(bp.read_text(encoding='utf-8'))
 
     run = resolve_run(a.run)
@@ -213,9 +227,12 @@ def main():
     print(f'  실행 폴더: {run.name}')
     print(f'  파라미터 {len(base)}개 · SCR {scr_list} · X/R {xr}')
     if bounds_doc:
+        # 유도된 개수가 아니라 **실제로 B 를 받은 개수**를 센다. bounds 파일에
+        # 있어도 base 에 없는 키는 쓰이지 않으므로 둘이 어긋날 수 있다.
         nb = sum(1 for v in bounds_doc.get('bounds', {}).values()
                  if v.get('lo') is not None)
-        print(f'  범위: B안 {nb}개(물리 유도) + 나머지 A안 ÷{a.span:g}~×{a.span:g}')
+        print(f'  범위: B안 {nb}/{len(base)}개 물리 유도'
+              + (f' + 나머지 A안 ÷{a.span:g}~×{a.span:g}' if nb < len(base) else ''))
     else:
         print(f'  범위: 기준값 ÷{a.span:g} ~ ×{a.span:g}  (A안 — 물리 근거 없음)')
     print(f'  입자 {a.swarm} × 반복 {a.iters} = {a.swarm * (a.iters + 1)}회 평가\n')
@@ -240,12 +257,22 @@ def main():
         print(f"    {s['param']:10} dF={s['dF']:7.4f}   벌점 {s['n_penalty']}/9")
 
     _, det_best = evaluate(best, scr_list, xr)
+    # 섞임 정도를 라벨이 말한다. 'A-relative' 를 박아 두면 B 범위로 돌린 파일도
+    # A 로 기록돼, 나중에 그 best 를 설계값으로 읽을 위험이 생긴다.
+    n_a = sum(1 for s in src.values() if s == 'A')
+    mode = ('A-relative' if n_a == len(src) else
+            'B-physical' if n_a == 0 else f'B-mixed ({n_a}/{len(src)} A안)')
     doc = {
-        'mode': 'A-relative',
-        'bounds_basis': ('param_bounds.json (B안) + 미확인은 A안 배율' if bounds_doc
-                         else f'base/{a.span:g} ~ base*{a.span:g} (log-uniform, 임의 — 물리 근거 없음)'),
+        'mode': mode,
+        'bounds_basis': (
+            (f'param_bounds.json (B안) — {len(src) - n_a}/{len(src)} 유도'
+             + (f', 나머지 {n_a}개는 A안 배율' if n_a else '')) if bounds_doc
+            else f'base/{a.span:g} ~ base*{a.span:g} (log-uniform, 임의 — 물리 근거 없음)'),
         'bounds_source': src,
-        'caution': ('이 best 는 설계값이 아니다. 범위에 물리 근거가 없으므로 '
+        'caution': ('범위 전부가 물리 근거에서 왔다. 그래도 best 를 설계값으로 '
+                    '쓰기 전에 param_bounds.json 의 assumptions — 특히 A4(요구값 '
+                    '미검증) — 를 확인해야 한다.' if n_a == 0 else
+                    '이 best 는 설계값이 아니다. 범위 일부에 물리 근거가 없으므로 '
                     '민감도를 읽는 용도로만 쓴다.'),
         'run': run.name,
         'model_version': meta.get('model_version'),
