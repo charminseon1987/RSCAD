@@ -36,6 +36,7 @@ best 를 **설계값이라고 부르면 안 된다.**
 import console_utf8  # noqa: F401 — cp949 콘솔에서 죽지 않게
 import argparse
 import json
+import math
 import time
 from datetime import datetime
 from pathlib import Path
@@ -81,19 +82,41 @@ def evaluate(ctrl, scr_list, xr):
     return float(cost), detail
 
 
-def run_pso(base, scr_list, xr, swarm, iters, span, seed):
-    """로그 공간 PSO. (best_ctrl, best_cost, history) 를 돌려준다."""
+def resolve_bounds(base, span, bounds_doc):
+    """파라미터별 (lo, hi). B안 파일이 주면 그걸 쓰고, 없는 것만 A안으로 채운다.
+
+    섞어 쓴다는 사실을 숨기지 않는다 — 어느 파라미터가 물리 근거로 묶였고
+    어느 것이 임의 배율인지는 결과 해석이 달라지는 지점이다.
+    """
+    src = {}
+    lo, hi = {}, {}
+    for k, v in base.items():
+        b = (bounds_doc or {}).get('bounds', {}).get(k) or {}
+        if b.get('lo') is not None and b.get('hi') is not None:
+            lo[k], hi[k], src[k] = float(b['lo']), float(b['hi']), 'B'
+        else:
+            lo[k], hi[k], src[k] = v / span, v * span, 'A'
+    return lo, hi, src
+
+
+def run_pso(base, scr_list, xr, swarm, iters, span, seed, bounds_doc=None):
+    """로그 공간 PSO. (best_ctrl, best_cost, history, keys, movable, src)."""
     rng = np.random.default_rng(seed)
     keys = list(base)
     b = np.array([base[k] for k in keys], dtype=float)
+    blo, bhi, src = resolve_bounds(base, span, bounds_doc)
 
     # 로그 공간 경계. 기준값이 0 이거나 음수면 탐색할 수 없다 — 그대로 둔다.
     movable = b > 0
-    lo = np.where(movable, np.log(np.maximum(b, 1e-12) / span), 0.0)
-    hi = np.where(movable, np.log(np.maximum(b, 1e-12) * span), 0.0)
+    lo = np.array([math.log(max(blo[k], 1e-12)) if movable[i] else 0.0
+                   for i, k in enumerate(keys)])
+    hi = np.array([math.log(max(bhi[k], 1e-12)) if movable[i] else 0.0
+                   for i, k in enumerate(keys)])
 
     X = rng.uniform(lo, hi, size=(swarm, len(keys)))
-    X[0] = np.where(movable, np.log(np.maximum(b, 1e-12)), 0.0)   # 기준값을 한 입자로
+    # 기준값을 한 입자로. 단 B 범위 밖이면 경계로 접는다 — 밖에서 시작하면
+    # 그 입자가 범위를 벗어난 채 최적해로 뽑힐 수 있다.
+    X[0] = np.clip(np.where(movable, np.log(np.maximum(b, 1e-12)), 0.0), lo, hi)
     V = rng.uniform(-1, 1, size=X.shape) * (hi - lo) * 0.1
 
     def ctrl_of(row):
@@ -126,7 +149,7 @@ def run_pso(base, scr_list, xr, swarm, iters, span, seed):
         history.append({'iter': it, 'best_cost': float(gcost),
                         'feasible': int(np.sum(pcost < 0))})
 
-    return ctrl_of(G), float(gcost), history, keys, movable
+    return ctrl_of(G), float(gcost), history, keys, movable, src
 
 
 def sensitivity(best_ctrl, keys, movable, scr_list, xr, span, n=9):
@@ -170,7 +193,16 @@ def main():
                     help='범위 배율. base/span ~ base*span (기본 4배)')
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--tag', default='A')
+    ap.add_argument('--bounds', default=None,
+                    help='param_bounds.json (B안). 준 것만 쓰고 나머지는 A안 배율')
     a = ap.parse_args()
+
+    bounds_doc = None
+    if a.bounds:
+        bp = Path(a.bounds)
+        if not bp.is_absolute():
+            bp = Path(__file__).resolve().parent / bp
+        bounds_doc = json.loads(bp.read_text(encoding='utf-8'))
 
     run = resolve_run(a.run)
     meta = json.loads((run / 'meta.json').read_text(encoding='utf-8'))
@@ -180,15 +212,20 @@ def main():
 
     print(f'  실행 폴더: {run.name}')
     print(f'  파라미터 {len(base)}개 · SCR {scr_list} · X/R {xr}')
-    print(f'  범위: 기준값 ÷{a.span:g} ~ ×{a.span:g}  (A안 — 물리 근거 없음)')
+    if bounds_doc:
+        nb = sum(1 for v in bounds_doc.get('bounds', {}).values()
+                 if v.get('lo') is not None)
+        print(f'  범위: B안 {nb}개(물리 유도) + 나머지 A안 ÷{a.span:g}~×{a.span:g}')
+    else:
+        print(f'  범위: 기준값 ÷{a.span:g} ~ ×{a.span:g}  (A안 — 물리 근거 없음)')
     print(f'  입자 {a.swarm} × 반복 {a.iters} = {a.swarm * (a.iters + 1)}회 평가\n')
 
     f_base, det_base = evaluate(base, scr_list, xr)
     print(f'  기준 파라미터 F = {f_base:+.4f}')
 
     t0 = time.perf_counter()
-    best, gcost, history, keys, movable = run_pso(
-        base, scr_list, xr, a.swarm, a.iters, a.span, a.seed)
+    best, gcost, history, keys, movable, src = run_pso(
+        base, scr_list, xr, a.swarm, a.iters, a.span, a.seed, bounds_doc)
     dt = time.perf_counter() - t0
     print(f'  PSO     최적 F = {gcost:+.4f}   ({dt:.1f}s)')
     if f_base < 1e3 and gcost < 1e3:
@@ -205,7 +242,9 @@ def main():
     _, det_best = evaluate(best, scr_list, xr)
     doc = {
         'mode': 'A-relative',
-        'bounds_basis': f'base/{a.span:g} ~ base*{a.span:g} (log-uniform, 임의 — 물리 근거 없음)',
+        'bounds_basis': ('param_bounds.json (B안) + 미확인은 A안 배율' if bounds_doc
+                         else f'base/{a.span:g} ~ base*{a.span:g} (log-uniform, 임의 — 물리 근거 없음)'),
+        'bounds_source': src,
         'caution': ('이 best 는 설계값이 아니다. 범위에 물리 근거가 없으므로 '
                     '민감도를 읽는 용도로만 쓴다.'),
         'run': run.name,
