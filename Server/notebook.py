@@ -54,9 +54,15 @@ NOTEBOOKS_PATH = ROOT / 'Server' / 'notebooks.json'
 # 나머지 색인 문서는 박사로 간다 — 기본값일 뿐이고 화면에서 옮길 수 있다.
 SEED_MASTER_DOCS = ('kamble2026from', 'kara2026dynamic')
 
+# journal_dir 은 **저장소 루트 기준** 상대경로다 (볼트 기준이 아니다).
+# ZEB_Research 가 GFM_Research 바깥에 있어서 볼트 기준으로는 석사 일지를
+# 가리킬 수가 없다. 전에는 drafter 가 박사 경로 하나를 하드코딩하고 있어,
+# ZEB 일지를 써도 석사 초안에 영영 들어가지 않았다.
 SEED_NOTEBOOKS = (
-    {'id': 'phd', 'label': '박사 — GFM 소신호 안정도'},
-    {'id': 'ms', 'label': '석사 — 공공청사 ZEB 전력부하'},
+    {'id': 'phd', 'label': '박사 — GFM 소신호 안정도',
+     'journal_dir': 'GFM_Research/RSCAD/03_실험/일지'},
+    {'id': 'ms', 'label': '석사 — 공공청사 ZEB 전력부하',
+     'journal_dir': 'ZEB_Research/05_결과/일지'},
 )
 
 # 내 논문의 절. MyPaper.tsx 의 SECTIONS 와 같은 기호를 쓴다 — 두 화면이

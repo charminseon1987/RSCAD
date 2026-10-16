@@ -48,7 +48,26 @@ from scholar import ROOT, VAULT
 
 bp = Blueprint('drafter', __name__, url_prefix='/api/docs/draft')
 
-JOURNAL_DIR = VAULT / 'RSCAD' / '03_실험' / '일지'
+# 일지는 과제마다 다른 곳에 산다. 박사는 GFM_Research/RSCAD/03_실험/일지,
+# 석사는 ZEB_Research/05_결과/일지 다. 전에는 박사 경로 하나가 여기 박혀 있어
+# ZEB 일지를 아무리 써도 석사 초안에 들어가지 않았다 — 볼트(GFM_Research)
+# 밖이라 주소조차 만들 수 없었다. 이제 노트북이 자기 일지 폴더를 들고 있고,
+# 경로는 **저장소 루트 기준**이다.
+JOURNAL_FALLBACK = 'GFM_Research/RSCAD/03_실험/일지'
+
+
+def journal_dir(nb_id: str = '') -> pathlib.Path:
+    """그 노트북의 일지 폴더. 저장소 밖으로 못 나가게 막는다."""
+    rel = JOURNAL_FALLBACK
+    if nb_id:
+        try:
+            import notebook as NB
+            rel = (NB.find_notebook(nb_id) or {}).get('journal_dir') or rel
+        except Exception:                                    # noqa: BLE001
+            pass
+    p = (ROOT / rel).resolve()
+    # 설정에 ../.. 가 들어와도 저장소 밖을 읽지 않는다
+    return p if p.is_relative_to(ROOT.resolve()) else (ROOT / JOURNAL_FALLBACK).resolve()
 LIT_DIR = VAULT / '00_Knowledge' / 'literature'
 CLIPS = ROOT / 'Server' / 'paper_clips.json'
 ALIASES = VAULT / '00_Knowledge' / 'doc_aliases.json'
@@ -72,12 +91,19 @@ def _now() -> str:
 # ═══════════════════════════════════════════════
 # 재료 모으기
 # ═══════════════════════════════════════════════
-def journals() -> list:
-    if not JOURNAL_DIR.is_dir():
+def journals(nb_id: str = '') -> list:
+    """그 노트북의 일지. path 는 **저장소 루트 기준**이다 — 볼트 밖(ZEB_Research)
+    도 가리켜야 하므로 예전의 볼트 기준 경로로는 담을 수 없다."""
+    d = journal_dir(nb_id)
+    if not d.is_dir():
         return []
+    root = ROOT.resolve()
     out = []
-    for p in sorted(JOURNAL_DIR.glob('*.md'), reverse=True):
-        out.append({'kind': 'journal', 'path': f'RSCAD/03_실험/일지/{p.name}',
+    for p in sorted(d.glob('*.md'), reverse=True):
+        if p.name == 'README.md':
+            continue                       # 규칙서다. 재료가 아니다.
+        out.append({'kind': 'journal',
+                    'path': p.resolve().relative_to(root).as_posix(),
                     'title': p.stem, 'bytes': p.stat().st_size})
     return out
 
@@ -106,8 +132,12 @@ def clips() -> list:
 
 @bp.route('/sources')
 def api_sources():
-    """고를 수 있는 재료. 화면이 여기서 체크한다."""
-    j, lit, cl = journals(), literature(), clips()
+    """고를 수 있는 재료. 화면이 여기서 체크한다.
+
+    ?nb= 를 주면 그 노트북의 일지를 돌려준다. 안 주면 기본(박사) 일지다 —
+    예전 화면이 그대로 돌게 두기 위함이고, 석사 일지를 보려면 nb=ms 가 필요하다."""
+    nb = request.args.get('nb') or ''
+    j, lit, cl = journals(nb), literature(), clips()
     # 어느 노트가 색인에 닿는지 화면이 알아야 한다. 닿지 않는 노트는 ▸ 줄만
     # 재료가 되므로 초안에 쪽 번호가 붙지 않는다 — 그 사실을 숨기지 않는다.
     fwd, _ = _alias_map()
@@ -116,14 +146,39 @@ def api_sources():
     return jsonify({'status': 'ok', 'journals': j, 'literature': lit,
                     'clips': len(cl), 'sections': PAPER_SECTIONS,
                     'indexed': sum(1 for n in lit if n['indexed']),
+                    'notebook_id': nb,
+                    'journal_dir': journal_dir(nb).relative_to(ROOT.resolve()).as_posix(),
                     'note': ('고른 것만 읽습니다. 색인은 **고른 논문 안에서만** 씁니다 — '
                              '색인 전체를 넣으면 모델이 읽지도 않은 논문을 인용하기 '
                              '시작합니다. indexed=false 인 노트는 원문이 색인에 없어 '
                              '손으로 적은 ▸ 줄만 재료가 됩니다 (쪽 번호가 안 붙습니다).')})
 
 
+def _resolve(rel: str):
+    """재료 경로를 실제 파일로 바꾼다. 기준이 둘이다 —
+
+      · 일지     저장소 루트 기준 (ZEB_Research 가 볼트 밖이라 어쩔 수 없다)
+      · 문헌 노트 볼트 기준       (00_Knowledge/literature/...)
+
+    루트를 먼저 보고 볼트를 본다. 어느 쪽이든 **저장소 밖이면 거절**한다 —
+    화면에서 온 문자열이라 ../.. 가 섞여 올 수 있다.
+    """
+    root = ROOT.resolve()
+    for base in (ROOT, VAULT):
+        fp = base / rel
+        try:
+            r = fp.resolve()
+        except OSError:
+            continue
+        if r.is_relative_to(root) and r.is_file():
+            return r
+    return None
+
+
 def _read(rel: str) -> str:
-    fp = VAULT / rel
+    fp = _resolve(rel)
+    if fp is None:
+        return ''
     try:
         return fp.read_text(encoding='utf-8', errors='replace')
     except OSError:
@@ -391,8 +446,8 @@ def api_draft():
     want = [s for s in PAPER_SECTIONS
             if s['id'] in set(d.get('sections') or [s['id'] for s in PAPER_SECTIONS])
             and s['id'] != '?']
-    j_paths = [p for p in (d.get('journals') or []) if (VAULT / p).is_file()]
-    lit_paths = [p for p in (d.get('literature') or []) if (VAULT / p).is_file()]
+    j_paths = [p for p in (d.get('journals') or []) if _resolve(p)]
+    lit_paths = [p for p in (d.get('literature') or []) if _resolve(p)]
     cl = clips()
 
     if not j_paths and not lit_paths and not cl:

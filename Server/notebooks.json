@@ -30,7 +30,8 @@
         "henriquezauba2022arxiv",
         "kenyon2020ibrstability"
       ],
-      "created": "2026-10-15T19:51:27"
+      "created": "2026-10-15T19:51:27",
+      "journal_dir": "GFM_Research/RSCAD/03_실험/일지"
     },
     {
       "id": "ms",
@@ -39,7 +40,8 @@
         "kamble2026from",
         "kara2026dynamic"
       ],
-      "created": "2026-10-15T19:51:27"
+      "created": "2026-10-15T19:51:27",
+      "journal_dir": "ZEB_Research/05_결과/일지"
     }
   ]
 }
