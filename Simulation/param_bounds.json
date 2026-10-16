@@ -10,15 +10,15 @@
     "rocof": 1.0,
     "p_hdr_pu": 0.3,
     "droop": [
-      3.0,
+      2.0,
       5.0
     ],
     "vdroop": [
       2.0,
       5.0
     ],
-    "der_category": "II",
-    "droop_basis": "IEEE 1547-2018 Table 24 · Category II · kUF/kOF ≥ 0.03"
+    "der_category": "III",
+    "droop_basis": "IEEE 1547-2018 Table 24 · Category III · kUF/kOF ≥ 0.02"
   },
   "plant": {
     "L1": 0.002,
@@ -153,11 +153,11 @@
     },
     "Dp": {
       "lo": 1.407238661699136,
-      "hi": 2.34539776949856,
-      "basis": "P-f 드룹 3~5% · Dp = S/(w0²·droop) (감쇠는 목적함수가 보므로 범위로 또 묶지 않는다)",
+      "hi": 3.5180966542478407,
+      "basis": "P-f 드룹 2~5% · Dp = S/(w0²·droop) (감쇠는 목적함수가 보므로 범위로 또 묶지 않는다)",
       "status": "유도",
       "droop_pct": [
-        3.0,
+        2.0,
         5.0
       ],
       "base_in_range": false
@@ -187,7 +187,7 @@
     },
     "zeta_envelope": [
       0.08183058678708391,
-      0.3116739511620293
+      0.467510926743044
     ],
     "zeta_floor_violating_SCR": [
       3.0,
@@ -213,7 +213,7 @@
     {
       "id": "A4",
       "status": "부분 확인 (2026-10-16)",
-      "text": "드룹 3~5% — **표 원문 확인**. IEEE 1547-2018 Table 24 · Category II · kUF/kOF ≥ 0.03. 하한은 표준이 \"shall not be set to lower values\" 로 못박은 limiting requirement 이고, 상한 5% 는 minimum requirement 라 더 소프트하게 둬도 된다. 다만 IEEE 1547-2018 본문이 아니라 NERC Reliability Guideline(2023-03) Table 2.6 이 전재한 표를 봤다. 남은 미검증: RoCoF 한계 1 Hz/s · 불평형 0.1 pu · 전압 드룹 2~5% 는 여전히 통상값이고 출처가 없다. 이 셋은 인용 근거로 쓰면 안 된다."
+      "text": "드룹 2~5% — **표 원문 확인**. IEEE 1547-2018 Table 24 · Category III · kUF/kOF ≥ 0.02. 하한은 표준이 \"shall not be set to lower values\" 로 못박은 limiting requirement 이고, 상한 5% 는 minimum requirement 라 더 소프트하게 둬도 된다. 다만 IEEE 1547-2018 본문이 아니라 NERC Reliability Guideline(2023-03) Table 2.6 이 전재한 표를 봤다. 남은 미검증: RoCoF 한계 1 Hz/s · 불평형 0.1 pu · 전압 드룹 2~5% 는 여전히 통상값이고 출처가 없다. 이 셋은 인용 근거로 쓰면 안 된다."
     },
     {
       "id": "A5",
@@ -227,9 +227,9 @@
     },
     {
       "id": "A7",
-      "status": "사용자 결정 대기",
-      "text": "DER 성능범주를 Category II 로 두었다. 이 선택이 결과를 가른다 — Cat I·II(드룹 ≥3%)에서는 PSO 최선이 score 0.82(t_s 1.22 s)로 목표 1.0 미달이고, Cat III(≥2%)에서는 1.12(t_s 0.89 s)로 넘는다. 논문이 어느 범주를 주장할지 정해야 하며, 정하기 전에는 어느 best 도 설계값이 아니다. 근거 런: pso_B14*.json."
+      "status": "결정됨 (2026-10-16) — Category III",
+      "text": "DER 성능범주를 Category III 로 둔다. 2026-10-16 에 Category III 로 정했다. 근거 셋: (1) IEEE 1547-2018 Table 24 의 Cat III 가 kUF/kOF ≥ 0.02 를 허용한다, (2) IEEE 2800-2022 PFR 도 독립적으로 최소 2% 를 둔다, (3) NERC SPIDERWG 가 Cat I 회피를 권고하고 Cat II~III 에서 시작하라 하며 Cat III 가 가장 흔해질 것으로 전망한다 (Reliability Guideline 2023-03). 연구 대상이 GFM PV+ESS 로 가장 계통지원적인 기기 부류라는 점도 Cat III 의 취지와 맞는다. 이 선택이 결과를 가른다 — Cat I·II(≥3%)에서는 PSO 최선이 score 0.82(t_s 1.22 s)로 목표 미달이고, Cat III(≥2%)에서는 1.12(t_s 0.89 s)로 넘는다. 근거 런: pso_B14*.json. ※ 범주 지정 주체는 Area EPS operator/AGIR 이다 — 논문은 \"Cat III 를 전제한다\" 고 밝혀야 하고, 국내 적용 시 분산형전원 배전계통 연계 기술기준과 대조해야 한다 (미확인)."
     }
   ],
-  "timestamp": "2026-10-16T17:22:45"
+  "timestamp": "2026-10-16T18:07:26"
 }

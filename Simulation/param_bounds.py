@@ -300,8 +300,11 @@ def main():
                     help='ESS 과도출력 여유 [pu] (기본 0.3 — 연구 가정)')
     # 드룹은 숫자가 아니라 **범주**로 고르게 둔다. 숫자를 기본값으로 박으면
     # 어느 표준의 어느 범주였는지가 코드에서 사라진다.
-    ap.add_argument('--category', choices=sorted(DROOP_FLOOR), default='II',
-                    help='DER 성능범주 — 드룹 하한이 여기서 나온다 (기본 II)')
+    # 기본값 III — 2026-10-16 결정 (가정 A7). 근거는 DROOP_FLOOR 주석의 표 셋과
+    # NERC SPIDERWG 권고(Cat I 회피 · Cat II~III 에서 시작 · Cat III 가 가장
+    # 흔해질 전망)다. Cat II 로 돌려 보려면 --category II.
+    ap.add_argument('--category', choices=sorted(DROOP_FLOOR), default='III',
+                    help='DER 성능범주 — 드룹 하한이 여기서 나온다 (기본 III)')
     ap.add_argument('--droop', type=float, nargs=2, default=None,
                     metavar=('LO', 'HI'),
                     help='P-f 드룹 범위 [%%] 를 직접 준다 (--category 를 덮는다)')
@@ -453,13 +456,23 @@ def main():
                      '1.5·Vg²·cos δ₀/(X_f+X_g) 로 봤다 (δ₀ = 45°). 범위를 '
                      '정하는 데는 쓰지 않고 ζ_floor 위반 여부만 본다. '
                      '정확한 ζ 는 22차 고유값(metrics.py)이 낸다.'},
-            {'id': 'A7', 'status': '사용자 결정 대기',
-             'text': f'DER 성능범주를 Category {a.category} 로 두었다. '
-                     '이 선택이 결과를 가른다 — Cat I·II(드룹 ≥3%)에서는 PSO '
-                     '최선이 score 0.82(t_s 1.22 s)로 목표 1.0 미달이고, '
-                     'Cat III(≥2%)에서는 1.12(t_s 0.89 s)로 넘는다. '
-                     '논문이 어느 범주를 주장할지 정해야 하며, 정하기 전에는 '
-                     '어느 best 도 설계값이 아니다. 근거 런: pso_B14*.json.'},
+            {'id': 'A7',
+             'status': ('결정됨 (2026-10-16) — Category III'
+                        if a.category == 'III' else f'대조 실행 (Category {a.category})'),
+             'text': f'DER 성능범주를 Category {a.category} 로 둔다. 2026-10-16 에 '
+                     'Category III 로 정했다. 근거 셋: (1) IEEE 1547-2018 Table 24 '
+                     '의 Cat III 가 kUF/kOF ≥ 0.02 를 허용한다, (2) IEEE 2800-2022 '
+                     'PFR 도 독립적으로 최소 2% 를 둔다, (3) NERC SPIDERWG 가 '
+                     'Cat I 회피를 권고하고 Cat II~III 에서 시작하라 하며 '
+                     'Cat III 가 가장 흔해질 것으로 전망한다 (Reliability '
+                     'Guideline 2023-03). 연구 대상이 GFM PV+ESS 로 가장 '
+                     '계통지원적인 기기 부류라는 점도 Cat III 의 취지와 맞는다. '
+                     '이 선택이 결과를 가른다 — Cat I·II(≥3%)에서는 PSO 최선이 '
+                     'score 0.82(t_s 1.22 s)로 목표 미달이고, Cat III(≥2%)에서는 '
+                     '1.12(t_s 0.89 s)로 넘는다. 근거 런: pso_B14*.json. '
+                     '※ 범주 지정 주체는 Area EPS operator/AGIR 이다 — 논문은 '
+                     '"Cat III 를 전제한다" 고 밝혀야 하고, 국내 적용 시 '
+                     '분산형전원 배전계통 연계 기술기준과 대조해야 한다 (미확인).'},
         ],
         'timestamp': datetime.now().isoformat(timespec='seconds'),
     }
