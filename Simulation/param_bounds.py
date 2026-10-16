@@ -139,8 +139,14 @@ def derive(p, sep_lo, sep_hi):
 def main():
     ap = argparse.ArgumentParser(description='탐색 범위 유도 (B안)')
     ap.add_argument('run', nargs='?', default=None, help='결과 폴더 (생략 시 LATEST)')
-    ap.add_argument('--sep-lo', type=float, default=5.0, help='최소 분리비')
-    ap.add_argument('--sep-hi', type=float, default=10.0, help='최대 분리비')
+    # 기본 분리비 3~5 배 — 2026-10-16 에 돌려 보고 정했다.
+    #   5~10 배로 묶으면 PSO 최선이 score 0.61 로 목표 1.0 에 못 미친다 (t_s 1.64 s).
+    #   3~5 배로 풀면 1.53 (t_s 0.65 s) 으로 넘어선다.
+    # 3~5 배는 캐스케이드 설계의 통상 범위이고 5~10 배가 보수적인 쪽이다.
+    # 하드웨어(Kpc)나 요구(T_S_SPEC)를 건드리지 않고 되는 선택이라 이걸 쓴다.
+    # 근거 실행: results/<run>/pso_B.json (5~10) vs pso_B35.json (3~5)
+    ap.add_argument('--sep-lo', type=float, default=3.0, help='최소 분리비')
+    ap.add_argument('--sep-hi', type=float, default=5.0, help='최대 분리비')
     a = ap.parse_args()
 
     import pso  # 실행 폴더 규칙을 두 곳에 두지 않는다
