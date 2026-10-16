@@ -29,7 +29,29 @@ from pathlib import Path
 
 import requests
 
-EMAIL = os.getenv("PAPER_AGENT_EMAIL", "your_email@example.com")  # OpenAlex·Unpaywall 권장(무료) — 본인 메일로
+ROOT = Path(__file__).resolve().parent.parent
+
+
+def _contact_email():
+    """OpenAlex·Unpaywall 연락용 주소.
+
+    Unpaywall 은 이게 없으면 422 로 거절한다 — 전에는 자리표시자
+    'your_email@example.com' 을 보내서 OA PDF 를 한 편도 못 받았다.
+    웹 설정(Server/scholar_settings.json)과 **같은 자리**를 읽는다. 두 군데에
+    따로 적으면 한쪽만 고치고 다른 쪽이 조용히 틀린 채로 남는다.
+    그 파일은 git 추적 대상이 아니라 주소가 저장소로 들어가지 않는다.
+    """
+    v = (os.getenv("PAPER_AGENT_EMAIL") or "").strip()
+    if v:
+        return v
+    try:
+        s = json.loads((ROOT / "Server" / "scholar_settings.json").read_text(encoding="utf-8"))
+        return (s.get("contact_email") or "").strip()
+    except (OSError, ValueError):
+        return ""
+
+
+EMAIL = _contact_email()
 OPENALEX, S2, ARXIV = "https://api.openalex.org", "https://api.semanticscholar.org/graph/v1", "http://export.arxiv.org/api/query"
 YEAR = datetime.date.today().year
 UA = {"User-Agent": f"paper-agent/1.0 (mailto:{EMAIL})"}
@@ -212,6 +234,15 @@ def score(rec, terms):
 # ───────────────────────── [4] 스크래핑 (오픈액세스만) ─────────────────────────
 def unpaywall_pdf(doi):
     if not doi:
+        return ""
+    if not EMAIL:
+        # 주소가 없으면 Unpaywall 은 무조건 422 다. 요청을 보내 봐야 소용없고,
+        # 논문마다 경고가 쏟아져 진짜 실패가 묻힌다. 한 번만 말하고 건너뛴다.
+        if not getattr(unpaywall_pdf, "_warned", False):
+            print("    ⚠ 연락용 이메일이 없어 Unpaywall 을 건너뜁니다 — "
+                  "Server/scholar_settings.json 의 contact_email 을 채우거나 "
+                  "PAPER_AGENT_EMAIL 을 설정하세요", file=sys.stderr)
+            unpaywall_pdf._warned = True
         return ""
     d = http_get(f"https://api.unpaywall.org/v2/{doi}", {"email": EMAIL}) or {}
     return ((d.get("best_oa_location") or {}).get("url_for_pdf")) or ""
