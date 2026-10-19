@@ -1,0 +1,610 @@
+{
+  "mode": "B-physical",
+  "bounds_basis": "param_bounds.json (B안) — 14/14 유도",
+  "bounds_source": {
+    "Kp_vpv": "B",
+    "Ki_vpv": "B",
+    "Kp_ipv": "B",
+    "Ki_ipv": "B",
+    "Kp_vdc": "B",
+    "Ki_vdc": "B",
+    "Kp_iess": "B",
+    "Ki_iess": "B",
+    "J": "B",
+    "Dp": "B",
+    "wc": "B",
+    "nq": "B",
+    "Kpv": "B",
+    "Kiv": "B"
+  },
+  "caution": "범위 전부가 물리 근거에서 왔다. 그래도 best 를 설계값으로 쓰기 전에 param_bounds.json 의 assumptions — 특히 A4(요구값 미검증) — 를 확인해야 한다.",
+  "run": "J0.50_Dp20.0_Kpv0.050_wc62.8_XR1.0_c9ed38",
+  "model_version": "v3-22state",
+  "SCR_list": [
+    3.0,
+    2.0,
+    1.5
+  ],
+  "XR": 1.0,
+  "train_points": [
+    [
+      3.0,
+      3.0
+    ],
+    [
+      2.0,
+      3.0
+    ],
+    [
+      1.5,
+      3.0
+    ],
+    [
+      3.0,
+      1.0
+    ],
+    [
+      2.0,
+      1.0
+    ],
+    [
+      1.5,
+      1.0
+    ],
+    [
+      3.0,
+      0.5
+    ],
+    [
+      2.0,
+      0.5
+    ],
+    [
+      1.5,
+      0.5
+    ]
+  ],
+  "train_xr": [
+    3.0,
+    1.0,
+    0.5
+  ],
+  "swarm": 24,
+  "iters": 40,
+  "span": 4.0,
+  "seed": 0,
+  "base": {
+    "Kp_vpv": 0.14,
+    "Ki_vpv": 10.0,
+    "Kp_ipv": 0.001,
+    "Ki_ipv": 0.1,
+    "Kp_vdc": 0.54,
+    "Ki_vdc": 36.0,
+    "Kp_iess": 0.001,
+    "Ki_iess": 0.1,
+    "J": 0.5,
+    "Dp": 20.0,
+    "wc": 62.83,
+    "nq": 0.001,
+    "Kpv": 0.05,
+    "Kiv": 10.0
+  },
+  "base_cost": -0.47707045948523646,
+  "base_detail": {
+    "3@3": {
+      "converged": true,
+      "stable": true,
+      "score": 0.8281505938731224,
+      "sigma_min": 4.68114106140834,
+      "zeta_min": 0.08281505938731225,
+      "binding": "zeta"
+    },
+    "2@3": {
+      "converged": true,
+      "stable": true,
+      "score": 0.7018328850583819,
+      "sigma_min": 2.8073315402335277,
+      "zeta_min": 0.17068002426966247,
+      "binding": "sigma"
+    },
+    "1.5@3": {
+      "converged": true,
+      "stable": true,
+      "score": 0.47707045948523646,
+      "sigma_min": 1.9082818379409459,
+      "zeta_min": 0.2034448751764214,
+      "binding": "sigma"
+    },
+    "3@1": {
+      "converged": true,
+      "stable": true,
+      "score": 1.1609071877482222,
+      "sigma_min": 4.643628750992889,
+      "zeta_min": 0.20299061163691895,
+      "binding": "sigma"
+    },
+    "2@1": {
+      "converged": true,
+      "stable": true,
+      "score": 0.7413073032248672,
+      "sigma_min": 2.9652292128994686,
+      "zeta_min": 0.20320858667978237,
+      "binding": "sigma"
+    },
+    "1.5@1": {
+      "converged": true,
+      "stable": true,
+      "score": 0.5409314282362958,
+      "sigma_min": 2.1637257129451832,
+      "zeta_min": 0.20335275644562095,
+      "binding": "sigma"
+    },
+    "3@0.5": {
+      "converged": true,
+      "stable": true,
+      "score": 1.0657698423727378,
+      "sigma_min": 4.263079369490951,
+      "zeta_min": 0.2028371308309538,
+      "binding": "sigma"
+    },
+    "2@0.5": {
+      "converged": true,
+      "stable": true,
+      "score": 0.7146930832945051,
+      "sigma_min": 2.8587723331780204,
+      "zeta_min": 0.20309454581740352,
+      "binding": "sigma"
+    },
+    "1.5@0.5": {
+      "converged": true,
+      "stable": true,
+      "score": 0.5411852048130286,
+      "sigma_min": 2.1647408192521143,
+      "zeta_min": 0.2032709651205464,
+      "binding": "sigma"
+    }
+  },
+  "best": {
+    "cost": 3059.2515413015176,
+    "ctrl": {
+      "Kp_vpv": 0.14082328094479948,
+      "Ki_vpv": 2.44831714607009,
+      "Kp_ipv": 0.0022146223960006557,
+      "Ki_ipv": 0.12447224463333927,
+      "Kp_vdc": 0.6196994384248615,
+      "Ki_vdc": 5.40377639673373,
+      "Kp_iess": 0.0015641989118721081,
+      "Ki_iess": 2.3148148148148153,
+      "J": 0.25330295910584444,
+      "Dp": 3.2296949001171993,
+      "wc": 133.12388064298736,
+      "nq": 0.0008963827292668095,
+      "Kpv": 0.005546326269464836,
+      "Kiv": 0.5561840396986529
+    },
+    "detail": {
+      "3@3": {
+        "converged": true,
+        "stable": false,
+        "score": -6.18666774082166,
+        "sigma_min": -24.74667096328664,
+        "zeta_min": -0.42407107828945195,
+        "binding": "sigma"
+      },
+      "2@3": {
+        "converged": true,
+        "stable": false,
+        "score": -5.005316950552613,
+        "sigma_min": -20.021267802210453,
+        "zeta_min": -0.25965881289052595,
+        "binding": "sigma"
+      },
+      "1.5@3": {
+        "converged": true,
+        "stable": false,
+        "score": -3.6209006340051326,
+        "sigma_min": -14.48360253602053,
+        "zeta_min": -0.15348219323719142,
+        "binding": "sigma"
+      },
+      "3@1": {
+        "converged": true,
+        "stable": true,
+        "score": 0.11695463772598927,
+        "sigma_min": 0.5729289196729175,
+        "zeta_min": 0.011695463772598927,
+        "binding": "zeta"
+      },
+      "2@1": {
+        "converged": true,
+        "stable": true,
+        "score": 1.416502911698614,
+        "sigma_min": 8.484603617979248,
+        "zeta_min": 0.14165029116986141,
+        "binding": "zeta"
+      },
+      "1.5@1": {
+        "converged": true,
+        "stable": true,
+        "score": 1.780492435871656,
+        "sigma_min": 7.121969743486624,
+        "zeta_min": 0.21865160170880923,
+        "binding": "sigma"
+      },
+      "3@0.5": {
+        "converged": true,
+        "stable": true,
+        "score": 0.01028178653823919,
+        "sigma_min": 0.04112714615295676,
+        "zeta_min": 0.0017700169150510526,
+        "binding": "sigma"
+      },
+      "2@0.5": {
+        "converged": true,
+        "stable": true,
+        "score": 1.6073730954514387,
+        "sigma_min": 6.429492381805755,
+        "zeta_min": 0.25632696719821757,
+        "binding": "sigma"
+      },
+      "1.5@0.5": {
+        "converged": true,
+        "stable": true,
+        "score": 1.8995427760103665,
+        "sigma_min": 7.598171104041466,
+        "zeta_min": 0.25620949799960346,
+        "binding": "sigma"
+      }
+    }
+  },
+  "history": [
+    {
+      "iter": 0,
+      "best_cost": 5105.90583571296,
+      "feasible": 0
+    },
+    {
+      "iter": 1,
+      "best_cost": 5094.256827923129,
+      "feasible": 0
+    },
+    {
+      "iter": 2,
+      "best_cost": 4085.9526313388697,
+      "feasible": 0
+    },
+    {
+      "iter": 3,
+      "best_cost": 4085.9526313388697,
+      "feasible": 0
+    },
+    {
+      "iter": 4,
+      "best_cost": 4082.8028361128513,
+      "feasible": 0
+    },
+    {
+      "iter": 5,
+      "best_cost": 4078.766219274903,
+      "feasible": 0
+    },
+    {
+      "iter": 6,
+      "best_cost": 4076.177502507122,
+      "feasible": 0
+    },
+    {
+      "iter": 7,
+      "best_cost": 4070.807693292075,
+      "feasible": 0
+    },
+    {
+      "iter": 8,
+      "best_cost": 4064.9172078921238,
+      "feasible": 0
+    },
+    {
+      "iter": 9,
+      "best_cost": 4062.2758532605562,
+      "feasible": 0
+    },
+    {
+      "iter": 10,
+      "best_cost": 4058.731671679111,
+      "feasible": 0
+    },
+    {
+      "iter": 11,
+      "best_cost": 4056.4709252984294,
+      "feasible": 0
+    },
+    {
+      "iter": 12,
+      "best_cost": 4054.417345280275,
+      "feasible": 0
+    },
+    {
+      "iter": 13,
+      "best_cost": 4054.417345280275,
+      "feasible": 0
+    },
+    {
+      "iter": 14,
+      "best_cost": 3071.3417661639833,
+      "feasible": 0
+    },
+    {
+      "iter": 15,
+      "best_cost": 3071.3417661639833,
+      "feasible": 0
+    },
+    {
+      "iter": 16,
+      "best_cost": 3066.9619521550703,
+      "feasible": 0
+    },
+    {
+      "iter": 17,
+      "best_cost": 3066.9619521550703,
+      "feasible": 0
+    },
+    {
+      "iter": 18,
+      "best_cost": 3066.9619521550703,
+      "feasible": 0
+    },
+    {
+      "iter": 19,
+      "best_cost": 3064.8742492603833,
+      "feasible": 0
+    },
+    {
+      "iter": 20,
+      "best_cost": 3062.7244484259463,
+      "feasible": 0
+    },
+    {
+      "iter": 21,
+      "best_cost": 3062.264017748706,
+      "feasible": 0
+    },
+    {
+      "iter": 22,
+      "best_cost": 3062.264017748706,
+      "feasible": 0
+    },
+    {
+      "iter": 23,
+      "best_cost": 3061.278741296035,
+      "feasible": 0
+    },
+    {
+      "iter": 24,
+      "best_cost": 3061.278741296035,
+      "feasible": 0
+    },
+    {
+      "iter": 25,
+      "best_cost": 3060.079436207421,
+      "feasible": 0
+    },
+    {
+      "iter": 26,
+      "best_cost": 3060.079436207421,
+      "feasible": 0
+    },
+    {
+      "iter": 27,
+      "best_cost": 3060.079436207421,
+      "feasible": 0
+    },
+    {
+      "iter": 28,
+      "best_cost": 3060.079436207421,
+      "feasible": 0
+    },
+    {
+      "iter": 29,
+      "best_cost": 3060.079436207421,
+      "feasible": 0
+    },
+    {
+      "iter": 30,
+      "best_cost": 3060.079436207421,
+      "feasible": 0
+    },
+    {
+      "iter": 31,
+      "best_cost": 3060.079436207421,
+      "feasible": 0
+    },
+    {
+      "iter": 32,
+      "best_cost": 3060.079436207421,
+      "feasible": 0
+    },
+    {
+      "iter": 33,
+      "best_cost": 3059.708361388107,
+      "feasible": 0
+    },
+    {
+      "iter": 34,
+      "best_cost": 3059.708361388107,
+      "feasible": 0
+    },
+    {
+      "iter": 35,
+      "best_cost": 3059.708361388107,
+      "feasible": 0
+    },
+    {
+      "iter": 36,
+      "best_cost": 3059.3408610156334,
+      "feasible": 0
+    },
+    {
+      "iter": 37,
+      "best_cost": 3059.3408610156334,
+      "feasible": 0
+    },
+    {
+      "iter": 38,
+      "best_cost": 3059.3408610156334,
+      "feasible": 0
+    },
+    {
+      "iter": 39,
+      "best_cost": 3059.2515413015176,
+      "feasible": 0
+    },
+    {
+      "iter": 40,
+      "best_cost": 3059.2515413015176,
+      "feasible": 0
+    }
+  ],
+  "sensitivity": [
+    {
+      "param": "Kp_vpv",
+      "movable": true,
+      "base": 0.14082328094479948,
+      "f0": 3059.2515413015176,
+      "f_min": null,
+      "f_max": null,
+      "dF": 0.0,
+      "n_penalty": 9
+    },
+    {
+      "param": "Ki_vpv",
+      "movable": true,
+      "base": 2.44831714607009,
+      "f0": 3059.2515413015176,
+      "f_min": null,
+      "f_max": null,
+      "dF": 0.0,
+      "n_penalty": 9
+    },
+    {
+      "param": "Kp_ipv",
+      "movable": true,
+      "base": 0.0022146223960006557,
+      "f0": 3059.2515413015176,
+      "f_min": null,
+      "f_max": null,
+      "dF": 0.0,
+      "n_penalty": 9
+    },
+    {
+      "param": "Ki_ipv",
+      "movable": true,
+      "base": 0.12447224463333927,
+      "f0": 3059.2515413015176,
+      "f_min": null,
+      "f_max": null,
+      "dF": 0.0,
+      "n_penalty": 9
+    },
+    {
+      "param": "Kp_vdc",
+      "movable": true,
+      "base": 0.6196994384248615,
+      "f0": 3059.2515413015176,
+      "f_min": null,
+      "f_max": null,
+      "dF": 0.0,
+      "n_penalty": 9
+    },
+    {
+      "param": "Ki_vdc",
+      "movable": true,
+      "base": 5.40377639673373,
+      "f0": 3059.2515413015176,
+      "f_min": null,
+      "f_max": null,
+      "dF": 0.0,
+      "n_penalty": 9
+    },
+    {
+      "param": "Kp_iess",
+      "movable": true,
+      "base": 0.0015641989118721081,
+      "f0": 3059.2515413015176,
+      "f_min": null,
+      "f_max": null,
+      "dF": 0.0,
+      "n_penalty": 9
+    },
+    {
+      "param": "Ki_iess",
+      "movable": true,
+      "base": 2.3148148148148153,
+      "f0": 3059.2515413015176,
+      "f_min": null,
+      "f_max": null,
+      "dF": 0.0,
+      "n_penalty": 9
+    },
+    {
+      "param": "J",
+      "movable": true,
+      "base": 0.25330295910584444,
+      "f0": 3059.2515413015176,
+      "f_min": null,
+      "f_max": null,
+      "dF": 0.0,
+      "n_penalty": 9
+    },
+    {
+      "param": "Dp",
+      "movable": true,
+      "base": 3.2296949001171993,
+      "f0": 3059.2515413015176,
+      "f_min": null,
+      "f_max": null,
+      "dF": 0.0,
+      "n_penalty": 9
+    },
+    {
+      "param": "wc",
+      "movable": true,
+      "base": 133.12388064298736,
+      "f0": 3059.2515413015176,
+      "f_min": null,
+      "f_max": null,
+      "dF": 0.0,
+      "n_penalty": 9
+    },
+    {
+      "param": "nq",
+      "movable": true,
+      "base": 0.0008963827292668095,
+      "f0": 3059.2515413015176,
+      "f_min": null,
+      "f_max": null,
+      "dF": 0.0,
+      "n_penalty": 9
+    },
+    {
+      "param": "Kpv",
+      "movable": true,
+      "base": 0.005546326269464836,
+      "f0": 3059.2515413015176,
+      "f_min": -0.2954310033995099,
+      "f_max": -0.191294178049562,
+      "dF": 0.10413682534994789,
+      "n_penalty": 7
+    },
+    {
+      "param": "Kiv",
+      "movable": true,
+      "base": 0.5561840396986529,
+      "f0": 3059.2515413015176,
+      "f_min": null,
+      "f_max": null,
+      "dF": 0.0,
+      "n_penalty": 9
+    }
+  ],
+  "timestamp": "2026-10-19T16:07:51"
+}
