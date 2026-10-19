@@ -174,21 +174,100 @@ def objective(A):
     return -m['score']
 
 
-def objective_multi(ctrl, SCR_list, XR=1.0):
-    """다중 운전점 PSO 목적함수.
+def objective_points(ctrl, points):
+    """다중 운전점 목적함수 — 운전점을 **(SCR, X/R) 쌍**으로 받는다.
 
-    F_multi = min_k score(SCR_k)
+    F = min_k score(SCR_k, XR_k)
 
-    전 SCR 에서 동시에 기준을 만족해야 하므로 최솟값(가장 나쁜 운전점)이
-    전체를 대표한다. 가중합이 아닌 min 을 쓰는 이유: 한 운전점이 아무리
-    좋아도 다른 운전점의 미달을 보상해서는 안 되기 때문이다.
+    전 운전점에서 동시에 기준을 만족해야 하므로 최솟값(가장 나쁜 점)이
+    전체를 대표한다. 가중합이 아닌 min 을 쓰는 이유: 한 점이 아무리 좋아도
+    다른 점의 미달을 보상해서는 안 되기 때문이다.
+
+    왜 X/R 을 목록에 넣는가 — 2026-10-16 강건성 격자에서, X/R 을 1.0 으로
+    고정해 조정한 이득이 30점 중 15점에서 **불안정**했다. SCR 만 다중화하면
+    PSO 가 그 하나의 X/R 에 과적합한다. 축을 둘 다 목록에 넣어야 그 축에서도
+    최악점이 비용에 들어온다.
+
+    연속화(continuation)는 **X/R 묶음 안에서만** 한다. 직전 해를 초기추정으로
+    쓰는 방식인데, X/R 이 다르면 운전점이 전혀 다른 곳에 있어 직전 해가
+    도움이 되지 않고 오히려 조류계산을 어긋나게 한다. 묶음마다 다시 시작한다.
 
     반환: (cost, detail)
       cost   — PSO 최소화 대상 (작을수록 좋음)
-      detail — 디버깅용 dict {SCR: {score, sigma_min, zeta_min, stable, ...}}
+      detail — dict {(SCR, XR): {score, sigma_min, zeta_min, stable, ...}}
     """
     import op
-    import runner
+    import runner                                       # noqa: F401
+
+    op.CTRL.update(ctrl)
+
+    # X/R 로 묶고, 묶음 안에서는 SCR 내림차순 — 강한 계통부터 풀어
+    # 약한 계통으로 내려가며 직전 해를 쓴다 (기존 방식과 같다).
+    by_xr = {}
+    for s, x in points:
+        by_xr.setdefault(float(x), []).append(float(s))
+
+    detail = {}
+    worst_score = float('inf')
+    penalty = 0.0
+
+    for XR in sorted(by_xr, reverse=True):
+        xg = None                                       # 묶음마다 연속화 초기화
+        for SCR in sorted(set(by_xr[XR]), reverse=True):
+            key = (SCR, XR)
+            x0, ok, _ = op.solve_op(SCR, XR, xg)
+            if not ok:
+                detail[key] = {'converged': False}
+                penalty += 1e4
+                continue
+            xg = x0
+            A = op.jacobian(x0, SCR, XR)
+            m = metrics(A)
+            if m is None:
+                detail[key] = {'converged': True, 'modes': False}
+                penalty += 1e5
+                continue
+
+            detail[key] = {
+                'converged': True,
+                'stable': m['stable'],
+                'score': m['score'],
+                'sigma_min': m['sigma_min'],
+                'zeta_min': m['zeta_min'],
+                'binding': m['binding'],
+            }
+
+            if not m['stable']:
+                penalty += 1e3 + abs(m['sigma_min'])
+            else:
+                worst_score = min(worst_score, m['score'])
+
+    if penalty > 0:
+        cost = penalty
+    elif worst_score == float('inf'):
+        cost = 1e6
+    else:
+        cost = -worst_score
+
+    return cost, detail
+
+
+def objective_multi(ctrl, SCR_list, XR=1.0):
+    """X/R 하나에서의 다중 SCR 목적함수. `objective_points` 의 얇은 껍데기다.
+
+    서명과 `detail` 키(float SCR)를 **그대로 유지**한다 — `pso.py` 와
+    `robust_map.py` 가 이 형태로 부른다. 구현을 두 곳에 두지 않으려고
+    계산은 전부 objective_points 가 한다.
+    """
+    pts = [(float(s), float(XR)) for s in SCR_list]
+    cost, d = objective_points(ctrl, pts)
+    return cost, {scr: v for (scr, _xr), v in d.items()}
+
+
+def _objective_multi_legacy(ctrl, SCR_list, XR=1.0):
+    """2026-10-19 이전 구현. 위임이 맞는지 대조할 때만 쓴다."""
+    import op
+    import runner                                       # noqa: F401
 
     op.CTRL.update(ctrl)
     SCR_list = sorted((float(s) for s in SCR_list), reverse=True)
