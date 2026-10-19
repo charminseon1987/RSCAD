@@ -499,8 +499,22 @@
       "description": "X/R 스윕이 10→2 에서 멈춰 저 X/R(1.0~1.5) 영역이 비어 있고, SCR 은 Lg=0.5 p.u.=SCR 2 라는 한 점으로만 환산된다. SCR 과 X/R 을 함께 변화시킨 2차원 안정도 경계는 작도되지 않았으며, '저주파 전력모드는 안정 유지' 라는 서술에도 정량 경계가 없다.",
       "derived_from": ["C09", "C07", "C21"],
       "counter_search": {
-        "queries": [],
-        "status": "not_searched"
+        "queries": [
+          "grid-forming inverter stability boundary short circuit ratio X/R ratio two-dimensional map",
+          "grid-forming converter small-signal stability grid impedance angle R/X ratio eigenvalue sweep",
+          "droop-controlled inverter stability map short circuit ratio versus line resistance to reactance ratio",
+          "grid-forming inverter eigenvalue stability boundary contour varying short-circuit ratio and X/R ratio simultaneously",
+          "grid-forming converter robustness region SCR X/R heat map unstable stable grid strength sweep",
+          "OpenAlex cites: 10.1049/icp.2024.4667 (Luo MedPower 2024) 의 피인용 전수",
+          "OpenAlex cites: 10.1155/etep/6807672 (Salem & Aljarrah 2026) 의 피인용 전수"
+        ],
+        "status": "partially_addressed",
+        "date": "2026-10-19",
+        "found": [
+          "J. Wang, S. Ganguly, B. Kroposki, \"Experimental Evaluation of Impact of Short-Circuit Ratio (SCR) and X/R Ratio on Stability of Grid-Forming and Grid-Following Inverters,\" IEEE PESGM 2025, doi:10.1109/pesgm52009.2025.11225025 | depth: abstract | 메우는 정도: SCR 과 X/R 을 함께 변화시킨 하드웨어 시험을 실제로 수행한다 — '아무도 SCR·X/R 을 같이 안 봤다'는 쓸 수 없다. 다만 산출물은 소신호 고유값 2차원 안정도 경계가 아니라 상용기 2대의 POI 전압안정 추세다. ※ 초록이 'X/R 저하는 GFM 안정도에 부정적' 이라고 명시 — 이 레코드 C09 및 chen2025slgfmopenloop#C10 의 '낮은 X/R 이 유리' 와 반대 방향이다. 저 X/R 이 GFM 에 유리한지 불리한지가 문헌상 합의되지 않았다는 뜻이고, 내 주장은 이 상충을 인지한 채로 써야 한다.",
+          "X. Y. Deng et al., \"Transient Power Angle Stability Analysis of Grid-Forming Converters Under Resistive Short-Circuit Faults,\" Advanced Electromagnetics, vol. 15, no. 3, 2026, doi:10.7716/aem.v15i3.4182 | depth: abstract | 메우는 정도: 선로저항을 포함한 고장 해석모델에 '선로 임피던스비'와 SCR 을 함께 넣고 '과도 안정영역'을 스캔한다 — SCR × 임피던스비 2차원 영역 작도에 가장 가까운 것을 찾았다. 단 등면적법 기반 대신호 과도 전력각 안정도이고 소신호 고유값 경계가 아니다. 저널 수준 미파악."
+        ],
+        "notes": "결론: 「SCR·X/R 2차원」 영역은 비어 있지 않다. 다만 **소신호 고유값 기반 SCR × X/R 2차원 경계**를 X/R ≤ 2 까지 작도한 논문은 찾지 못했다 — 주장은 거기까지로 좁혀야 한다.\n확인하고 배제한 것: (1) X. Luo et al., \"Boundary Analysis of Damping Methods for Virtual Synchronous Generators,\" IEEE PESGM 2025, doi:10.1109/pesgm52009.2025.11225526 — MedPower 2024(10.1049/icp.2024.4667) 같은 Southampton 그룹의 직속 후속이고 초록이 \"boundaries are mapped in two dimensions\" 라고 하지만 그 두 축은 **제어 파라미터 × 계통 임피던스**이고 SCR × X/R 이 아니다. 따라서 이 공백을 메우지 않는다(depth: abstract). (2) Y. Pavankumar et al., \"Verification of Stability Boundaries of Grid Following and Grid Forming Inverters through Real-Time Simulations,\" Univ. of Southampton ePrints, 2026 — 같은 그룹의 실시간 검증 후속. OpenAlex 에 DOI·초록이 없어 **서지정보 미검증**이고 X/R 범위를 확인하지 못했다. 이것이 가장 큰 미확인 항목이다. (3) Luo MedPower 2024 의 피인용은 전수 2건뿐이고 Salem & Aljarrah 2026 은 0건 — 후속으로 공백이 메워진 흔적은 없다.\n못 본 것: 위 Southampton ePrints 본문; 10.1016/j.epsr.2026.113388, 10.1016/j.epsr.2026.112791, 10.1109/tec.2026.3707397 은 OpenAlex·Crossref 둘 다 초록이 없어 **제목만** 봤다. IEEE Xplore·ScienceDirect 유료 본문은 받지 않았다(도서관 경유 필요). 도구: Elicit 은 이 계정 플랜에 API 접근이 없어 사용 못 함(api_access_denied). OpenAlex(검색+인용추적) · Crossref · Semantic Scholar · arXiv · alphaXiv 로 대체했다."
       },
       "priority": "high",
       "target": "phd"

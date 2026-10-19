@@ -678,7 +678,22 @@
       "id": "G01",
       "description": "X/R 축의 정량화 공백 — SR 은 저항(낮은 X/R 유리), SSR 은 리액턴스(낮은 X/R 불리)에 반대로 의존한다는 메커니즘까지는 제시하지만, X/R 수치 조건도 X/R 스윕도 SCR-X/R 2차원 안정 경계도 없다. 특히 X/R 1.0~1.5 구간에서 두 공진 위험이 교차하는 지점은 미제시다. (반증 검색은 하지 않았지만, 볼트의 기존 레코드 chen2026lcl_slgfm#C09 와 chen2025slgfmopenloop#C10 이 X/R 을 각각 10→2, 17/6 의 이산점으로 다루며 '낮은 X/R 이 유리'하다는 같은 방향 결과를 이미 보고한다 — 즉 'X/R 을 아무도 안 봤다'로 쓰면 안 되고, 공백은 'X/R 연속 스윕과 SCR-X/R 2차원 경계'로 좁혀야 한다.)",
       "derived_from": ["C05", "C07", "C08", "C25"],
-      "counter_search": {"status": "not_searched"},
+      "counter_search": {
+        "queries": [
+          "grid-forming converter synchronous resonance sub-synchronous resonance opposite dependence grid resistance reactance damping",
+          "power synchronization control converter resonance low X/R resistive grid virtual resistance trade-off",
+          "grid-forming converter small-signal stability region short-circuit ratio and grid impedance angle resistive grid low X/R",
+          "synchronous resonance sub-synchronous resonance crossover X/R 1.0-1.5 grid-forming",
+          "OpenAlex cites: 10.1109/TPEL.2024.3424296 의 피인용 61건 전수 제목 열람"
+        ],
+        "status": "partially_addressed",
+        "date": "2026-10-19",
+        "found": [
+          "J. Wang, S. Ganguly, B. Kroposki, IEEE PESGM 2025, doi:10.1109/pesgm52009.2025.11225025 | depth: abstract | 메우는 정도: X/R 을 실제로 변화시킨 하드웨어 시험이 존재하므로 'X/R 스윕이 없다'는 문헌 공백으로 쓸 수 없다. 그리고 결론이 'X/R 저하는 GFM 에 불리, GFL 에 유리'로 **단일 방향**이다 — 즉 저 X/R 에서 GFM 위험이 커진다는 쪽이고, 이 레코드 C05/C07 이 말하는 'SR 은 저항이 유리' 와 충돌한다. 두 공진의 교차점을 정량화한 것은 아니지만, 교차 자체의 존재를 전제로 한 내 서술에는 반증 압력이 된다.",
+          "X. Y. Deng et al., Advanced Electromagnetics 15(3), 2026, doi:10.7716/aem.v15i3.4182 | depth: abstract | 메우는 정도: 선로 임피던스비와 SCR 을 함께 넣어 안정영역을 스캔한다. 단 과도 전력각 안정도이고 SR/SSR 공진 모드 교차와는 다른 현상이다."
+        ],
+        "notes": "핵심: **SR 과 SSR 이 X/R 1.0~1.5 에서 교차한다는 것을 정량화한 논문은 찾지 못했다.** 그러나 공백 문장의 앞부분(\"X/R 수치 조건도 스윕도 없다\")은 문헌 전체에 대해서는 거짓이다 — Q. Salem & R. Aljarrah 2026(doi:10.1155/etep/6807672, X/R 0.1~10 변화)과 Wang et al. 2025 가 이미 있다. 공백은 \"저 X/R 에서 SR·SSR 두 모드의 상반된 X/R 의존성이 교차하는 지점의 정량화\" 로만 좁혀야 한다.\n피인용 61건을 제목 단위로 전수 훑었다. 저 X/R 교차를 다룬 것은 없었고, 근접한 것은 동기공진(SR) 감쇠기법 쪽이다: 10.1016/j.epsr.2026.113388 (\"Damping enhancement technique for suppressing synchronous resonance in grid-forming inverters\"), 10.1016/j.epsr.2026.112791 (\"Adaptive dynamic virtual resistor method for suppressing synchronous frequency resonance\"), 10.1109/tec.2026.3707397 (\"A Robust Grid-Forming Stabilizer ... Against Wide SCR Variations\"). **이 셋은 OpenAlex·Crossref 모두 초록이 없어 제목만 봤다** — SR 전용인지, X/R 을 다루는지 확인하지 못했다. 이 공백을 \"열려 있다\"로 쓰기 전에 이 셋의 본문(도서관 경유)을 확인해야 한다.\n또 미열람: H. Xu, R. Dimitrovski, A. Lekić, \"A review of resonance stability issues in renewable-dominated power systems,\" IJEPES 2026, doi:10.1016/j.ijepes.2026.112194 — 공진을 모드쌍으로 4분류한 리뷰다. 초록에 X/R 언급은 없으나 분류 틀이 내 교차 주장과 겹칠 수 있어 본문 확인이 필요하다. 도구: Elicit 은 이 계정 플랜에 API 접근이 없어 사용 못 함(api_access_denied). OpenAlex(검색+인용추적) · Crossref · Semantic Scholar · arXiv · alphaXiv 로 대체했다."
+      },
       "priority": "high",
       "target": "phd"
     },
@@ -686,7 +701,22 @@
       "id": "G02",
       "description": "이득 조정이 수동·최악조건 해석설계(식 (6)(7))에 머문다 — SR 과 SSR 이 droop 이득·LPF 차단주파수·VVC/VCC 이득에 대해 반대 부호로 작용한다는 표까지 정리했으면서, 이 상충을 동시에 다루는 다목적 수치최적화(PSO 등)는 수행하지 않는다.",
       "derived_from": ["C08", "C09", "C14", "C10"],
-      "counter_search": {"status": "not_searched"},
+      "counter_search": {
+        "queries": [
+          "particle swarm optimization grid-forming inverter control parameter multi-objective small-signal stability damping ratio",
+          "multi-objective optimization virtual synchronous generator parameters conflicting oscillation modes PSO",
+          "grid-forming inverter stability region in SCR X/R plane robustness grid impedance plane particle swarm",
+          "PSO tuning droop gain LPF cutoff voltage control gain resonance trade-off grid-forming",
+          "OpenAlex cites: 10.1109/TPEL.2024.3424296 의 피인용 61건 전수 제목 열람"
+        ],
+        "status": "partially_addressed",
+        "date": "2026-10-19",
+        "found": [
+          "B. Pournazarian, R. Sangrody, M. Lehtonen, G. B. Gharehpetian, E. Pouresmaeil, \"Simultaneous Optimization of Virtual Synchronous Generators Parameters and Virtual Impedances in Islanded Microgrids,\" IEEE Trans. Smart Grid, 2022, doi:10.1109/tsg.2022.3186165 (피인용 76) | depth: abstract | 메우는 정도: **PSO 로 GFM(VSG) 이득을 수치최적화하는 것 자체는 신규하지 않다.** 소신호 모델에서 J·D 의 허용구간을 먼저 구하고, 그 구간 안에서 소신호 안정도 + 전류 오버슈트 + 무효전력 불일치를 함께 담은 목적함수로 J·D·가상임피던스를 동시에 최적화한다. 즉 '상충하는 목표를 PSO 로 동시에' 라는 구조가 이미 2022 년 IEEE TSG 에 있다. 다루는 상충이 SR↔SSR 이 아니라 안정도↔무효전력분담이고, 독립 MG 라서 SCR·X/R 스윕이 없다는 점만 다르다.",
+          "D.-T. Trinh, Y.-K. Wu, M.-H. Pham, \"A Novel Optimized Parameter Tuning Algorithm for Wind Turbine Grid-Forming Control to Mitigate Power Oscillations,\" IEEE Trans. Sustainable Energy, 2025, doi:10.1109/tste.2025.3585697 | depth: abstract | 메우는 정도: 이 공백에 가장 가깝다. 선형 상태공간 모델로 '외부루프-내부루프 상호작용'이 전력진동을 만드는 경로를 감도해석으로 짚고, **고유값 감쇠비와 제어루프 대역폭을 제약으로 넣어 내·외부 루프 이득을 동시에 자동 조정**한다. Zhao 가 표로 정리한 상충(모드별 반대 부호)을 수치최적화로 넘긴 사례로 읽힌다. 다만 초록에 최적화 알고리즘 이름(PSO 여부)이 없고, SR/SSR 두 공진을 명시적으로 두 목적으로 세운 다목적(Pareto) 정식화는 아니며, SCR·X/R 격자가 없다."
+        ],
+        "notes": "결론: 이 공백을 \"다목적 수치최적화를 아무도 안 했다\"로 쓰면 **틀린다.** PSO 로 GFM 이득을 최적화한 것(IEEE TSG 2022, 76회 피인용)과 고유값 감쇠비 제약으로 GFM 내·외부 루프를 동시 조정한 것(IEEE TSTE 2025)이 이미 있다. 남는 것은 좁은 두 가지뿐이다 — (a) SR 과 SSR 의 **반대 부호 의존성**을 명시적 목적/제약으로 세운 정식화, (b) 그 최적화를 **SCR × X/R 격자 위에서** 평가한 강건성.\n그 외 확인한 유사 사례(모두 depth: abstract): 10.3390/en19133081 (SCR 적응형 SG-PSO, 단 PMSG LVRT·GFL 계열), 10.3390/en18246621 (가상임피던스 다목적 강화학습, PSO 아님·부하 대상), 10.1109/access.2019.2900728, 10.1109/access.2020.3013031 (마이크로그리드 소신호 PSO 류). 못 본 것: Pournazarian 2022 와 Trinh 2025 의 **본문** — 목적함수 정식화가 진짜 다목적(Pareto)인지 가중합인지, Trinh 의 알고리즘이 PSO 인지는 초록으로 판단할 수 없다. 둘 다 IEEE 유료이므로 도서관 경유로 받아 확인해야 한다. 이 둘의 본문을 보기 전에는 내 PSO 기여를 \"최초\"로 서술하면 안 된다. 도구: Elicit 은 이 계정 플랜에 API 접근이 없어 사용 못 함(api_access_denied). OpenAlex(검색+인용추적) · Crossref · Semantic Scholar · arXiv · alphaXiv 로 대체했다."
+      },
       "priority": "high",
       "target": "phd"
     },

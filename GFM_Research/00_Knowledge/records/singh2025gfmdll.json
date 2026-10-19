@@ -923,7 +923,20 @@
         "C11"
       ],
       "counter_search": {
-        "status": "not_searched"
+        "queries": [
+          "hardware-in-the-loop validation grid-forming converter weak grid low X/R ratio resistive",
+          "controller hardware-in-the-loop CHIL grid-forming inverter varying X/R ratio grid impedance angle RTDS",
+          "CHIL RTDS grid-forming converter SCR 1 ultra-weak grid stability boundary validation",
+          "power synchronization control ultra-weak AC network control hardware-in-the-loop real-time digital simulator"
+        ],
+        "status": "partially_addressed",
+        "date": "2026-10-19",
+        "found": [
+          "J. F. Morris, K. H. Ahmed, A. Egea-Àlvarez, \"Power-Synchronization Control for Ultra-Weak AC Networks: Comprehensive Stability and Dynamic Performance Assessment,\" IEEE Open J. Ind. Electron. Soc., 2021, doi:10.1109/ojies.2021.3103278 | depth: abstract | 메우는 정도: **공백의 '약계통(SCR 3 이하) HIL 검증이 없다' 쪽을 무너뜨린다.** PSC(GFM 계열) VSC 를 소신호 고유값으로 해석해 '안정 조정영역(stable tuning region)'을 제어 파라미터 공간에 그리고, SCR = 1 에서 정격 전력전송이 가능함을 보이며, 그 영역의 SCR 변화에 대한 강건성까지 본다. 그리고 **경계 자체를 실시간 디지털 시뮬레이터 기반 CHIL 로 검증**한다. SCR 2점이 아니라 초약계통 SCR=1 CHIL 이 2021 년에 이미 있다. X/R 변화는 초록에 언급이 없다.",
+          "J. F. Morris, K. H. Ahmed, A. Egea-Àlvarez, \"Standardized Assessment Framework for Design and Operation of Weak AC Grid-Connected VSC Controllers,\" IEEE Access, 2021, doi:10.1109/access.2021.3094503 | depth: abstract | 메우는 정도: 약계통에서 VCC·PSC·VSM 셋을 소신호 모델 + 시간영역 + **CHIL RTDS** 로 같은 틀에 넣고 비교한다. 즉 '약계통 GFM 을 RTDS CHIL 로 검증하는 표준 절차'가 이미 제안되어 있다 — 내 CHIL 절차(A9)를 신규로 쓰기 어렵고, 이 틀과의 차이를 명시해야 한다. X/R 변화는 초록에 없다.",
+          "J. Flores Huaman, L. E. dos Santos, J. C. Ugaz Peña, R. Tonkoski, \"State-Space Modeling and C-HIL Validation of a VSM: Virtual-Resistance Effects Across Grid Strengths,\" TechRxiv preprint, 2025, doi:10.36227/techrxiv.175985871.10448229/v1 | depth: abstract | 메우는 정도: 50 kVA 변환기 C-HIL 로 VSM 전차수 상태공간 모델을 검증하고 **가상저항 rv 를 스윕**해 '약·중계통에서는 저주파 감쇠 개선, 강계통에서는 전류루프 위상여유 침식·LCL 공진 자극'이라는 상충을 정량화한다. 저항 성분과 계통강도의 상충을 CHIL 로 본 가장 가까운 사례다. 다만 변화시킨 것은 **가상저항이지 계통 X/R** 이 아니고, 서지정보는 프리프린트라 **미검증**이다."
+        ],
+        "notes": "결론을 둘로 갈라야 한다. (1) \"약계통(SCR 3 이하) HIL 검증이 없다\" — 문헌 전체로는 **거짓**이다. SCR=1 CHIL(RTDS)이 2021 년 Morris et al. 둘에 있다. 이 문장을 그대로 공백으로 쓰면 반증당한다. (2) \"저 X/R(1.0~1.5) 조건의 HIL 검증이 없다\" — 이쪽은 **찾지 못했다.** X/R 을 1.0~1.5 까지 내려 HIL/CHIL 로 GFM 을 검증한 논문은 이번 검색에서 나오지 않았다. 내 기여는 \"약계통 CHIL\" 이 아니라 \"**저 X/R 축을 포함한** CHIL\" 로만 주장할 수 있다.\n배제한 것: 10.3390/pr13103163 (PHIL 안정경계, 단 GFL 대상), 10.36227/techrxiv.174352120.08771507/v1 (P-HIL 약계통 보조서비스, SCR·관성 변화이고 X/R 아님), 10.3390/electronics13163143 (MVDC GFM C-HIL, X/R 언급 없음) — 모두 depth: abstract.\n못 본 것: Morris et al. 두 편의 본문 — CHIL 에서 X/R 을 실제로 바꿨는지는 초록으로 알 수 없다. 10.1109/ojies.2021.3103278 은 OA(IEEE Open Journal)라 본문 확인이 가능하니 다음 차례로 봐야 한다. 10.1109/access.2021.3094503 도 OA 다. 또 Y. Pavankumar et al., Univ. of Southampton ePrints 2026, \"Verification of Stability Boundaries of Grid Following and Grid Forming Inverters through Real-Time Simulations\" — DOI 미검증, 초록 없음. 실시간 검증 + 안정경계라 이 공백과 정면으로 겹칠 수 있는데 확인하지 못했다. 도구: Elicit 은 이 계정 플랜에 API 접근이 없어 사용 못 함(api_access_denied). OpenAlex(검색+인용추적) · Crossref · Semantic Scholar · arXiv · alphaXiv 로 대체했다."
       },
       "priority": "high",
       "target": "phd"
