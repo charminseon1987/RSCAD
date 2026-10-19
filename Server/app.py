@@ -1422,6 +1422,7 @@ def pso_not_implemented():
 def grid2d():
     """results/ 전체를 {XR: {SCR: sigma_min}} 격자로 집계."""
     grid = {}
+    src, state = {}, {}          # 칸의 지위와 판정을 따로 담는다
     all_xr, all_scr = set(), set()
     for d in sorted(RESULTS_ROOT.iterdir()):
         if not d.is_dir() or d.name.startswith('_'):
@@ -1442,6 +1443,8 @@ def grid2d():
         all_xr.add(float(xr_val))
         if xr_key not in grid:
             grid[xr_key] = {}
+            src[xr_key] = {}
+            state[xr_key] = {}
         for scr_key, v in e.items():
             if not isinstance(v, dict):
                 continue
@@ -1452,10 +1455,61 @@ def grid2d():
             all_scr.add(scr_num)
             if scr_num not in grid[xr_key] or sigma > grid[xr_key][scr_num]:
                 grid[xr_key][scr_num] = round(sigma, 5)
+                src[xr_key][scr_num] = 'run'
+                state[xr_key][scr_num] = 'run'
+
+    # ── robust_map_*.json 의 격자점도 같은 판에 올린다 ────────────────────
+    # 런 하나는 격자 한 칸(들)이라 results/ 만 훑으면 듬성듬성하다.
+    # robust_map 은 런 하나 안에서 (SCR, X/R) 격자를 통째로 평가하므로
+    # 같은 축에 얹으면 칸이 촘촘해진다.
+    #
+    # 다만 **섞어 두지 않는다.** 실제 런(run)과 격자 평가(map)는 지위가 다르다 —
+    # 런은 조류계산·고유값을 그 조건으로 직접 돌린 것이고, map 은 한 런의
+    # 이득을 다른 계통조건에 넣어 본 것이다. source 로 구분해 내보내고,
+    # 같은 칸이 겹치면 **런을 이긴 것으로 둔다**.
+    #
+    # state 도 따로 낸다. sigma 숫자만 주면 "운전점이 없는 칸"과 "불안정한
+    # 칸"이 같아 보인다 — robust_map 은 그 둘을 이미 갈라 두었다.
+    for d in sorted(RESULTS_ROOT.iterdir()):
+        if not d.is_dir() or d.name.startswith('_'):
+            continue
+        for mp2 in sorted(d.glob('robust_map_*.json')):
+            try:
+                rm = json.loads(mp2.read_text(encoding='utf-8'))
+            except (json.JSONDecodeError, OSError):
+                continue
+            cases = rm.get('cases') or []
+            if not cases:
+                continue
+            # 마지막 case 가 조정 이득이다 (기준 이득이 먼저 들어간다).
+            for pt in (cases[-1].get('points') or []):
+                try:
+                    xr_v, scr_v = float(pt['XR']), float(pt['SCR'])
+                except (KeyError, TypeError, ValueError):
+                    continue
+                xr_k = f'{xr_v:.1f}'
+                all_xr.add(xr_v)
+                all_scr.add(scr_v)
+                grid.setdefault(xr_k, {})
+                src.setdefault(xr_k, {})
+                state.setdefault(xr_k, {})
+                if src[xr_k].get(scr_v) == 'run':
+                    continue                     # 실제 런이 이긴다
+                st = pt.get('state')
+                sg = pt.get('sigma_min')
+                state[xr_k][scr_v] = st
+                src[xr_k][scr_v] = 'map'
+                if isinstance(sg, (int, float)):
+                    grid[xr_k][scr_v] = round(float(sg), 5)
+
     return jsonify({
         'grid': grid,
         'gridXR': sorted(all_xr),
         'gridSCR': sorted(all_scr, reverse=True),
+        # 아래 둘은 추가분이다. 기존 소비자(Stability.tsx)는 위 셋만 읽으므로
+        # 모르고 지나가도 동작이 바뀌지 않는다.
+        'gridSource': src,      # 'run' | 'map' — 칸의 지위
+        'gridState': state,     # pass | fail | unstable | nonconverged | run
     })
 
 
