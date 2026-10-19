@@ -74,6 +74,30 @@ def cost_point(meta, r):
 F = sum(cost_point(...) for k in GRID) / len(GRID)
 ```
 
+> ## ⚠ 이 절은 폐기됐다 — 구현이 다르다 (2026-10-19 확인)
+>
+> 위 v2 안(`ALPHA·F1 + BETA·F2 + GAMMA·F3` 를 격자에서 **평균**)은
+> **구현되지 않았다.** `Simulation/metrics.py` 의 실제 목적함수는 다르다:
+>
+> ```python
+> score = min(σ_min/SIGMA_REF, ζ_min/ZETA_FLOOR)   # 한 운전점 — 가중치 없음
+> F     = min_k score(point_k)                      # 전 운전점 — 최악점
+> ```
+>
+> 바뀐 것 둘:
+> - **집계가 평균이 아니라 `min`** 이다 (`metrics.py:243`, `:306`).
+>   한 운전점이 아무리 좋아도 다른 점의 미달을 보상하면 안 되기 때문이다.
+> - **가중합이 아니라 두 비(比)의 `min`** 이다. `ALPHA·BETA·GAMMA` 는 쓰지
+>   않는다 — 가중치를 정할 근거가 없었다.
+>
+> 2026-10-19 에 Pournazarian 2022(TSG) 정독 중 이 불일치가 드러났다.
+> 그 논문은 `ΔQ·(1−ζmin)` 라는 **곱** 형태를 쓰고 저자가 "가중치가 필요 없다"
+> 고 밝히는데, 내 설계노트를 대조하다 노트 쪽이 낡은 것을 알았다.
+>
+> **노트가 아니라 코드가 권위다.** `metrics.objective_points` 를 보라.
+> `schedule.yaml` 의 P4-A2 가 "구 F_multi 는 강건성을 악화시킨다" 고 적은
+> 그 구 설계가 바로 이 v2 안이다 — 폐기 사유가 거기 있다.
+
 ### 지표 대응표
 
 | 모드 | 성격 | 지표 | 근거 |
