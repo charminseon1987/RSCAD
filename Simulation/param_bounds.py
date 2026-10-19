@@ -42,11 +42,19 @@ best 는 설계값이 아니다. 이 파일은 그 범위를 **근거 있는 수
 "더 안정한 쪽"을 고를 뿐이고, 관성을 얼마나 낼 것인지·주파수를 얼마나 떨어뜨릴
 것인지는 **쓰는 쪽이 요구하는 수**다. 그 요구를 명시 인자로 받아 환산한다.
 
-J (가상 관성) ← RoCoF 요구
+J (가상 관성) ← **연구가 선언한 RoCoF 목표** (표준 아님 — 2026-10-19 정정)
     관성상수 H = ½·J·w0²/S 이고, 전력 불평형 ΔP 에서 주파수 변화율은
     RoCoF = f0·ΔP/(2H) 다. 둘을 합치면 하한이 나온다.
 
-        H ≥ f0·ΔP / (2·RoCoF_max)           ΔP 를 견디려면 이만큼 무거워야
+        H ≥ f0·ΔP / (2·RoCoF_target)        ΔP 를 견디려면 이만큼 무거워야
+
+    ⚠ **이 식은 옳지만 RoCoF_target 은 규정값이 아니다.** 처음엔 "RoCoF 요구
+    에서 유도했다" 고 적었는데 틀렸다. 표준의 RoCoF 수치는 전부 **견딤
+    (ride-through)** 규격이고(1547 Table 21: Cat III 3.0 Hz/s "shall not
+    trip" · 2800: 5.0 Hz/s), 1547 Clause 6.5.2.8 은 아예 "Inertial response
+    ... is not required" 라고 적는다. 즉 **표준은 관성 하한을 주지 않는다.**
+    RoCoF_target 은 연구가 선언하는 설계목표이고, 논문은 그렇게 밝혀야 한다.
+    근거 상수와 출처는 ROCOF_REF 를 보라.
 
     상한은 반대 방향에서 온다. H 가 크면 같은 사건에서 **더 많은 전력**을
     관성으로 내보내야 한다 (P_in = 2H·S·RoCoF/f0). 그 전력을 못 내면 포화한다.
@@ -159,6 +167,46 @@ DROOP_FLOOR = {
 }
 DROOP_CEIL = 5.0   # 세 표준 공통. 상한은 minimum requirement 라 넘어도 된다.
 
+# ── RoCoF — 2026-10-19 에 찾아보고 **내가 틀렸다는 것을 확인했다** ─────────────
+#
+# 2026-10-16 에 J 하한을 "RoCoF 요구에서 유도했다" 고 적고 1.0 Hz/s 를 썼다.
+# 그 수는 **어느 표준에도 없다.** 그리고 더 중요한 것 — 표준의 RoCoF 수치는
+# 전부 **견딤(ride-through)** 규격이지 관성 크기 요구가 아니다.
+#
+#   IEEE 1547-2018 Table 21 "ROCOF Ride-Through Requirements"
+#     Cat I 0.5 · Cat II 2.0 · Cat III 3.0 Hz/s
+#     원문 맥락: "DERs **shall not trip** for frequency excursions having a
+#     magnitude of ROCOF that is less than or equal to the values specified"
+#     → 이만큼 흔들려도 떨어지지 말라는 뜻이다. 이만큼 억누르라는 뜻이 아니다.
+#
+#   IEEE 2800-2022 (송전연계 IBR)
+#     "Capability to ride through an absolute ROCOF magnitude that is less
+#      than or equal to 5.0 Hz/s"  — 역시 견딤이다.
+#
+#   IEEE 1547-2018 Clause 6.5.2.8 — 쐐기를 박는 문장:
+#     "Inertial response, in which the DER active power is varied in
+#      proportion to the ROCOF, **is not required** but is permitted."
+#     → 1547 은 관성 제공 자체를 요구하지 않는다.
+#
+# 확인 경로: NERC, "Reliability Guideline — Bulk Power System Reliability
+# Perspectives on the Adoption of IEEE 1547-2018," 2023-03, Table 2.4
+# (= 1547 Table 21 전재) 및 Clause 6.5.2.8 인용문. **표·인용문 원문 확인.**
+# IEEE 2800 쪽은 IEEE SA 가 올린 "IEEE Std 2800-2022 ... SEIA/ACP Joint
+# Webinar," 2022-05-31 자료의 ride-through 절. **원문 확인.**
+# ※ 두 표준 **본문 자체는 못 봤다** — 전재본·발표자료를 봤다.
+#
+# 결론: **J 하한은 표준에서 유도할 수 없다.** 쓰려면 연구가 선언해야 한다.
+#   H >= f0·dP / (2·RoCoF_target)
+# 이 식 자체는 물리적으로 옳다 — 다만 RoCoF_target 은 **설계 목표**이지
+# 규정값이 아니다. 아래 표는 "그 목표를 어디에 맞출까" 의 후보일 뿐이고,
+# 어느 것을 쓰든 논문은 "선언했다" 고 밝혀야 한다.
+ROCOF_REF = {
+    '1547-I':   (0.5, 'IEEE 1547-2018 Table 21 · Cat I 견딤값 (설계목표 아님)'),
+    '1547-II':  (2.0, 'IEEE 1547-2018 Table 21 · Cat II 견딤값 (설계목표 아님)'),
+    '1547-III': (3.0, 'IEEE 1547-2018 Table 21 · Cat III 견딤값 (설계목표 아님)'),
+    '2800':     (5.0, 'IEEE 2800-2022 견딤값 (설계목표 아님)'),
+}
+
 
 def plant_from(meta):
     """플랜트 상수와 정상상태 듀티. meta.json 에서 읽고 계산한다."""
@@ -232,8 +280,10 @@ def derive(p, sep_lo, sep_hi, req):
             f'H≥{H_lo:.2f} s 인데 여유전력 P_hdr={req["p_hdr_pu"]:g} pu 로는 '
             f'H≤{H_hi:.2f} s 까지만 낼 수 있다. --p-hdr 를 --dp-step 보다 크게.')
     put('J', J_of_H(H_lo), J_of_H(H_hi),
-        f'RoCoF ≤ {req["rocof"]:g} Hz/s · ΔP = {req["dP_pu"]:g} pu '
-        f'(하한) / ESS 여유 P_hdr = {req["p_hdr_pu"]:g} pu (상한) · H = ½·J·w0²/S')
+        f'**선언한 설계목표** RoCoF_target {req["rocof"]:g} Hz/s · ΔP '
+        f'{req["dP_pu"]:g} pu (하한) / ESS 여유 {req["p_hdr_pu"]:g} pu (상한) · '
+        'H = ½·J·w0²/S. ⚠ 표준에서 유도한 값이 아니다 — 1547·2800 의 RoCoF 는 '
+        '견딤 규격이고 1547 Cl.6.5.2.8 은 관성응답을 요구하지 않는다 (가정 A4)')
     B['J'].update({'H_range': [float(H_lo), float(H_hi)], 'H_of_base': None})
 
     # Dp ← 드룹 규정. droop 이 클수록 Dp 는 작다 — 뒤집어서 넣는다.
@@ -434,17 +484,24 @@ def main():
              'text': 'J·Dp·nq 를 요구사항에서 유도했다. 더는 A안 배율을 쓰지 '
                      '않는다 — 14개 전부가 B안 범위를 받는다. 남은 미검증은 '
                      '요구값 자체이며 A4 에 적는다.'},
-            {'id': 'A4', 'status': '부분 확인 (2026-10-16)',
+            {'id': 'A4', 'status': '드룹=원문 확인 · RoCoF=반증됨 (2026-10-19)',
              'text': f'드룹 {droop[0]:g}~{droop[1]:g}% — **표 원문 확인**. '
                      f'{droop_basis}. 하한은 표준이 "shall not be set to lower '
-                     'values" 로 못박은 limiting requirement 이고, 상한 5% 는 '
-                     'minimum requirement 라 더 소프트하게 둬도 된다. '
-                     '다만 IEEE 1547-2018 본문이 아니라 NERC Reliability '
-                     'Guideline(2023-03) Table 2.6 이 전재한 표를 봤다. '
-                     f'남은 미검증: RoCoF 한계 {a.rocof:g} Hz/s · 불평형 '
-                     f'{a.dp_step:g} pu · 전압 드룹 {a.vdroop[0]:g}~'
-                     f'{a.vdroop[1]:g}% 는 여전히 통상값이고 출처가 없다. '
-                     '이 셋은 인용 근거로 쓰면 안 된다.'},
+                     'values" 로 못박은 limiting requirement 다. '
+                     '── RoCoF 는 다르다. 2026-10-16 에 "RoCoF 요구에서 J 하한을 '
+                     f'유도했다" 고 적고 {a.rocof:g} Hz/s 를 썼는데, 2026-10-19 에 '
+                     '찾아본 결과 **그 수는 어느 표준에도 없고 더 근본적으로 '
+                     '표준의 RoCoF 는 견딤(ride-through) 규격이지 관성 크기 '
+                     '요구가 아니다**. IEEE 1547-2018 Table 21 은 Cat I/II/III '
+                     '0.5/2.0/3.0 Hz/s 를 "shall not trip" 조건으로 주고, '
+                     'IEEE 2800-2022 는 5.0 Hz/s 를 같은 성격으로 준다. '
+                     '결정적으로 1547 Clause 6.5.2.8 이 "Inertial response ... '
+                     'is not required but is permitted" 라고 적는다. '
+                     f'→ **J 범위는 표준 유도가 아니라 연구 선언이다** '
+                     f'(RoCoF_target {a.rocof:g} Hz/s · ΔP {a.dp_step:g} pu). '
+                     '논문은 "선언했다" 고 밝혀야 하고, 그 선언의 근거를 따로 '
+                     '대야 한다. 전압 드룹 '
+                     f'{a.vdroop[0]:g}~{a.vdroop[1]:g}% 는 여전히 출처 없음.'},
             {'id': 'A5', 'status': '연구 가정',
              'text': f'ESS 과도출력 여유를 {a.p_hdr:g} pu 로 뒀다 — J 상한이 '
                      '여기서 나온다. 모델에 ESS 정격이 없어 유도할 수 없었다. '
