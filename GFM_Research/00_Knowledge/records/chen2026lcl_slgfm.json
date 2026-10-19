@@ -2,10 +2,10 @@
   "schema_version": "1.0",
   "paper": {
     "bib_verification": {
-      "status": "unverified",
-      "retracted": null,
-      "registry": null,
-      "notes": "early access — 권/호/페이지 미확인이라 지시에 따라 미검증으로 둔다. 2026-10-14 ce_tool.py verify --dry-run 에서 DOI 10.1109/TIE.2026.3692859 는 해석됨(✓)을 확인했으나, 레코드에는 쓰지 않았다 — 확정하려면 --dry-run 없이 verify 를 돌릴 것."
+      "status": "resolved",
+      "retracted": false,
+      "registry": "crossref",
+      "checked_date": "2026-10-19"
     },
     "id": "chen2026lcl_slgfm",
     "title": "LCL Resonance Analysis and Damping in Single-Loop Grid-Forming Wind Turbines",
